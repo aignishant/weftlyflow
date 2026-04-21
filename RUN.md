@@ -84,23 +84,57 @@ python -m weftlyflow version
 
 ```bash
 make lint && make typecheck
-pytest tests/unit/engine -v        # engine-layer unit tests
-pytest tests/unit/test_smoke.py    # smoke still passes
+pytest tests/unit/engine -v        # 22 engine-layer unit tests
+pytest tests/unit/nodes  -v        # 46 node-layer unit tests
+pytest tests/unit/test_smoke.py    # Phase-0 smoke still passes
 ```
 
-Smoke program (run from the repo root):
+Live smoke — runs the 5-node acceptance workflow end to end:
 
 ```bash
 python - <<'PY'
-from weftlyflow.domain import Workflow, Node, Connection, new_workflow_id, new_node_id
-# Phase 1 adds WorkflowExecutor — uncomment once it exists:
-# from weftlyflow.engine.executor import WorkflowExecutor
-# wf = Workflow(id=new_workflow_id(), project_id="pr_demo", name="demo", nodes=[...], connections=[...])
-# result = await WorkflowExecutor().run(wf, initial_items=[])
-# print(result.status)
-print("Phase 1 scaffolding present.")
+import asyncio
+from weftlyflow.domain.execution import Item
+from weftlyflow.domain.ids import new_node_id, new_workflow_id
+from weftlyflow.domain.workflow import Connection, Node, Workflow
+from weftlyflow.engine.executor import WorkflowExecutor
+from weftlyflow.nodes.registry import NodeRegistry
+
+registry = NodeRegistry()
+registry.load_builtins()
+print(f"registered {len(registry)} builtin nodes")
+
+trigger = Node(id=new_node_id(), name="Trigger", type="weftlyflow.manual_trigger")
+setter = Node(id=new_node_id(), name="Tag", type="weftlyflow.set",
+              parameters={"assignments": [{"name": "tagged", "value": True}]})
+decision = Node(id=new_node_id(), name="Adult?", type="weftlyflow.if",
+                parameters={"field": "age", "operator": "greater_than_or_equal", "value": 18})
+adults = Node(id=new_node_id(), name="Adults", type="weftlyflow.no_op")
+minors = Node(id=new_node_id(), name="Minors", type="weftlyflow.code")
+
+wf = Workflow(
+    id=new_workflow_id(), project_id="pr_demo", name="demo",
+    nodes=[trigger, setter, decision, adults, minors],
+    connections=[
+        Connection(source_node=trigger.id, target_node=setter.id),
+        Connection(source_node=setter.id, target_node=decision.id),
+        Connection(source_node=decision.id, target_node=adults.id,
+                   source_port="true", source_index=0),
+        Connection(source_node=decision.id, target_node=minors.id,
+                   source_port="false", source_index=1),
+    ],
+)
+items = [Item(json={"age": 30}), Item(json={"age": 10}), Item(json={"age": 21})]
+execution = asyncio.run(WorkflowExecutor(registry).run(wf, initial_items=items))
+
+print(f"status: {execution.status}")
+print(f"adults -> {[i.json for i in execution.run_data.per_node[adults.id][0].items[0]]}")
+print(f"minors -> {[i.json for i in execution.run_data.per_node[minors.id][0].items[0]]}")
 PY
 ```
+
+Expected output: `status: success`, adults list contains ages 30 and 21
+(both tagged), minors contains age 10 (also tagged).
 
 ### Phase 2 — Persistence + API
 

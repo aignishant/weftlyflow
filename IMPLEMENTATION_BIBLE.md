@@ -1349,15 +1349,21 @@ Goal: a repo that lints, builds docs, and has a working CI loop with a "hello" w
 Goal: a callable Python API that runs a workflow in-memory.
 
 **Deliverables:**
-- Domain dataclasses (Workflow, Node, Connection, Execution, Item, RunData).
-- `engine.graph` — DAG analysis.
-- `engine.executor.WorkflowExecutor.run()` with sync `BaseNode` execution.
-- `engine.hooks.LifecycleHooks`.
-- `nodes.registry.NodeRegistry` + `@register_node` decorator.
-- Tier-1 core nodes: Manual Trigger, If, Set, NoOp, Code (trivial identity for now).
-- Unit tests: happy-path, branching, continue-on-fail, error propagation.
+- [x] Domain dataclasses (Workflow, Node, Connection, Execution, Item, RunData).
+- [x] `engine.graph` — DAG analysis (Kahn's topo + cycle detection + fan-in/out).
+- [x] `engine.executor.WorkflowExecutor.run()` — readiness-based async scheduler.
+- [x] `engine.hooks.LifecycleHooks` + `NullHooks` default.
+- [x] `nodes.registry.NodeRegistry` + `@register_node` decorator + `load_builtins()`.
+- [x] Tier-1 core nodes: Manual Trigger, If, Set, NoOp, Code (identity stub).
+- [x] Unit tests: happy-path, branching, continue-on-fail, error propagation,
+      disabled nodes, pin_data, unknown node type, execution-id override,
+      every predicate operator, dotted-path helpers, registry semantics.
 
-**Acceptance:** A test constructs a 5-node workflow in code, runs it through the engine, asserts output shape.
+**Acceptance:** `tests/unit/engine/test_five_node_run.py` constructs a 5-node
+workflow (ManualTrigger → Set → If → NoOp | Code), runs it through
+:class:`WorkflowExecutor`, and asserts routing + tagging produced the expected
+shape. Full `make lint && make typecheck && make test && make docs-build` is
+green.
 
 ### Phase 2 — Persistence + API (2–3 sessions)
 
