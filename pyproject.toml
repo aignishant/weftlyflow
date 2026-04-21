@@ -30,7 +30,7 @@ dependencies = [
     "python-multipart>=0.0.9",
     "websockets>=12.0",
     # data
-    "pydantic>=2.6",
+    "pydantic[email]>=2.6",
     "pydantic-settings>=2.2",
     "sqlalchemy>=2.0.29",
     "alembic>=1.13",
@@ -156,6 +156,13 @@ convention = "google"
 "tests/**" = ["D", "PLR2004", "S101", "PLC0415"]
 "src/weftlyflow/db/migrations/versions/*.py" = ["D", "E501"]
 "scripts/**" = ["D"]
+# FastAPI's standard `Depends(...)` / `Query(...)` / `Header(...)` argument
+# defaults trip B008; they are the idiomatic pattern and safe because FastAPI
+# re-evaluates each call per request.
+"src/weftlyflow/server/deps.py" = ["B008"]
+"src/weftlyflow/server/routers/**" = ["B008"]
+"src/weftlyflow/server/middleware.py" = ["BLE001"]
+"src/weftlyflow/server/routers/health.py" = ["BLE001"]
 
 [tool.black]
 line-length = 100

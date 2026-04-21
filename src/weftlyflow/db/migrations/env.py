@@ -12,12 +12,10 @@ from alembic import context
 from sqlalchemy import engine_from_config, pool
 
 from weftlyflow.config import get_settings
-from weftlyflow.db.base import Base
 
-# Entity modules will be imported here in Phase 2 for their side effects
-# (each module calls ``mapped_column(...)`` which registers a table on
-# ``Base.metadata``). Until then the metadata is empty and autogenerate emits
-# no-op revisions, which is the desired Phase-0 behaviour.
+# Importing the entities package registers every table on ``Base.metadata``.
+from weftlyflow.db import entities  # noqa: F401
+from weftlyflow.db.base import Base
 
 config = context.config
 config.set_main_option("sqlalchemy.url", get_settings().database_url.replace("+aiosqlite", ""))

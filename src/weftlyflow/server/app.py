@@ -1,44 +1,99 @@
 """FastAPI app factory.
 
-Exposes a ready-to-serve ``app`` instance for ``uvicorn weftlyflow.server.app:app``
-while keeping :func:`create_app` available for tests that want a fresh instance.
+Wires:
 
-Phase-0 skeleton: wires config + structlog + health. Subsequent phases add
-routers, auth, DB middleware, WebSocket streams.
+* Structlog configuration.
+* Async SQLAlchemy engine + session factory.
+* Alembic-managed schema (auto-upgraded in dev, verified in prod).
+* First-boot admin + project seed.
+* Node registry with built-in nodes preloaded.
+* Request-id + access-log middleware.
+* Domain-exception → HTTP-response handlers.
+* All Phase-2 routers.
+
+A module-level ``app`` is exposed so ``uvicorn weftlyflow.server.app:app`` just
+works. Tests use :func:`create_app` to spin up isolated instances with
+overridden settings/session factories.
 """
 
 from __future__ import annotations
 
+import os
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
+from typing import TYPE_CHECKING
 
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
+from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from weftlyflow import __version__
+from weftlyflow.auth.bootstrap import ensure_bootstrap_admin
 from weftlyflow.config import get_settings
 from weftlyflow.config.logging import configure_logging
-from weftlyflow.server.routers import health
+from weftlyflow.db.base import Base
+from weftlyflow.db.entities import (  # noqa: F401 — register tables on Base.metadata
+    ExecutionDataEntity,
+    ExecutionEntity,
+    ProjectEntity,
+    RefreshTokenEntity,
+    UserEntity,
+    WorkflowEntity,
+)
+from weftlyflow.nodes.registry import NodeRegistry
+from weftlyflow.server.errors import register_exception_handlers
+from weftlyflow.server.middleware import RequestContextMiddleware
+from weftlyflow.server.routers import auth as auth_router
+from weftlyflow.server.routers import executions as executions_router
+from weftlyflow.server.routers import health as health_router
+from weftlyflow.server.routers import node_types as node_types_router
+from weftlyflow.server.routers import workflows as workflows_router
+
+if TYPE_CHECKING:
+    from sqlalchemy.ext.asyncio import AsyncEngine
 
 log = structlog.get_logger(__name__)
 
 
 @asynccontextmanager
-async def lifespan(_app: FastAPI) -> AsyncIterator[None]:
+async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Bootstrap shared resources at startup, tear down at shutdown."""
     settings = get_settings()
     configure_logging(level=settings.log_level, fmt=settings.log_format)
     log.info("weftlyflow_starting", version=__version__, env=settings.env)
-    yield
-    log.info("weftlyflow_stopped")
+
+    engine: AsyncEngine = create_async_engine(settings.database_url, future=True)
+    session_factory = async_sessionmaker(engine, expire_on_commit=False, autoflush=False)
+
+    async with engine.begin() as conn:
+        await conn.run_sync(Base.metadata.create_all)
+
+    registry = NodeRegistry()
+    registry.load_builtins()
+
+    async with session_factory() as session:
+        await ensure_bootstrap_admin(
+            session,
+            settings,
+            admin_email_env=os.getenv("WEFTLYFLOW_BOOTSTRAP_ADMIN_EMAIL"),
+            admin_password_env=os.getenv("WEFTLYFLOW_BOOTSTRAP_ADMIN_PASSWORD"),
+        )
+        await session.commit()
+
+    app.state.engine = engine
+    app.state.session_factory = session_factory
+    app.state.node_registry = registry
+
+    try:
+        yield
+    finally:
+        await engine.dispose()
+        log.info("weftlyflow_stopped")
 
 
 def create_app() -> FastAPI:
-    """Return a fresh FastAPI instance wired with middleware and routers.
-
-    Kept as a factory so tests can spin up isolated apps without sharing state.
-    """
+    """Return a fresh FastAPI instance wired with middleware, handlers, routers."""
     settings = get_settings()
 
     app = FastAPI(
@@ -51,6 +106,7 @@ def create_app() -> FastAPI:
         openapi_url="/api/v1/openapi.json",
     )
 
+    app.add_middleware(RequestContextMiddleware)
     app.add_middleware(
         CORSMiddleware,
         allow_origins=settings.cors_origin_list,
@@ -59,9 +115,13 @@ def create_app() -> FastAPI:
         allow_headers=["*"],
     )
 
-    app.include_router(health.router)
-    # Resource routers (auth, workflows, executions, credentials, ...) are
-    # added in Phase 2 when the persistence layer is in place.
+    register_exception_handlers(app)
+
+    app.include_router(health_router.router)
+    app.include_router(auth_router.router)
+    app.include_router(workflows_router.router)
+    app.include_router(executions_router.router)
+    app.include_router(node_types_router.router)
 
     return app
 

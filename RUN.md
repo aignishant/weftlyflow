@@ -140,15 +140,65 @@ Expected output: `status: success`, adults list contains ages 30 and 21
 
 ```bash
 make lint && make typecheck && make test
-make db-upgrade                    # applies migrations cleanly
-pytest -m integration              # FastAPI + in-memory SQLite + fakeredis
+pytest -m integration              # 21 HTTP + DB integration tests
+```
 
-# Smoke the HTTP surface:
-make dev-api &                     # start server in background
-sleep 2
-curl -fsS http://localhost:5678/api/v1/docs >/dev/null   # OpenAPI UI reachable
-curl -fsS http://localhost:5678/readyz
-kill %1                            # stop server
+Live smoke — the bible's acceptance walk (login → create workflow → execute → read back):
+
+```bash
+# Terminal 1 — start the server. First boot auto-creates an admin; the
+# generated password prints at warning level in the log. Or pre-seed it:
+WEFTLYFLOW_BOOTSTRAP_ADMIN_EMAIL=admin@weftlyflow.io \
+WEFTLYFLOW_BOOTSTRAP_ADMIN_PASSWORD=s3cret \
+make dev-api
+
+# Terminal 2 — exercise the API:
+BASE=http://localhost:5678
+TOKEN=$(curl -sfS -X POST $BASE/api/v1/auth/login \
+  -H 'content-type: application/json' \
+  -d '{"email":"admin@weftlyflow.io","password":"s3cret"}' | jq -r .access_token)
+
+WF=$(curl -sfS -X POST $BASE/api/v1/workflows \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'content-type: application/json' \
+  -d @- <<'JSON' | jq -r .id
+{
+  "name": "acceptance",
+  "nodes": [
+    {"id": "trigger", "name": "Trigger", "type": "weftlyflow.manual_trigger"},
+    {"id": "tag", "name": "Tag", "type": "weftlyflow.set",
+     "parameters": {"assignments": [{"name": "tagged", "value": true}]}},
+    {"id": "decide", "name": "Adult?", "type": "weftlyflow.if",
+     "parameters": {"field": "age", "operator": "greater_than_or_equal", "value": 18}},
+    {"id": "adults", "name": "Adults", "type": "weftlyflow.no_op"},
+    {"id": "minors", "name": "Minors", "type": "weftlyflow.code"}
+  ],
+  "connections": [
+    {"source_node": "trigger", "target_node": "tag"},
+    {"source_node": "tag", "target_node": "decide"},
+    {"source_node": "decide", "target_node": "adults", "source_port": "true",  "source_index": 0},
+    {"source_node": "decide", "target_node": "minors", "source_port": "false", "source_index": 1}
+  ]
+}
+JSON
+)
+
+EX=$(curl -sfS -X POST $BASE/api/v1/workflows/$WF/execute \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'content-type: application/json' \
+  -d '{"initial_items":[{"age":30},{"age":10},{"age":21}]}' | jq -r .id)
+
+curl -sfS $BASE/api/v1/executions/$EX -H "Authorization: Bearer $TOKEN" | jq .status
+# -> "success"
+```
+
+Other useful Phase-2 endpoints:
+
+```bash
+curl -sfS $BASE/api/v1/node-types -H "Authorization: Bearer $TOKEN" | jq '. | length'
+curl -sfS $BASE/api/v1/workflows  -H "Authorization: Bearer $TOKEN"
+curl -sfS $BASE/api/v1/executions -H "Authorization: Bearer $TOKEN"
+curl -sfS $BASE/readyz                      # 200 ready; 503 if DB is down
 ```
 
 ### Phase 3 — Workers + webhooks + triggers

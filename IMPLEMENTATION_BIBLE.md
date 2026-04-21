@@ -1367,13 +1367,25 @@ green.
 
 ### Phase 2 — Persistence + API (2–3 sessions)
 
-- SQLAlchemy 2.x entities + Alembic.
-- Repositories.
-- FastAPI server with `workflows`, `executions`, `node_types` CRUD.
-- JWT auth, project scoping.
-- Structlog request-id middleware.
+- [x] SQLAlchemy 2.x entities (users, projects, workflows, executions,
+      execution_data, refresh_tokens) + typed ``Mapped[...]`` style + Alembic
+      initial migration.
+- [x] Async repositories (user, project, workflow, execution, refresh_token)
+      — all project-scoped on mutable queries.
+- [x] FastAPI routers: ``auth`` (login/refresh/logout/register/me),
+      ``workflows`` (CRUD + execute), ``executions`` (list + detail),
+      ``node_types`` (catalog + by-type), ``health`` (readyz pings DB).
+- [x] JWT auth (argon2id passwords, access + refresh pair, rotation +
+      revocation) + project-scoping deps.
+- [x] Structlog request-id middleware with access-log emission.
+- [x] First-boot admin + project seed (env-driven in prod, auto-generated
+      in dev).
 
-**Acceptance:** A user can POST a workflow, execute it via the API, and read back the execution.
+**Acceptance:** ``tests/integration/test_workflow_lifecycle.py::test_post_workflow_execute_read``
+walks login → POST /workflows → POST /workflows/{id}/execute → GET
+/executions/{id} and asserts routing + tagging on the returned run-data.
+Full ``make lint && make typecheck && make test && pytest -m integration
+&& make docs-build`` is green (96 tests pass).
 
 ### Phase 3 — Workers + webhooks + triggers (2–3 sessions)
 

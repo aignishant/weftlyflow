@@ -18,16 +18,32 @@ import mkdocs_gen_files
 SRC_ROOT = Path("src/weftlyflow")
 DOC_ROOT = Path("reference")
 
+# Paths whose modules are intentionally hidden from the generated reference.
+# Alembic versions have filenames like ``0001_initial_schema.py`` that start
+# with a digit, which isn't a valid Python identifier for mkdocstrings.
+EXCLUDE_DIRS = {"db/migrations/versions"}
+
 nav = mkdocs_gen_files.Nav()
 
 for path in sorted(SRC_ROOT.rglob("*.py")):
     module_rel = path.relative_to(SRC_ROOT).with_suffix("")
+    rel_posix = module_rel.as_posix()
+    if any(rel_posix.startswith(ex) for ex in EXCLUDE_DIRS):
+        continue
     parts = ("weftlyflow", *module_rel.parts)
 
     if parts[-1] == "__init__":
         parts = parts[:-1]
-        doc_path = Path(*module_rel.parts[:-1], "index.md") if module_rel.parts[:-1] else Path("index.md")
+        doc_path = (
+            Path(*module_rel.parts[:-1], "index.md")
+            if module_rel.parts[:-1]
+            else Path("index.md")
+        )
     elif parts[-1].startswith("_"):
+        continue
+    elif not parts[-1].isidentifier():
+        # Skip filenames that aren't valid Python identifiers (digit-leading,
+        # dashes, etc.).
         continue
     else:
         doc_path = module_rel.with_suffix(".md")
