@@ -1,0 +1,62 @@
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: weftlyflow
+      POSTGRES_PASSWORD: weftlyflow
+      POSTGRES_DB: weftlyflow
+    ports: ["5432:5432"]
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U weftlyflow"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    ports: ["6379:6379"]
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+
+  api:
+    build: { context: ., dockerfile: docker/api.Dockerfile }
+    env_file: .env
+    environment:
+      WEFTLYFLOW_DATABASE_URL: postgresql+psycopg://weftlyflow:weftlyflow@postgres:5432/weftlyflow
+      WEFTLYFLOW_REDIS_URL: redis://redis:6379/0
+      WEFTLYFLOW_CELERY_BROKER_URL: redis://redis:6379/0
+      WEFTLYFLOW_CELERY_RESULT_BACKEND: redis://redis:6379/1
+    ports: ["5678:5678"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+
+  worker:
+    build: { context: ., dockerfile: docker/worker.Dockerfile }
+    env_file: .env
+    environment:
+      WEFTLYFLOW_DATABASE_URL: postgresql+psycopg://weftlyflow:weftlyflow@postgres:5432/weftlyflow
+      WEFTLYFLOW_REDIS_URL: redis://redis:6379/0
+      WEFTLYFLOW_CELERY_BROKER_URL: redis://redis:6379/0
+      WEFTLYFLOW_CELERY_RESULT_BACKEND: redis://redis:6379/1
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis:    { condition: service_healthy }
+    deploy:
+      replicas: 2
+
+  beat:
+    build: { context: ., dockerfile: docker/beat.Dockerfile }
+    env_file: .env
+    environment:
+      WEFTLYFLOW_CELERY_BROKER_URL: redis://redis:6379/0
+    depends_on:
+      redis: { condition: service_healthy }
+
+volumes:
+  pgdata:

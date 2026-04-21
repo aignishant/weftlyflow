@@ -1,0 +1,126 @@
+site_name: Weftlyflow
+site_description: Self-hosted workflow automation platform (Python backend, Vue 3 frontend).
+site_author: Weftlyflow contributors
+repo_url: https://example.com/weftlyflow
+edit_uri: edit/main/docs/
+docs_dir: docs
+site_dir: site
+
+theme:
+  name: material
+  language: en
+  features:
+    - navigation.tabs
+    - navigation.sections
+    - navigation.expand
+    - navigation.path
+    - navigation.top
+    - navigation.indexes
+    - content.code.copy
+    - content.code.annotate
+    - content.tooltips
+    - toc.follow
+    - search.suggest
+    - search.highlight
+    - search.share
+  palette:
+    - media: "(prefers-color-scheme: light)"
+      scheme: default
+      primary: teal
+      accent: indigo
+      toggle: { icon: material/weather-night, name: Switch to dark mode }
+    - media: "(prefers-color-scheme: dark)"
+      scheme: slate
+      primary: teal
+      accent: indigo
+      toggle: { icon: material/weather-sunny, name: Switch to light mode }
+  icon:
+    repo: fontawesome/brands/github
+
+plugins:
+  - search
+  - gen-files:
+      scripts:
+        - scripts/gen_ref_pages.py
+  - literate-nav:
+      nav_file: SUMMARY.md
+  - section-index
+  - mkdocstrings:
+      default_handler: python
+      handlers:
+        python:
+          paths: [src]
+          options:
+            docstring_style: google
+            docstring_section_style: table
+            show_signature_annotations: true
+            separate_signature: true
+            show_root_heading: true
+            show_root_full_path: false
+            show_source: true
+            show_bases: true
+            show_if_no_docstring: false
+            members_order: source
+            filters: ["!^_"]
+            heading_level: 2
+
+markdown_extensions:
+  - admonition
+  - attr_list
+  - def_list
+  - footnotes
+  - md_in_html
+  - tables
+  - toc:
+      permalink: true
+      permalink_title: Anchor
+  - pymdownx.details
+  - pymdownx.superfences:
+      custom_fences:
+        - name: mermaid
+          class: mermaid
+          format: !!python/name:pymdownx.superfences.fence_code_format
+  - pymdownx.highlight:
+      anchor_linenums: true
+      line_spans: __span
+      pygments_lang_class: true
+  - pymdownx.inlinehilite
+  - pymdownx.keys
+  - pymdownx.magiclink
+  - pymdownx.mark
+  - pymdownx.smartsymbols
+  - pymdownx.snippets
+  - pymdownx.tabbed:
+      alternate_style: true
+  - pymdownx.tasklist:
+      custom_checkbox: true
+
+nav:
+  - Home: index.md
+  - Architecture: architecture.md
+  - Getting started:
+      - getting-started/install.md
+      - getting-started/first-workflow.md
+      - getting-started/concepts.md
+  - Guide:
+      - guide/workflows.md
+      - guide/triggers-and-schedules.md
+      - guide/expressions.md
+      - guide/code-node.md
+      - guide/credentials.md
+      - guide/ai-and-agents.md
+      - guide/multi-tenancy.md
+      - guide/webhooks.md
+      - guide/self-hosting.md
+  - Built-in nodes:
+      - nodes/index.md
+  - API reference: reference/
+  - Contributing:
+      - contributing/node-plugins.md
+      - contributing/credential-plugins.md
+      - contributing/coding-standards.md
+      - contributing/ip-compliance.md
+  - Changelog: changelog.md
+
+extra:
+  generator: false
