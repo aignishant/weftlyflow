@@ -12,7 +12,7 @@ logic belongs in ``weftlyflow.engine`` or the relevant subpackage, not here.
 
 Migrations are managed via Alembic with config in ``/alembic.ini``.
 
-See IMPLEMENTATION_BIBLE.md §7.3–§7.4 for the table schema.
+See IMPLEMENTATION_BIBLE.md §7.3-§7.4 for the table schema.
 """
 
 from __future__ import annotations

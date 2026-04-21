@@ -8,12 +8,17 @@ mutate settings should call :func:`reset_engines` in their teardown.
 
 from __future__ import annotations
 
+from collections.abc import Iterator
 from contextlib import contextmanager
 from functools import lru_cache
-from typing import Iterator
 
 from sqlalchemy import Engine, create_engine
-from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession, async_sessionmaker, create_async_engine
+from sqlalchemy.ext.asyncio import (
+    AsyncEngine,
+    AsyncSession,
+    async_sessionmaker,
+    create_async_engine,
+)
 from sqlalchemy.orm import Session, sessionmaker
 
 from weftlyflow.config import get_settings
@@ -78,7 +83,7 @@ def reset_engines() -> None:
         get_engine().dispose()
         get_engine.cache_clear()
     if get_async_engine.cache_info().currsize:
-        # AsyncEngine.dispose() is a coroutine — best-effort skip; tests run the async loop themselves
+        # AsyncEngine.dispose() is a coroutine; tests own the loop, skip here.
         get_async_engine.cache_clear()
     _session_factory.cache_clear()
     _async_session_factory.cache_clear()

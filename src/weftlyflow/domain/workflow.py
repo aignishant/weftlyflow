@@ -143,7 +143,8 @@ class Workflow:
         project_id: The owning project (multi-tenancy boundary).
         name: Display name.
         nodes: Nodes keyed by ``Node.id`` inside the list (never as a dict).
-        connections: Directed edges. Duplicates are allowed (same edge twice is a bug to catch in validation).
+        connections: Directed edges. Duplicate edges are a validation error
+            caught in ``engine.graph``; this dataclass does not enforce uniqueness.
         settings: Execution flags.
         static_data: Persistent per-workflow KV — readable/writable by nodes across runs.
         pin_data: ``{node_id: list[item_json]}`` — test-mode pinned outputs.

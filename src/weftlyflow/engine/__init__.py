@@ -5,7 +5,7 @@ and produces a :class:`weftlyflow.domain.execution.Execution`. It is framework-f
 no FastAPI, no SQLAlchemy, no Celery imports. This makes the engine unit-testable
 with nothing but the domain package.
 
-Modules (added across Phases 1–3):
+Modules (added across Phases 1-3):
     executor : :class:`WorkflowExecutor` — the main loop.
     graph    : DAG analysis (parents, children, topo order, cycle detection).
     context  : :class:`ExecutionContext` passed to every node.

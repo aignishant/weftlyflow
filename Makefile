@@ -61,10 +61,10 @@ docs-gen: ## Regenerate API reference pages
 	python scripts/gen_ref_pages.py
 
 docs-serve: ## Live-reload docs site (http://localhost:8000)
-	mkdocs serve
+	DISABLE_MKDOCS_2_WARNING=true mkdocs serve
 
 docs-build: ## Build static site into ./site/
-	mkdocs build --strict
+	DISABLE_MKDOCS_2_WARNING=true mkdocs build --strict
 
 # ---------- db ----------
 db-upgrade: ## Apply all migrations

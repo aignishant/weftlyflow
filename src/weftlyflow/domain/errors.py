@@ -33,7 +33,14 @@ class NodeExecutionError(WeftlyflowError):
         original: The underlying exception (preserved via ``__cause__``).
     """
 
-    def __init__(self, message: str, *, node_id: str, original: BaseException | None = None) -> None:
+    def __init__(
+        self,
+        message: str,
+        *,
+        node_id: str,
+        original: BaseException | None = None,
+    ) -> None:
+        """Initialize with the offending ``node_id`` and optional underlying cause."""
         super().__init__(message)
         self.node_id = node_id
         self.original = original

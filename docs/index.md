@@ -23,7 +23,7 @@ A workflow engine. You build a **workflow** — a directed graph of **nodes** co
 - [Getting started → Your first workflow](getting-started/first-workflow.md)
 - [Guide → Expressions](guide/expressions.md) — how `{{ ... }}` resolves against run context.
 - [Contributing → Node plugins](contributing/node-plugins.md) — add a new integration.
-- [API reference](reference/) — auto-generated from docstrings.
+- [API reference](reference/index.md) — auto-generated from docstrings.
 
 ## Provenance
 

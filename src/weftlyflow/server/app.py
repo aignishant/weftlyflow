@@ -9,8 +9,8 @@ routers, auth, DB middleware, WebSocket streams.
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from typing import AsyncIterator
 
 import structlog
 from fastapi import FastAPI
@@ -60,10 +60,8 @@ def create_app() -> FastAPI:
     )
 
     app.include_router(health.router)
-    # Routers added in Phase 2:
-    # app.include_router(auth.router, prefix="/api/v1/auth", tags=["auth"])
-    # app.include_router(workflows.router, prefix="/api/v1/workflows", tags=["workflows"])
-    # ...
+    # Resource routers (auth, workflows, executions, credentials, ...) are
+    # added in Phase 2 when the persistence layer is in place.
 
     return app
 

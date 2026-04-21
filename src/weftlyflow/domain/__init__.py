@@ -19,8 +19,8 @@ from __future__ import annotations
 from weftlyflow.domain.errors import (
     CycleDetectedError,
     InvalidConnectionError,
-    WeftlyflowError,
     NodeExecutionError,
+    WeftlyflowError,
     WorkflowValidationError,
 )
 from weftlyflow.domain.execution import (
@@ -32,31 +32,34 @@ from weftlyflow.domain.execution import (
     RunData,
 )
 from weftlyflow.domain.ids import new_execution_id, new_node_id, new_workflow_id
-from weftlyflow.domain.workflow import Connection, Node, Port, RetryPolicy, Workflow, WorkflowSettings
+from weftlyflow.domain.workflow import (
+    Connection,
+    Node,
+    Port,
+    RetryPolicy,
+    Workflow,
+    WorkflowSettings,
+)
 
 __all__ = [
-    # errors
-    "WeftlyflowError",
-    "WorkflowValidationError",
-    "InvalidConnectionError",
-    "CycleDetectedError",
-    "NodeExecutionError",
-    # workflow
-    "Workflow",
-    "WorkflowSettings",
-    "Node",
     "Connection",
-    "Port",
-    "RetryPolicy",
-    # execution
+    "CycleDetectedError",
     "Execution",
     "ExecutionMode",
     "ExecutionStatus",
+    "InvalidConnectionError",
     "Item",
-    "RunData",
+    "Node",
+    "NodeExecutionError",
     "NodeRunData",
-    # ids
-    "new_workflow_id",
-    "new_node_id",
+    "Port",
+    "RetryPolicy",
+    "RunData",
+    "WeftlyflowError",
+    "Workflow",
+    "WorkflowSettings",
+    "WorkflowValidationError",
     "new_execution_id",
+    "new_node_id",
+    "new_workflow_id",
 ]

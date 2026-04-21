@@ -8,7 +8,7 @@ Import pattern:
     from weftlyflow.config import get_settings
     settings = get_settings()
 
-See also:
+See Also:
     - IMPLEMENTATION_BIBLE.md §4 (technology stack) for the full list of env vars.
     - ``.env.example`` at the repo root for defaults.
 """

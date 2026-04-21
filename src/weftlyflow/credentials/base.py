@@ -40,12 +40,12 @@ class BaseCredentialType(ABC):
 
     slug: ClassVar[str]
     display_name: ClassVar[str]
-    properties: ClassVar[list["PropertySchema"]]
+    properties: ClassVar[list[PropertySchema]]
     generic: ClassVar[bool] = False
     documentation_url: ClassVar[str | None] = None
 
     @abstractmethod
-    async def inject(self, creds: dict[str, Any], request: "httpx.Request") -> "httpx.Request":
+    async def inject(self, creds: dict[str, Any], request: httpx.Request) -> httpx.Request:
         """Return a copy of ``request`` with the credential applied.
 
         Typical implementations set an ``Authorization`` header or append a

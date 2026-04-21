@@ -11,7 +11,7 @@ Example:
     >>> settings.database_url.scheme
     'sqlite'
 
-See also:
+See Also:
     - IMPLEMENTATION_BIBLE.md §4 for the rationale behind each choice.
 """
 

@@ -52,7 +52,8 @@ def start(
     prefer launching uvicorn/gunicorn directly so you can tune workers, log
     formats, and lifespan behaviour.
     """
-    import uvicorn
+    # Deferred import — uvicorn is heavy; keep ``weftlyflow version`` fast.
+    import uvicorn  # noqa: PLC0415
 
     uvicorn.run(
         "weftlyflow.server.app:app",

@@ -42,10 +42,10 @@ if TYPE_CHECKING:
 class BaseNode(ABC):
     """Abstract base for action nodes."""
 
-    spec: ClassVar["NodeSpec"]
+    spec: ClassVar[NodeSpec]
 
     @abstractmethod
-    async def execute(self, ctx: Any, items: list["Item"]) -> list[list["Item"]]:
+    async def execute(self, ctx: Any, items: list[Item]) -> list[list[Item]]:
         """Run the node once against ``items`` and return one list per output port.
 
         Args:
@@ -69,7 +69,7 @@ class BaseNode(ABC):
 class BaseTriggerNode(ABC):
     """Abstract base for webhook / event triggers."""
 
-    spec: ClassVar["NodeSpec"]
+    spec: ClassVar[NodeSpec]
 
     @abstractmethod
     async def setup(self, ctx: Any) -> Any:
@@ -93,10 +93,10 @@ class BaseTriggerNode(ABC):
 class BasePollerNode(ABC):
     """Abstract base for interval-polled triggers."""
 
-    spec: ClassVar["NodeSpec"]
+    spec: ClassVar[NodeSpec]
 
     @abstractmethod
-    async def poll(self, ctx: Any) -> list["Item"] | None:
+    async def poll(self, ctx: Any) -> list[Item] | None:
         """Poll the upstream source.
 
         Args:

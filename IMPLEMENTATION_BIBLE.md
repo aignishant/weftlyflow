@@ -1330,15 +1330,17 @@ Goal: a repo that lints, builds docs, and has a working CI loop with a "hello" w
 **Deliverables:**
 - [x] `IMPLEMENTATION_BIBLE.md` (this file)
 - [x] `.claude/` adapted
-- [ ] `pyproject.toml`, `Makefile`, `README.md`, `LICENSE`, `.gitignore`
-- [ ] `docker-compose.yml` + `Dockerfile`s
-- [ ] `pre-commit` config (ruff, black, isort, mypy)
-- [ ] `mkdocs.yml` + `docs/index.md` + auto-reference generation
-- [ ] Directory tree with every `__init__.py` carrying a module docstring
-- [ ] `src/weftlyflow/config/settings.py` — Pydantic settings
-- [ ] `src/weftlyflow/observability/logging.py` — structlog
-- [ ] `src/weftlyflow/cli.py` — Typer skeleton
-- [ ] `tests/unit/test_smoke.py` — passing smoke test
+- [x] `pyproject.toml`, `Makefile`, `README.md`, `LICENSE`, `.gitignore`
+- [x] `docker-compose.yml` + `Dockerfile`s
+- [x] `pre-commit` config (ruff, black, isort, mypy)
+- [x] `mkdocs.yml` + `docs/index.md` + auto-reference generation
+- [x] Directory tree with every `__init__.py` carrying a module docstring
+- [x] `src/weftlyflow/config/settings.py` — Pydantic settings
+- [x] `src/weftlyflow/config/logging.py` — structlog (lives under `config/` since
+      it is boot-time setup, not a reusable runtime utility; see the docstring
+      in `src/weftlyflow/observability/__init__.py`)
+- [x] `src/weftlyflow/cli.py` — Typer skeleton
+- [x] `tests/unit/test_smoke.py` — passing smoke test
 
 **Acceptance:** `make lint && make typecheck && make test && make docs-build` all green.
 

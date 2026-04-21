@@ -58,7 +58,12 @@ def configure_logging(level: LogLevel = "info", fmt: LogFormat = "console") -> N
         processors.append(structlog.processors.format_exc_info)
         processors.append(structlog.processors.JSONRenderer())
     else:
-        processors.append(structlog.dev.ConsoleRenderer(colors=True, exception_formatter=structlog.dev.plain_traceback))
+        processors.append(
+            structlog.dev.ConsoleRenderer(
+                colors=True,
+                exception_formatter=structlog.dev.plain_traceback,
+            ),
+        )
 
     structlog.configure(
         processors=processors,
@@ -69,11 +74,25 @@ def configure_logging(level: LogLevel = "info", fmt: LogFormat = "console") -> N
     )
 
 
-_SECRET_KEYS = {
-    "password", "passwd", "secret", "token", "authorization",
-    "api_key", "apikey", "api-key", "private_key", "access_token", "refresh_token",
-    "data_ciphertext", "encryption_key",
-}
+_SECRET_KEYS: frozenset[str] = frozenset(
+    {
+        "password",
+        "passwd",
+        "secret",
+        "token",
+        "authorization",
+        "api_key",
+        "apikey",
+        "api-key",
+        "private_key",
+        "access_token",
+        "refresh_token",
+        "data_ciphertext",
+        "encryption_key",
+    },
+)
+
+_SECRET_SUBSTRINGS: tuple[str, ...] = ("password", "secret", "token", "api_key")
 
 
 def _redact_secrets(_logger: Any, _name: str, event_dict: dict[str, Any]) -> dict[str, Any]:
@@ -83,6 +102,7 @@ def _redact_secrets(_logger: Any, _name: str, event_dict: dict[str, Any]) -> dic
     the renderer — they're dropped before stringification.
     """
     for key in list(event_dict.keys()):
-        if key.lower() in _SECRET_KEYS or any(s in key.lower() for s in ("password", "secret", "token", "api_key")):
+        lowered = key.lower()
+        if lowered in _SECRET_KEYS or any(s in lowered for s in _SECRET_SUBSTRINGS):
             event_dict[key] = "***"
     return event_dict

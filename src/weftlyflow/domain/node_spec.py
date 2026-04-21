@@ -10,7 +10,7 @@ See IMPLEMENTATION_BIBLE.md §9 for the plugin architecture.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from enum import Enum
+from enum import StrEnum
 from typing import Any, Literal
 
 from weftlyflow.domain.workflow import Port
@@ -31,7 +31,7 @@ PropertyType = Literal[
 ]
 
 
-class NodeCategory(str, Enum):
+class NodeCategory(StrEnum):
     """Top-level category for UI grouping."""
 
     TRIGGER = "trigger"
