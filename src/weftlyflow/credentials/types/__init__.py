@@ -25,6 +25,9 @@
     pagerduty_api.py          : PagerDuty ``Token token=<key>`` + From header.
     algolia_api.py            : Algolia dual ``X-Algolia-*`` headers.
     mailchimp_api.py          : Mailchimp Basic auth with dc parsed from key.
+    pipedrive_api.py          : Pipedrive ``?api_token=`` query + tenant host.
+    zoho_crm_oauth2.py        : Zoho ``Zoho-oauthtoken`` prefix + DC host.
+    mattermost_api.py         : Mattermost Bearer + credential-owned base URL.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -45,10 +48,12 @@ from weftlyflow.credentials.types.hubspot_private_app import HubSpotPrivateAppCr
 from weftlyflow.credentials.types.intercom_api import IntercomApiCredential
 from weftlyflow.credentials.types.jira_cloud import JiraCloudCredential
 from weftlyflow.credentials.types.mailchimp_api import MailchimpApiCredential
+from weftlyflow.credentials.types.mattermost_api import MattermostApiCredential
 from weftlyflow.credentials.types.monday_api import MondayApiCredential
 from weftlyflow.credentials.types.notion_api import NotionApiCredential
 from weftlyflow.credentials.types.oauth2_generic import OAuth2GenericCredential
 from weftlyflow.credentials.types.pagerduty_api import PagerDutyApiCredential
+from weftlyflow.credentials.types.pipedrive_api import PipedriveApiCredential
 from weftlyflow.credentials.types.shopify_admin import ShopifyAdminCredential
 from weftlyflow.credentials.types.slack_api import SlackApiCredential
 from weftlyflow.credentials.types.slack_oauth2 import SlackOAuth2Credential
@@ -56,6 +61,7 @@ from weftlyflow.credentials.types.telegram_bot import TelegramBotCredential
 from weftlyflow.credentials.types.trello_api import TrelloApiCredential
 from weftlyflow.credentials.types.twilio_api import TwilioApiCredential
 from weftlyflow.credentials.types.zendesk_api import ZendeskApiCredential
+from weftlyflow.credentials.types.zoho_crm_oauth2 import ZohoCrmOAuth2Credential
 
 __all__ = [
     "AlgoliaApiCredential",
@@ -72,10 +78,12 @@ __all__ = [
     "IntercomApiCredential",
     "JiraCloudCredential",
     "MailchimpApiCredential",
+    "MattermostApiCredential",
     "MondayApiCredential",
     "NotionApiCredential",
     "OAuth2GenericCredential",
     "PagerDutyApiCredential",
+    "PipedriveApiCredential",
     "ShopifyAdminCredential",
     "SlackApiCredential",
     "SlackOAuth2Credential",
@@ -83,4 +91,5 @@ __all__ = [
     "TrelloApiCredential",
     "TwilioApiCredential",
     "ZendeskApiCredential",
+    "ZohoCrmOAuth2Credential",
 ]
