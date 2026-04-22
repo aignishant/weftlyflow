@@ -60,7 +60,8 @@ class GitLabTokenCredential(BaseCredentialType):
 
     async def test(self, creds: dict[str, Any]) -> CredentialTestResult:
         """Call ``GET /api/v4/user`` and report the outcome."""
-        base_url = str(creds.get("base_url") or _DEFAULT_BASE_URL).strip().rstrip("/") or _DEFAULT_BASE_URL
+        raw_base = str(creds.get("base_url") or _DEFAULT_BASE_URL).strip().rstrip("/")
+        base_url = raw_base or _DEFAULT_BASE_URL
         token = str(creds.get("access_token", "")).strip()
         if not token:
             return CredentialTestResult(ok=False, message="access_token is empty")
