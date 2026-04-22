@@ -47,6 +47,9 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.pipedrive_api",
     "weftlyflow.credentials.types.zoho_crm_oauth2",
     "weftlyflow.credentials.types.mattermost_api",
+    "weftlyflow.credentials.types.cloudflare_api",
+    "weftlyflow.credentials.types.freshdesk_api",
+    "weftlyflow.credentials.types.supabase_api",
 )
 
 

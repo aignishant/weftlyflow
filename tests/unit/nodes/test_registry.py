@@ -94,7 +94,7 @@ def test_register_node_decorator_registers_class():
 def test_load_builtins_registers_every_core_node():
     reg = NodeRegistry()
     added = reg.load_builtins()
-    assert added == 52
+    assert added == 55
     types = {spec.type for spec in reg.catalog()}
     assert types == {
         "weftlyflow.manual_trigger",
@@ -149,6 +149,9 @@ def test_load_builtins_registers_every_core_node():
         "weftlyflow.pipedrive",
         "weftlyflow.zoho_crm",
         "weftlyflow.mattermost",
+        "weftlyflow.cloudflare",
+        "weftlyflow.freshdesk",
+        "weftlyflow.supabase",
     }
 
 

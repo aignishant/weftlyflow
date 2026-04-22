@@ -28,6 +28,9 @@
     pipedrive_api.py          : Pipedrive ``?api_token=`` query + tenant host.
     zoho_crm_oauth2.py        : Zoho ``Zoho-oauthtoken`` prefix + DC host.
     mattermost_api.py         : Mattermost Bearer + credential-owned base URL.
+    cloudflare_api.py         : Cloudflare dual ``X-Auth-Email`` + ``X-Auth-Key``.
+    freshdesk_api.py          : Freshdesk Basic auth with api_key + dummy ``X``.
+    supabase_api.py           : Supabase dual ``apikey`` + ``Authorization: Bearer``.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -41,7 +44,9 @@ from weftlyflow.credentials.types.basic_auth import BasicAuthCredential
 from weftlyflow.credentials.types.bearer_token import BearerTokenCredential
 from weftlyflow.credentials.types.brevo_api import BrevoApiCredential
 from weftlyflow.credentials.types.clickup_api import ClickUpApiCredential
+from weftlyflow.credentials.types.cloudflare_api import CloudflareApiCredential
 from weftlyflow.credentials.types.discord_bot import DiscordBotCredential
+from weftlyflow.credentials.types.freshdesk_api import FreshdeskApiCredential
 from weftlyflow.credentials.types.gitlab_token import GitLabTokenCredential
 from weftlyflow.credentials.types.google_sheets_oauth2 import GoogleSheetsOAuth2Credential
 from weftlyflow.credentials.types.hubspot_private_app import HubSpotPrivateAppCredential
@@ -57,6 +62,7 @@ from weftlyflow.credentials.types.pipedrive_api import PipedriveApiCredential
 from weftlyflow.credentials.types.shopify_admin import ShopifyAdminCredential
 from weftlyflow.credentials.types.slack_api import SlackApiCredential
 from weftlyflow.credentials.types.slack_oauth2 import SlackOAuth2Credential
+from weftlyflow.credentials.types.supabase_api import SupabaseApiCredential
 from weftlyflow.credentials.types.telegram_bot import TelegramBotCredential
 from weftlyflow.credentials.types.trello_api import TrelloApiCredential
 from weftlyflow.credentials.types.twilio_api import TwilioApiCredential
@@ -71,7 +77,9 @@ __all__ = [
     "BearerTokenCredential",
     "BrevoApiCredential",
     "ClickUpApiCredential",
+    "CloudflareApiCredential",
     "DiscordBotCredential",
+    "FreshdeskApiCredential",
     "GitLabTokenCredential",
     "GoogleSheetsOAuth2Credential",
     "HubSpotPrivateAppCredential",
@@ -87,6 +95,7 @@ __all__ = [
     "ShopifyAdminCredential",
     "SlackApiCredential",
     "SlackOAuth2Credential",
+    "SupabaseApiCredential",
     "TelegramBotCredential",
     "TrelloApiCredential",
     "TwilioApiCredential",
