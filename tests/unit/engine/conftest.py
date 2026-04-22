@@ -21,19 +21,19 @@ from weftlyflow.nodes.registry import NodeRegistry
 def loaded_registry() -> NodeRegistry:
     """Return a registry populated with every built-in node.
 
-    Fifty-five built-ins as of the Tier-2 ninth-tranche ship: the
-    Phase-6-core set plus the thirty integration nodes (``slack``,
-    ``github``, ``sendgrid``, ``notion``, ``stripe``, ``google_sheets``,
-    ``discord``, ``airtable``, ``mailgun``, ``telegram``, ``trello``,
-    ``hubspot``, ``jira``, ``shopify``, ``clickup``, ``twilio``,
-    ``gitlab``, ``intercom``, ``monday``, ``zendesk``, ``brevo``,
-    ``pagerduty``, ``algolia``, ``mailchimp``, ``pipedrive``,
-    ``zoho_crm``, ``mattermost``, ``cloudflare``, ``freshdesk``,
-    ``supabase``).
+    Fifty-eight built-ins as of the Tier-2 tenth-tranche ship: the
+    Phase-6-core set plus the thirty-three integration nodes
+    (``slack``, ``github``, ``sendgrid``, ``notion``, ``stripe``,
+    ``google_sheets``, ``discord``, ``airtable``, ``mailgun``,
+    ``telegram``, ``trello``, ``hubspot``, ``jira``, ``shopify``,
+    ``clickup``, ``twilio``, ``gitlab``, ``intercom``, ``monday``,
+    ``zendesk``, ``brevo``, ``pagerduty``, ``algolia``, ``mailchimp``,
+    ``pipedrive``, ``zoho_crm``, ``mattermost``, ``cloudflare``,
+    ``freshdesk``, ``supabase``, ``okta``, ``linear``, ``pushover``).
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 55, f"expected 55 built-in nodes, got {count}"
+    assert count == 58, f"expected 58 built-in nodes, got {count}"
     return registry
 
 

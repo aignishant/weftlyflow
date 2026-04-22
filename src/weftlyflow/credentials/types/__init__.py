@@ -31,6 +31,9 @@
     cloudflare_api.py         : Cloudflare dual ``X-Auth-Email`` + ``X-Auth-Key``.
     freshdesk_api.py          : Freshdesk Basic auth with api_key + dummy ``X``.
     supabase_api.py           : Supabase dual ``apikey`` + ``Authorization: Bearer``.
+    okta_api.py               : Okta ``Authorization: SSWS <token>`` + per-org URL.
+    linear_api.py             : Linear raw ``Authorization`` for GraphQL endpoint.
+    pushover_api.py           : Pushover form-body auth (``token`` + ``user``).
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -52,13 +55,16 @@ from weftlyflow.credentials.types.google_sheets_oauth2 import GoogleSheetsOAuth2
 from weftlyflow.credentials.types.hubspot_private_app import HubSpotPrivateAppCredential
 from weftlyflow.credentials.types.intercom_api import IntercomApiCredential
 from weftlyflow.credentials.types.jira_cloud import JiraCloudCredential
+from weftlyflow.credentials.types.linear_api import LinearApiCredential
 from weftlyflow.credentials.types.mailchimp_api import MailchimpApiCredential
 from weftlyflow.credentials.types.mattermost_api import MattermostApiCredential
 from weftlyflow.credentials.types.monday_api import MondayApiCredential
 from weftlyflow.credentials.types.notion_api import NotionApiCredential
 from weftlyflow.credentials.types.oauth2_generic import OAuth2GenericCredential
+from weftlyflow.credentials.types.okta_api import OktaApiCredential
 from weftlyflow.credentials.types.pagerduty_api import PagerDutyApiCredential
 from weftlyflow.credentials.types.pipedrive_api import PipedriveApiCredential
+from weftlyflow.credentials.types.pushover_api import PushoverApiCredential
 from weftlyflow.credentials.types.shopify_admin import ShopifyAdminCredential
 from weftlyflow.credentials.types.slack_api import SlackApiCredential
 from weftlyflow.credentials.types.slack_oauth2 import SlackOAuth2Credential
@@ -85,13 +91,16 @@ __all__ = [
     "HubSpotPrivateAppCredential",
     "IntercomApiCredential",
     "JiraCloudCredential",
+    "LinearApiCredential",
     "MailchimpApiCredential",
     "MattermostApiCredential",
     "MondayApiCredential",
     "NotionApiCredential",
     "OAuth2GenericCredential",
+    "OktaApiCredential",
     "PagerDutyApiCredential",
     "PipedriveApiCredential",
+    "PushoverApiCredential",
     "ShopifyAdminCredential",
     "SlackApiCredential",
     "SlackOAuth2Credential",
