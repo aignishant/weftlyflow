@@ -21,7 +21,7 @@ celery_app = Celery(
     "weftlyflow",
     broker=_settings.celery_broker_url,
     backend=_settings.celery_result_backend,
-    include=[],  # populated in Phase 3
+    include=["weftlyflow.worker.tasks"],
 )
 
 celery_app.conf.update(
@@ -33,5 +33,8 @@ celery_app.conf.update(
     task_track_started=True,
     task_acks_late=True,
     worker_prefetch_multiplier=1,
-    task_routes={},
+    task_default_queue="executions",
+    task_routes={
+        "weftlyflow.execute_workflow": {"queue": "executions"},
+    },
 )

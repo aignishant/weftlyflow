@@ -91,10 +91,10 @@ def test_register_node_decorator_registers_class():
     assert ("test.decorated", 1) in reg
 
 
-def test_load_builtins_registers_all_five_core_nodes():
+def test_load_builtins_registers_every_core_node():
     reg = NodeRegistry()
     added = reg.load_builtins()
-    assert added == 5
+    assert added == 7
     types = {spec.type for spec in reg.catalog()}
     assert types == {
         "weftlyflow.manual_trigger",
@@ -102,6 +102,8 @@ def test_load_builtins_registers_all_five_core_nodes():
         "weftlyflow.set",
         "weftlyflow.if",
         "weftlyflow.code",
+        "weftlyflow.webhook_trigger",
+        "weftlyflow.schedule_trigger",
     }
 
 

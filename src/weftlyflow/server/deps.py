@@ -39,6 +39,9 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from weftlyflow.nodes.registry import NodeRegistry
+    from weftlyflow.triggers.manager import ActiveTriggerManager
+    from weftlyflow.webhooks.registry import WebhookRegistry
+    from weftlyflow.worker.queue import ExecutionQueue
 
 _bearer = HTTPBearer(auto_error=False)
 
@@ -63,6 +66,24 @@ def get_registry(request: Request) -> NodeRegistry:
     """Return the shared :class:`NodeRegistry` wired at startup."""
     registry: NodeRegistry = request.app.state.node_registry
     return registry
+
+
+def get_webhook_registry(request: Request) -> WebhookRegistry:
+    """Return the shared :class:`WebhookRegistry` wired at startup."""
+    registry: WebhookRegistry = request.app.state.webhook_registry
+    return registry
+
+
+def get_execution_queue(request: Request) -> ExecutionQueue:
+    """Return the shared :class:`ExecutionQueue` wired at startup."""
+    queue: ExecutionQueue = request.app.state.execution_queue
+    return queue
+
+
+def get_trigger_manager(request: Request) -> ActiveTriggerManager:
+    """Return the shared :class:`ActiveTriggerManager` wired at startup."""
+    manager: ActiveTriggerManager = request.app.state.trigger_manager
+    return manager
 
 
 async def get_current_user(

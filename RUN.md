@@ -203,18 +203,83 @@ curl -sfS $BASE/readyz                      # 200 ready; 503 if DB is down
 
 ### Phase 3 — Workers + webhooks + triggers
 
-Needs Redis. Fastest path: `docker compose up -d redis`.
+No Redis is required for the test gate — the app boots with an
+`InlineExecutionQueue` backed by `asyncio` tasks, and the trigger manager
+uses an in-memory scheduler + leader lock. The production path (Celery +
+Redis + APScheduler) is exercised by switching the queue/leader/scheduler
+wiring in `weftlyflow.server.app.lifespan`, covered by unit tests over the
+fakeredis-backed primitives.
 
 ```bash
 make lint && make typecheck && make test
-pytest -m integration
+pytest -m integration              # Phase-2 and Phase-3 integration tests
+pytest tests/unit/webhooks -v      # 23 webhook-layer unit tests
+pytest tests/unit/triggers -v      # 22 trigger-layer unit tests (leader + scheduler + manager)
+pytest tests/unit/worker   -v      # 12 worker/queue/idempotency unit tests
+```
 
-# Run a worker against a real broker:
+Live acceptance walk — hit a registered webhook and observe an execution:
+
+```bash
+# Terminal 1 — start the API (admin bootstrapped as in Phase 2).
+WEFTLYFLOW_BOOTSTRAP_ADMIN_EMAIL=admin@weftlyflow.io \
+WEFTLYFLOW_BOOTSTRAP_ADMIN_PASSWORD=s3cret \
+make dev-api
+
+# Terminal 2 — create + activate a webhook-triggered workflow, then hit it.
+BASE=http://localhost:5678
+TOKEN=$(curl -sfS -X POST $BASE/api/v1/auth/login \
+  -H 'content-type: application/json' \
+  -d '{"email":"admin@weftlyflow.io","password":"s3cret"}' | jq -r .access_token)
+
+WF=$(curl -sfS -X POST $BASE/api/v1/workflows \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'content-type: application/json' \
+  -d @- <<'JSON' | jq -r .id
+{
+  "name": "webhook-demo",
+  "nodes": [
+    {"id": "node_trigger", "name": "Webhook", "type": "weftlyflow.webhook_trigger",
+     "parameters": {"path": "demo/hook", "method": "POST"}},
+    {"id": "node_tag", "name": "Tag", "type": "weftlyflow.set",
+     "parameters": {"assignments": [{"name": "tagged", "value": true}]}}
+  ],
+  "connections": [
+    {"source_node": "node_trigger", "target_node": "node_tag"}
+  ]
+}
+JSON
+)
+
+curl -sfS -X POST $BASE/api/v1/workflows/$WF/activate \
+  -H "Authorization: Bearer $TOKEN"
+
+RESP=$(curl -sfS -X POST $BASE/webhook/demo/hook \
+  -H 'content-type: application/json' \
+  -d '{"name":"world"}')
+EX=$(echo "$RESP" | jq -r .execution_id)
+
+# Worker finishes asynchronously; poll until status is terminal.
+for _ in $(seq 1 20); do
+  STATUS=$(curl -sfS $BASE/api/v1/executions/$EX -H "Authorization: Bearer $TOKEN" | jq -r .status)
+  [ "$STATUS" = "success" ] && break
+  sleep 0.2
+done
+echo "execution $EX status=$STATUS"
+
+# Deactivate when done — the route should then 404 again.
+curl -sfS -X POST $BASE/api/v1/workflows/$WF/deactivate \
+  -H "Authorization: Bearer $TOKEN"
+```
+
+Production path with Celery + Redis (optional, out of the CI gate):
+
+```bash
+docker compose up -d redis
 make dev-worker &
 WORKER_PID=$!
-sleep 2
-# Post a webhook → expect a 202 and an execution row:
-curl -fsS -X POST http://localhost:5678/webhook/demo -d '{"hello":"world"}' -H 'content-type: application/json'
+# Same curl hits as above, but the `execute_workflow` task runs on the worker
+# rather than in-process. Kill the worker when done:
 kill "$WORKER_PID"
 ```
 

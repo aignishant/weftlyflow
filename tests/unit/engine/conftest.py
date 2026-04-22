@@ -19,10 +19,14 @@ from weftlyflow.nodes.registry import NodeRegistry
 
 @pytest.fixture
 def loaded_registry() -> NodeRegistry:
-    """Return a registry populated with every built-in core node."""
+    """Return a registry populated with every built-in core node.
+
+    Seven built-ins as of Phase 3: ``manual_trigger``, ``set``, ``if``,
+    ``no_op``, ``code``, ``webhook_trigger``, ``schedule_trigger``.
+    """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 5, f"expected 5 built-in nodes, got {count}"
+    assert count == 7, f"expected 7 built-in nodes, got {count}"
     return registry
 
 

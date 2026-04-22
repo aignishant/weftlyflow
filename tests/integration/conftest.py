@@ -22,6 +22,7 @@ import pytest
 import pytest_asyncio
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
+from sqlalchemy.pool import StaticPool
 
 from weftlyflow.auth.bootstrap import ensure_bootstrap_admin
 from weftlyflow.config import get_settings
@@ -31,11 +32,18 @@ from weftlyflow.db.entities import (  # noqa: F401 — register tables on Base.m
     ExecutionEntity,
     ProjectEntity,
     RefreshTokenEntity,
+    TriggerScheduleEntity,
     UserEntity,
+    WebhookEntity,
     WorkflowEntity,
 )
 from weftlyflow.nodes.registry import NodeRegistry
 from weftlyflow.server.app import create_app
+from weftlyflow.triggers.leader import InMemoryLeaderLock
+from weftlyflow.triggers.manager import ActiveTriggerManager
+from weftlyflow.triggers.scheduler import InMemoryScheduler
+from weftlyflow.webhooks.registry import WebhookRegistry
+from weftlyflow.worker.queue import InlineExecutionQueue
 
 TEST_ADMIN_EMAIL: str = "admin@test.weftlyflow"
 TEST_ADMIN_PASSWORD: str = "integration-test-pw"
@@ -58,7 +66,15 @@ async def client() -> AsyncIterator[AsyncClient]:
     get_settings.cache_clear()
     settings = get_settings()
 
-    engine = create_async_engine(settings.database_url, future=True)
+    # StaticPool forces a single shared connection for the in-memory SQLite
+    # database so the ingress request and the background execution task see
+    # the same rows.
+    engine = create_async_engine(
+        settings.database_url,
+        future=True,
+        poolclass=StaticPool,
+        connect_args={"check_same_thread": False},
+    )
     session_factory = async_sessionmaker(engine, expire_on_commit=False, autoflush=False)
 
     async with engine.begin() as conn:
@@ -76,11 +92,31 @@ async def client() -> AsyncIterator[AsyncClient]:
         )
         await session.commit()
 
+    webhook_registry = WebhookRegistry()
+    scheduler = InMemoryScheduler()
+    leader = InMemoryLeaderLock(instance_id="test")
+    leader.acquire()
+    execution_queue = InlineExecutionQueue(
+        session_factory=session_factory, registry=registry,
+    )
+    trigger_manager = ActiveTriggerManager(
+        session_factory=session_factory,
+        registry=webhook_registry,
+        scheduler=scheduler,
+        queue=execution_queue,
+        leader=leader,
+    )
+
     app = create_app()
     # Replace lifespan-driven state with our pre-built resources:
     app.state.engine = engine
     app.state.session_factory = session_factory
     app.state.node_registry = registry
+    app.state.webhook_registry = webhook_registry
+    app.state.execution_queue = execution_queue
+    app.state.trigger_manager = trigger_manager
+    app.state.scheduler = scheduler
+    app.state.leader_lock = leader
     # Force the app NOT to run its lifespan (we already did the work):
     app.router.lifespan_context = _noop_lifespan  # type: ignore[assignment]
 
@@ -88,6 +124,8 @@ async def client() -> AsyncIterator[AsyncClient]:
     async with AsyncClient(transport=transport, base_url="http://testserver") as client:
         yield client
 
+    await execution_queue.drain()
+    scheduler.shutdown()
     await engine.dispose()
 
 
@@ -99,6 +137,13 @@ async def _noop_lifespan(_app: object) -> AsyncIterator[None]:
     and avoid re-running the bootstrap check.
     """
     yield
+
+
+@pytest_asyncio.fixture
+async def execution_queue(client: AsyncClient) -> InlineExecutionQueue:
+    """Expose the app's :class:`InlineExecutionQueue` so tests can drain it."""
+    queue: InlineExecutionQueue = client._transport.app.state.execution_queue  # type: ignore[attr-defined]
+    return queue
 
 
 @pytest_asyncio.fixture

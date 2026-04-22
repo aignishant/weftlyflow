@@ -38,7 +38,9 @@ from weftlyflow.db.entities import (  # noqa: F401 — register tables on Base.m
     ExecutionEntity,
     ProjectEntity,
     RefreshTokenEntity,
+    TriggerScheduleEntity,
     UserEntity,
+    WebhookEntity,
     WorkflowEntity,
 )
 from weftlyflow.nodes.registry import NodeRegistry
@@ -48,7 +50,13 @@ from weftlyflow.server.routers import auth as auth_router
 from weftlyflow.server.routers import executions as executions_router
 from weftlyflow.server.routers import health as health_router
 from weftlyflow.server.routers import node_types as node_types_router
+from weftlyflow.server.routers import webhooks_ingress as webhooks_ingress_router
 from weftlyflow.server.routers import workflows as workflows_router
+from weftlyflow.triggers.leader import InMemoryLeaderLock
+from weftlyflow.triggers.manager import ActiveTriggerManager
+from weftlyflow.triggers.scheduler import InMemoryScheduler
+from weftlyflow.webhooks.registry import WebhookRegistry
+from weftlyflow.worker.queue import InlineExecutionQueue
 
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
@@ -81,13 +89,37 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         )
         await session.commit()
 
+    webhook_registry = WebhookRegistry()
+    scheduler = InMemoryScheduler()
+    leader = InMemoryLeaderLock(instance_id="api")
+    leader.acquire()
+    execution_queue = InlineExecutionQueue(
+        session_factory=session_factory, registry=registry,
+    )
+    trigger_manager = ActiveTriggerManager(
+        session_factory=session_factory,
+        registry=webhook_registry,
+        scheduler=scheduler,
+        queue=execution_queue,
+        leader=leader,
+    )
+    await trigger_manager.warm_up()
+    scheduler.start()
+
     app.state.engine = engine
     app.state.session_factory = session_factory
     app.state.node_registry = registry
+    app.state.webhook_registry = webhook_registry
+    app.state.execution_queue = execution_queue
+    app.state.trigger_manager = trigger_manager
+    app.state.scheduler = scheduler
+    app.state.leader_lock = leader
 
     try:
         yield
     finally:
+        scheduler.shutdown()
+        leader.release()
         await engine.dispose()
         log.info("weftlyflow_stopped")
 
@@ -122,6 +154,7 @@ def create_app() -> FastAPI:
     app.include_router(workflows_router.router)
     app.include_router(executions_router.router)
     app.include_router(node_types_router.router)
+    app.include_router(webhooks_ingress_router.router)
 
     return app
 

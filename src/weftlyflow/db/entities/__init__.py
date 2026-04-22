@@ -12,8 +12,9 @@ table on ``Base.metadata``. Alembic's ``env.py`` imports this package so
 Phase-2 tables:
     users, projects, workflows, executions, execution_data, refresh_tokens.
 
-Phase-4 will add ``credentials`` and ``oauth_states``. Phase-6 will add
-``workflow_history`` and the sharing tables.
+Phase-3 adds ``webhooks`` + ``trigger_schedules``. Phase-4 will add
+``credentials`` and ``oauth_states``. Phase-6 will add ``workflow_history``
+and the sharing tables.
 """
 
 from __future__ import annotations
@@ -22,7 +23,9 @@ from weftlyflow.db.entities.execution import ExecutionEntity
 from weftlyflow.db.entities.execution_data import ExecutionDataEntity
 from weftlyflow.db.entities.project import ProjectEntity
 from weftlyflow.db.entities.refresh_token import RefreshTokenEntity
+from weftlyflow.db.entities.trigger_schedule import TriggerScheduleEntity
 from weftlyflow.db.entities.user import UserEntity
+from weftlyflow.db.entities.webhook import WebhookEntity
 from weftlyflow.db.entities.workflow import WorkflowEntity
 
 __all__ = [
@@ -30,6 +33,8 @@ __all__ = [
     "ExecutionEntity",
     "ProjectEntity",
     "RefreshTokenEntity",
+    "TriggerScheduleEntity",
     "UserEntity",
+    "WebhookEntity",
     "WorkflowEntity",
 ]

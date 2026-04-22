@@ -18,6 +18,7 @@ from weftlyflow.server.deps import (
     get_current_project,
     get_db,
     get_registry,
+    get_trigger_manager,
     require_scope,
 )
 from weftlyflow.server.mappers.execution import execution_to_response
@@ -39,6 +40,7 @@ if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from weftlyflow.nodes.registry import NodeRegistry
+    from weftlyflow.triggers.manager import ActiveTriggerManager
 
 router = APIRouter(prefix="/api/v1/workflows", tags=["workflows"])
 
@@ -137,6 +139,67 @@ async def delete_workflow(
     deleted = await WorkflowRepository(session).delete(workflow_id, project_id=project_id)
     if not deleted:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="workflow not found")
+
+
+@router.post(
+    "/{workflow_id}/activate",
+    response_model=WorkflowResponse,
+    dependencies=[Depends(require_scope(SCOPE_WORKFLOW_WRITE))],
+    summary="Activate a workflow — register its triggers",
+)
+async def activate_workflow(
+    workflow_id: str,
+    project_id: str = Depends(get_current_project),
+    session: AsyncSession = Depends(get_db),
+    trigger_manager: ActiveTriggerManager = Depends(get_trigger_manager),
+) -> WorkflowResponse:
+    """Flip ``active=True`` and register every trigger with the trigger manager.
+
+    Activation is idempotent: re-activating an already-active workflow is a
+    no-op beyond re-asserting the registrations.
+    """
+    repo = WorkflowRepository(session)
+    workflow = await repo.get(workflow_id, project_id=project_id)
+    if workflow is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="workflow not found")
+
+    # Tear down any stale registrations before re-activating so the trigger
+    # tables reflect the current workflow definition.
+    await trigger_manager.deactivate(workflow)
+    result = await trigger_manager.activate(workflow)
+    if result.errors:
+        await trigger_manager.deactivate(workflow)
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail={"code": "trigger_registration_failed", "errors": result.errors},
+        )
+    workflow.active = True
+    updated = await repo.update(workflow)
+    return workflow_to_response(updated)
+
+
+@router.post(
+    "/{workflow_id}/deactivate",
+    response_model=WorkflowResponse,
+    dependencies=[Depends(require_scope(SCOPE_WORKFLOW_WRITE))],
+    summary="Deactivate a workflow — remove its triggers",
+)
+async def deactivate_workflow(
+    workflow_id: str,
+    project_id: str = Depends(get_current_project),
+    session: AsyncSession = Depends(get_db),
+    trigger_manager: ActiveTriggerManager = Depends(get_trigger_manager),
+) -> WorkflowResponse:
+    """Flip ``active=False`` and tear down every trigger registration."""
+    repo = WorkflowRepository(session)
+    workflow = await repo.get(workflow_id, project_id=project_id)
+    if workflow is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="workflow not found")
+
+    await trigger_manager.deactivate(workflow)
+    workflow.active = False
+    updated = await repo.update(workflow)
+    return workflow_to_response(updated)
 
 
 @router.post(

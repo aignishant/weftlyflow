@@ -15,13 +15,17 @@ from __future__ import annotations
 from weftlyflow.db.repositories.execution_repo import ExecutionRepository
 from weftlyflow.db.repositories.project_repo import ProjectRepository
 from weftlyflow.db.repositories.refresh_token_repo import RefreshTokenRepository
+from weftlyflow.db.repositories.trigger_schedule_repo import TriggerScheduleRepository
 from weftlyflow.db.repositories.user_repo import UserRepository
+from weftlyflow.db.repositories.webhook_repo import WebhookRepository
 from weftlyflow.db.repositories.workflow_repo import WorkflowRepository
 
 __all__ = [
     "ExecutionRepository",
     "ProjectRepository",
     "RefreshTokenRepository",
+    "TriggerScheduleRepository",
     "UserRepository",
+    "WebhookRepository",
     "WorkflowRepository",
 ]
