@@ -29,12 +29,16 @@ import structlog
 
 from weftlyflow.domain.execution import Item
 from weftlyflow.engine.executor import WorkflowExecutor
+from weftlyflow.engine.subworkflow import InlineSubWorkflowRunner
 
 if TYPE_CHECKING:
+    from collections.abc import Awaitable, Callable
+
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
     from weftlyflow.credentials.resolver import CredentialResolver
     from weftlyflow.domain.execution import Execution
+    from weftlyflow.domain.workflow import Workflow
     from weftlyflow.nodes.registry import NodeRegistry
     from weftlyflow.worker.queue import ExecutionRequest
 
@@ -78,8 +82,15 @@ async def run_execution_async(
         items = [Item(json=dict(payload)) for payload in request.initial_items] or [Item()]
         bound_log.info("execute_workflow_start", items=len(items))
 
+        sub_workflow_runner = InlineSubWorkflowRunner(
+            registry=registry,
+            loader=_build_workflow_loader(session_factory),
+            credential_resolver=credential_resolver,
+        )
         executor = WorkflowExecutor(
-            registry, credential_resolver=credential_resolver,
+            registry,
+            credential_resolver=credential_resolver,
+            sub_workflow_runner=sub_workflow_runner,
         )
         execution = await executor.run(
             workflow,
@@ -122,6 +133,27 @@ def run_execution_sync(
             credential_resolver=credential_resolver,
         ),
     )
+
+
+def _build_workflow_loader(
+    session_factory: async_sessionmaker[Any],
+) -> Callable[[str, str], Awaitable[Workflow | None]]:
+    """Return a loader that resolves workflows through a fresh DB session.
+
+    Each child lookup runs in its own read-only session so parent
+    executions don't hold a connection open for the duration of the run.
+    """
+    from weftlyflow.db.repositories.workflow_repo import (  # noqa: PLC0415
+        WorkflowRepository,
+    )
+
+    async def load(workflow_id: str, project_id: str) -> Workflow | None:
+        async with session_factory() as session:
+            return await WorkflowRepository(session).get(
+                workflow_id, project_id=project_id,
+            )
+
+    return load
 
 
 def _duration_ms(execution: Execution) -> int:

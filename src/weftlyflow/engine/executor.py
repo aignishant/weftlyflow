@@ -50,6 +50,7 @@ if TYPE_CHECKING:
     from weftlyflow.domain.execution import Execution, ExecutionMode
     from weftlyflow.domain.workflow import Workflow
     from weftlyflow.engine.hooks import LifecycleHooks
+    from weftlyflow.engine.subworkflow import SubWorkflowRunner
     from weftlyflow.nodes.registry import NodeRegistry
 
 
@@ -66,7 +67,12 @@ class WorkflowExecutor:
         'success'
     """
 
-    __slots__ = ("_credential_resolver", "_hooks", "_registry")
+    __slots__ = (
+        "_credential_resolver",
+        "_hooks",
+        "_registry",
+        "_sub_workflow_runner",
+    )
 
     def __init__(
         self,
@@ -74,11 +80,13 @@ class WorkflowExecutor:
         *,
         hooks: LifecycleHooks | None = None,
         credential_resolver: CredentialResolver | None = None,
+        sub_workflow_runner: SubWorkflowRunner | None = None,
     ) -> None:
         """Bind the registry used for node lookup and the optional hooks."""
         self._registry = registry
         self._hooks: LifecycleHooks = hooks or NullHooks()
         self._credential_resolver = credential_resolver
+        self._sub_workflow_runner = sub_workflow_runner
 
     async def run(
         self,
@@ -120,6 +128,7 @@ class WorkflowExecutor:
                 node=workflow.nodes[0] if workflow.nodes else _synthetic_node(),
                 hooks=self._hooks,
                 credential_resolver=self._credential_resolver,
+                sub_workflow_runner=self._sub_workflow_runner,
             ),
         )
 
@@ -134,6 +143,7 @@ class WorkflowExecutor:
                 inputs=inputs_by_node.get(node_id, {}),
                 hooks=self._hooks,
                 credential_resolver=self._credential_resolver,
+                sub_workflow_runner=self._sub_workflow_runner,
             )
 
             await self._hooks.on_node_start(ctx, node)
