@@ -46,6 +46,7 @@ from weftlyflow.engine.runtime import RunState
 from weftlyflow.nodes.base import BaseNode
 
 if TYPE_CHECKING:
+    from weftlyflow.credentials.resolver import CredentialResolver
     from weftlyflow.domain.execution import Execution, ExecutionMode
     from weftlyflow.domain.workflow import Workflow
     from weftlyflow.engine.hooks import LifecycleHooks
@@ -65,17 +66,19 @@ class WorkflowExecutor:
         'success'
     """
 
-    __slots__ = ("_hooks", "_registry")
+    __slots__ = ("_credential_resolver", "_hooks", "_registry")
 
     def __init__(
         self,
         registry: NodeRegistry,
         *,
         hooks: LifecycleHooks | None = None,
+        credential_resolver: CredentialResolver | None = None,
     ) -> None:
         """Bind the registry used for node lookup and the optional hooks."""
         self._registry = registry
         self._hooks: LifecycleHooks = hooks or NullHooks()
+        self._credential_resolver = credential_resolver
 
     async def run(
         self,
@@ -116,6 +119,7 @@ class WorkflowExecutor:
                 mode=state.mode,
                 node=workflow.nodes[0] if workflow.nodes else _synthetic_node(),
                 hooks=self._hooks,
+                credential_resolver=self._credential_resolver,
             ),
         )
 
@@ -129,6 +133,7 @@ class WorkflowExecutor:
                 node=node,
                 inputs=inputs_by_node.get(node_id, {}),
                 hooks=self._hooks,
+                credential_resolver=self._credential_resolver,
             )
 
             await self._hooks.on_node_start(ctx, node)

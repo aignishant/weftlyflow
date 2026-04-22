@@ -33,6 +33,7 @@ from weftlyflow.engine.executor import WorkflowExecutor
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import async_sessionmaker
 
+    from weftlyflow.credentials.resolver import CredentialResolver
     from weftlyflow.domain.execution import Execution
     from weftlyflow.nodes.registry import NodeRegistry
     from weftlyflow.worker.queue import ExecutionRequest
@@ -45,6 +46,7 @@ async def run_execution_async(
     *,
     session_factory: async_sessionmaker[Any],
     registry: NodeRegistry,
+    credential_resolver: CredentialResolver | None = None,
 ) -> Execution | None:
     """Run the workflow referenced by ``request`` and persist the result.
 
@@ -76,7 +78,9 @@ async def run_execution_async(
         items = [Item(json=dict(payload)) for payload in request.initial_items] or [Item()]
         bound_log.info("execute_workflow_start", items=len(items))
 
-        executor = WorkflowExecutor(registry)
+        executor = WorkflowExecutor(
+            registry, credential_resolver=credential_resolver,
+        )
         execution = await executor.run(
             workflow,
             initial_items=items,
@@ -103,6 +107,7 @@ def run_execution_sync(
     *,
     session_factory: async_sessionmaker[Any],
     registry: NodeRegistry,
+    credential_resolver: CredentialResolver | None = None,
 ) -> Execution | None:
     """Blocking wrapper around :func:`run_execution_async`.
 
@@ -111,7 +116,10 @@ def run_execution_sync(
     """
     return asyncio.run(
         run_execution_async(
-            request, session_factory=session_factory, registry=registry,
+            request,
+            session_factory=session_factory,
+            registry=registry,
+            credential_resolver=credential_resolver,
         ),
     )
 

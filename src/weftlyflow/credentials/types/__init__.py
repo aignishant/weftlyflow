@@ -1,13 +1,26 @@
 """Concrete credential type implementations.
 
-Added in Phase 4:
     bearer_token.py     : ``Authorization: Bearer <token>``.
     basic_auth.py       : HTTP Basic auth (username + password).
     api_key_header.py   : API key injected as an arbitrary header.
     api_key_query.py    : API key appended as a query parameter.
-    oauth2_generic.py   : OAuth2 client-credentials / auth-code flows.
+    oauth2_generic.py   : OAuth2 auth-code flow, stores tokens.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
 
 from __future__ import annotations
+
+from weftlyflow.credentials.types.api_key_header import ApiKeyHeaderCredential
+from weftlyflow.credentials.types.api_key_query import ApiKeyQueryCredential
+from weftlyflow.credentials.types.basic_auth import BasicAuthCredential
+from weftlyflow.credentials.types.bearer_token import BearerTokenCredential
+from weftlyflow.credentials.types.oauth2_generic import OAuth2GenericCredential
+
+__all__ = [
+    "ApiKeyHeaderCredential",
+    "ApiKeyQueryCredential",
+    "BasicAuthCredential",
+    "BearerTokenCredential",
+    "OAuth2GenericCredential",
+]

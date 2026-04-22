@@ -38,6 +38,9 @@ from weftlyflow.db.repositories.user_repo import UserRepository
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from weftlyflow.credentials.cipher import CredentialCipher
+    from weftlyflow.credentials.registry import CredentialTypeRegistry
+    from weftlyflow.credentials.resolver import CredentialResolver
     from weftlyflow.nodes.registry import NodeRegistry
     from weftlyflow.triggers.manager import ActiveTriggerManager
     from weftlyflow.webhooks.registry import WebhookRegistry
@@ -84,6 +87,24 @@ def get_trigger_manager(request: Request) -> ActiveTriggerManager:
     """Return the shared :class:`ActiveTriggerManager` wired at startup."""
     manager: ActiveTriggerManager = request.app.state.trigger_manager
     return manager
+
+
+def get_credential_cipher(request: Request) -> CredentialCipher:
+    """Return the shared :class:`CredentialCipher` wired at startup."""
+    cipher: CredentialCipher = request.app.state.credential_cipher
+    return cipher
+
+
+def get_credential_types(request: Request) -> CredentialTypeRegistry:
+    """Return the shared :class:`CredentialTypeRegistry` wired at startup."""
+    registry: CredentialTypeRegistry = request.app.state.credential_types
+    return registry
+
+
+def get_credential_resolver(request: Request) -> CredentialResolver:
+    """Return the shared :class:`CredentialResolver` wired at startup."""
+    resolver: CredentialResolver = request.app.state.credential_resolver
+    return resolver
 
 
 async def get_current_user(

@@ -285,17 +285,95 @@ kill "$WORKER_PID"
 
 ### Phase 4 — Expressions + credentials
 
+No new services are required for the CI gate — the expression engine is
+pure Python (RestrictedPython) and the credential cipher is an in-process
+Fernet wrapper. Set `WEFTLYFLOW_ENCRYPTION_KEY` for a stable key in dev;
+the lifespan will generate an ephemeral one when the env var is unset.
+
 ```bash
 make lint && make typecheck && make test
-pytest tests/unit/expression -v
-pytest tests/unit/credentials -v
+pytest tests/unit/expression -v   # 26 tokenizer + resolver + proxy tests
+pytest tests/unit/credentials -v  # 17 cipher + type tests
+pytest tests/unit/nodes/test_http_request.py -v
+pytest tests/integration/test_credentials.py -v
+```
 
-# Manual expression smoke:
+Manual expression smoke — demonstrates every proxy:
+
+```bash
 python - <<'PY'
-# from weftlyflow.expression.resolver import resolve
-# print(resolve("{{ $json.name }}", context={"$json": {"name": "weftlyflow"}}))
-print("Phase 4 scaffolding present.")
+from weftlyflow.expression import resolve, build_proxies
+from weftlyflow.domain.execution import Item
+
+proxies = build_proxies(
+    item=Item(json={"name": "weftlyflow", "n": 3}),
+    inputs=[Item(json={"name": "weftlyflow"})],
+    workflow_id="wf_demo", workflow_name="demo", project_id="pr_demo",
+    execution_id="ex_demo", execution_mode="manual",
+    env_vars={"KEY": "v"},
+)
+print("single:", resolve("{{ $json.name }}", proxies))
+print("mixed :", resolve("hello {{ $json.name }}!", proxies))
+print("list  :", resolve("{{ [i*2 for i in range($json.n)] }}", proxies))
+print("now   :", resolve("{{ $now.to_iso() }}", proxies))
 PY
+```
+
+Live acceptance walk — HTTP Request node uses a stored credential + an
+expression in its URL:
+
+```bash
+BASE=http://localhost:5678
+WEFTLYFLOW_ENCRYPTION_KEY=$(python -c 'from weftlyflow.credentials import generate_key; print(generate_key())') \
+WEFTLYFLOW_BOOTSTRAP_ADMIN_EMAIL=admin@weftlyflow.io \
+WEFTLYFLOW_BOOTSTRAP_ADMIN_PASSWORD=s3cret \
+make dev-api &
+API_PID=$!
+sleep 1
+
+TOKEN=$(curl -sfS -X POST $BASE/api/v1/auth/login \
+  -H 'content-type: application/json' \
+  -d '{"email":"admin@weftlyflow.io","password":"s3cret"}' | jq -r .access_token)
+
+CRED=$(curl -sfS -X POST $BASE/api/v1/credentials \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'content-type: application/json' \
+  -d '{"name":"demo","type":"weftlyflow.bearer_token","data":{"token":"demo-token"}}' \
+  | jq -r .id)
+
+WF=$(curl -sfS -X POST $BASE/api/v1/workflows \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'content-type: application/json' \
+  -d @- <<JSON | jq -r .id
+{
+  "name": "http-demo",
+  "nodes": [
+    {"id": "node_trigger", "name": "Trigger", "type": "weftlyflow.manual_trigger"},
+    {"id": "node_http",    "name": "HTTP",    "type": "weftlyflow.http_request",
+     "parameters": {"url": "https://httpbin.org/anything/{{ \$json.id }}", "method": "GET"},
+     "credentials": {"auth": "$CRED"}}
+  ],
+  "connections": [{"source_node": "node_trigger", "target_node": "node_http"}]
+}
+JSON
+)
+
+curl -sfS -X POST $BASE/api/v1/workflows/$WF/execute \
+  -H "Authorization: Bearer $TOKEN" \
+  -H 'content-type: application/json' \
+  -d '{"initial_items":[{"id":42}]}' | jq '.status, .run_data.node_http[0].items[0][0].body.url, .run_data.node_http[0].items[0][0].body.headers.Authorization'
+
+kill $API_PID
+```
+
+OAuth2 handshake (manual, when you have a real provider):
+
+```bash
+# 1. Pre-create an empty OAuth2 credential with provider URLs + client id/secret.
+# 2. POST /api/v1/credentials/oauth2/authorize-url with { credential_id, redirect_uri }.
+# 3. Open the returned authorize_url in a browser — sign in at the provider.
+# 4. The provider redirects to GET /oauth2/callback?code=...&state=... which
+#    exchanges the code for a token set and writes it back into the credential.
 ```
 
 ### Phase 5 — Frontend MVP

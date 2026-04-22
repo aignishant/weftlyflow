@@ -50,16 +50,24 @@ class ExecutionCanceledError(WeftlyflowError):
     """The execution was canceled cooperatively (user-initiated or worker shutdown)."""
 
 
-class ExpressionSyntaxError(WeftlyflowError):
+class ExpressionError(WeftlyflowError):
+    """Base class for any failure raised by :mod:`weftlyflow.expression`."""
+
+
+class ExpressionSyntaxError(ExpressionError):
     """A ``{{ ... }}`` block failed to compile."""
 
 
-class ExpressionEvalError(WeftlyflowError):
+class ExpressionEvalError(ExpressionError):
     """A ``{{ ... }}`` block raised during evaluation."""
 
 
-class ExpressionTimeoutError(WeftlyflowError):
+class ExpressionTimeoutError(ExpressionError):
     """A ``{{ ... }}`` block exceeded the soft timeout."""
+
+
+class ExpressionSecurityError(ExpressionError):
+    """RestrictedPython rejected the chunk for using a banned construct."""
 
 
 class CredentialNotFoundError(WeftlyflowError):
@@ -68,3 +76,7 @@ class CredentialNotFoundError(WeftlyflowError):
 
 class CredentialDecryptError(WeftlyflowError):
     """A credential blob failed to decrypt — key rotation or corruption."""
+
+
+class CredentialTypeNotFoundError(WeftlyflowError):
+    """A credential row references a credential-type slug that isn't registered."""

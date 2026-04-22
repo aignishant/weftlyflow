@@ -32,10 +32,15 @@ from weftlyflow import __version__
 from weftlyflow.auth.bootstrap import ensure_bootstrap_admin
 from weftlyflow.config import get_settings
 from weftlyflow.config.logging import configure_logging
+from weftlyflow.credentials.cipher import CredentialCipher, generate_key
+from weftlyflow.credentials.registry import CredentialTypeRegistry
+from weftlyflow.credentials.resolver import DatabaseCredentialResolver
 from weftlyflow.db.base import Base
 from weftlyflow.db.entities import (  # noqa: F401 — register tables on Base.metadata
+    CredentialEntity,
     ExecutionDataEntity,
     ExecutionEntity,
+    OAuthStateEntity,
     ProjectEntity,
     RefreshTokenEntity,
     TriggerScheduleEntity,
@@ -47,9 +52,11 @@ from weftlyflow.nodes.registry import NodeRegistry
 from weftlyflow.server.errors import register_exception_handlers
 from weftlyflow.server.middleware import RequestContextMiddleware
 from weftlyflow.server.routers import auth as auth_router
+from weftlyflow.server.routers import credentials as credentials_router
 from weftlyflow.server.routers import executions as executions_router
 from weftlyflow.server.routers import health as health_router
 from weftlyflow.server.routers import node_types as node_types_router
+from weftlyflow.server.routers import oauth2 as oauth2_router
 from weftlyflow.server.routers import webhooks_ingress as webhooks_ingress_router
 from weftlyflow.server.routers import workflows as workflows_router
 from weftlyflow.triggers.leader import InMemoryLeaderLock
@@ -89,12 +96,30 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         )
         await session.commit()
 
+    encryption_key = settings.encryption_key.get_secret_value()
+    if not encryption_key:
+        encryption_key = generate_key()
+        log.warning("encryption_key_missing_using_ephemeral")
+    old_keys = [k.strip() for k in settings.encryption_key_old_keys.split(",") if k.strip()]
+    credential_cipher = CredentialCipher(encryption_key, old_keys=old_keys)
+
+    credential_types = CredentialTypeRegistry()
+    credential_types.load_builtins()
+
+    credential_resolver = DatabaseCredentialResolver(
+        session_factory=session_factory,
+        cipher=credential_cipher,
+        types=credential_types,
+    )
+
     webhook_registry = WebhookRegistry()
     scheduler = InMemoryScheduler()
     leader = InMemoryLeaderLock(instance_id="api")
     leader.acquire()
     execution_queue = InlineExecutionQueue(
-        session_factory=session_factory, registry=registry,
+        session_factory=session_factory,
+        registry=registry,
+        credential_resolver=credential_resolver,
     )
     trigger_manager = ActiveTriggerManager(
         session_factory=session_factory,
@@ -114,6 +139,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.trigger_manager = trigger_manager
     app.state.scheduler = scheduler
     app.state.leader_lock = leader
+    app.state.credential_cipher = credential_cipher
+    app.state.credential_types = credential_types
+    app.state.credential_resolver = credential_resolver
 
     try:
         yield
@@ -154,6 +182,9 @@ def create_app() -> FastAPI:
     app.include_router(workflows_router.router)
     app.include_router(executions_router.router)
     app.include_router(node_types_router.router)
+    app.include_router(credentials_router.router)
+    app.include_router(credentials_router.credential_types_router)
+    app.include_router(oauth2_router.router)
     app.include_router(webhooks_ingress_router.router)
 
     return app

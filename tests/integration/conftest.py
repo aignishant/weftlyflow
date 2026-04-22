@@ -26,10 +26,15 @@ from sqlalchemy.pool import StaticPool
 
 from weftlyflow.auth.bootstrap import ensure_bootstrap_admin
 from weftlyflow.config import get_settings
+from weftlyflow.credentials.cipher import CredentialCipher, generate_key
+from weftlyflow.credentials.registry import CredentialTypeRegistry
+from weftlyflow.credentials.resolver import DatabaseCredentialResolver
 from weftlyflow.db.base import Base
 from weftlyflow.db.entities import (  # noqa: F401 — register tables on Base.metadata
+    CredentialEntity,
     ExecutionDataEntity,
     ExecutionEntity,
+    OAuthStateEntity,
     ProjectEntity,
     RefreshTokenEntity,
     TriggerScheduleEntity,
@@ -92,12 +97,23 @@ async def client() -> AsyncIterator[AsyncClient]:
         )
         await session.commit()
 
+    credential_cipher = CredentialCipher(generate_key())
+    credential_types = CredentialTypeRegistry()
+    credential_types.load_builtins()
+    credential_resolver = DatabaseCredentialResolver(
+        session_factory=session_factory,
+        cipher=credential_cipher,
+        types=credential_types,
+    )
+
     webhook_registry = WebhookRegistry()
     scheduler = InMemoryScheduler()
     leader = InMemoryLeaderLock(instance_id="test")
     leader.acquire()
     execution_queue = InlineExecutionQueue(
-        session_factory=session_factory, registry=registry,
+        session_factory=session_factory,
+        registry=registry,
+        credential_resolver=credential_resolver,
     )
     trigger_manager = ActiveTriggerManager(
         session_factory=session_factory,
@@ -117,6 +133,9 @@ async def client() -> AsyncIterator[AsyncClient]:
     app.state.trigger_manager = trigger_manager
     app.state.scheduler = scheduler
     app.state.leader_lock = leader
+    app.state.credential_cipher = credential_cipher
+    app.state.credential_types = credential_types
+    app.state.credential_resolver = credential_resolver
     # Force the app NOT to run its lifespan (we already did the work):
     app.router.lifespan_context = _noop_lifespan  # type: ignore[assignment]
 

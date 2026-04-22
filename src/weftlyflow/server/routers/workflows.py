@@ -15,6 +15,7 @@ from weftlyflow.db.repositories.workflow_repo import WorkflowRepository
 from weftlyflow.domain.execution import Item
 from weftlyflow.engine.executor import WorkflowExecutor
 from weftlyflow.server.deps import (
+    get_credential_resolver,
     get_current_project,
     get_db,
     get_registry,
@@ -39,6 +40,7 @@ from weftlyflow.server.schemas.workflows import (
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncSession
 
+    from weftlyflow.credentials.resolver import CredentialResolver
     from weftlyflow.nodes.registry import NodeRegistry
     from weftlyflow.triggers.manager import ActiveTriggerManager
 
@@ -214,18 +216,21 @@ async def execute_workflow(
     project_id: str = Depends(get_current_project),
     session: AsyncSession = Depends(get_db),
     registry: NodeRegistry = Depends(get_registry),
+    credential_resolver: CredentialResolver = Depends(get_credential_resolver),
 ) -> ExecutionResponse:
     """Load, run, persist, and return the execution.
 
-    Phase 2 executes inline (handler blocks until the workflow finishes). The
-    queued execution path via Celery lands in Phase 3.
+    The synchronous execute endpoint keeps the Phase-2 contract: the handler
+    blocks until the workflow finishes. The queued path is exercised by
+    webhook ingress (Phase 3).
     """
     workflow = await WorkflowRepository(session).get(workflow_id, project_id=project_id)
     if workflow is None:
         raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="workflow not found")
 
     initial_items = [Item(json=dict(payload)) for payload in body.initial_items] or [Item()]
-    execution = await WorkflowExecutor(registry).run(
+    executor = WorkflowExecutor(registry, credential_resolver=credential_resolver)
+    execution = await executor.run(
         workflow, initial_items=initial_items, mode="manual",
     )
     await save_execution(session, execution, project_id=project_id)

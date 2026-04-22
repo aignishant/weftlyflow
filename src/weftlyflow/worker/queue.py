@@ -89,17 +89,24 @@ class InlineExecutionQueue:
     the status is terminal.
     """
 
-    __slots__ = ("_pending", "_registry", "_session_factory")
+    __slots__ = (
+        "_credential_resolver",
+        "_pending",
+        "_registry",
+        "_session_factory",
+    )
 
     def __init__(
         self,
         *,
         session_factory: async_sessionmaker[Any],
         registry: NodeRegistry,
+        credential_resolver: Any = None,
     ) -> None:
         """Bind to a shared session factory + node registry."""
         self._session_factory = session_factory
         self._registry = registry
+        self._credential_resolver = credential_resolver
         self._pending: set[asyncio.Task[None]] = set()
 
     async def enqueue(self, request: ExecutionRequest) -> None:
@@ -114,6 +121,7 @@ class InlineExecutionQueue:
                     request,
                     session_factory=self._session_factory,
                     registry=self._registry,
+                    credential_resolver=self._credential_resolver,
                 )
             except Exception as exc:  # pragma: no cover — defensive log
                 log.exception(

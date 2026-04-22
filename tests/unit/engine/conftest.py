@@ -21,12 +21,13 @@ from weftlyflow.nodes.registry import NodeRegistry
 def loaded_registry() -> NodeRegistry:
     """Return a registry populated with every built-in core node.
 
-    Seven built-ins as of Phase 3: ``manual_trigger``, ``set``, ``if``,
-    ``no_op``, ``code``, ``webhook_trigger``, ``schedule_trigger``.
+    Eight built-ins as of Phase 4: ``manual_trigger``, ``set``, ``if``,
+    ``no_op``, ``code``, ``webhook_trigger``, ``schedule_trigger``,
+    ``http_request``.
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 7, f"expected 7 built-in nodes, got {count}"
+    assert count == 8, f"expected 8 built-in nodes, got {count}"
     return registry
 
 

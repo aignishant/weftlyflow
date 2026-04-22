@@ -1,14 +1,38 @@
 """Credential system — plugin types + Fernet encryption at rest.
 
-Credential types are plugins (subclasses of :class:`BaseCredentialType` in
-:mod:`weftlyflow.credentials.base`) that describe a shape (fields) and how to
-apply the credential to an outgoing HTTP request.
+Public surface:
 
-Plaintext is never stored: :mod:`weftlyflow.credentials.cipher` encrypts with a
-Fernet key loaded from :envvar:`WEFTLYFLOW_ENCRYPTION_KEY`. Key rotation uses
-``MultiFernet``.
+* :class:`BaseCredentialType` / :class:`CredentialTestResult` — plugin API.
+* :class:`CredentialCipher` / :func:`generate_key` — Fernet wrapper for
+  encrypting + decrypting credential payloads.
+* :class:`CredentialTypeRegistry` — slug → class lookup.
 
 See IMPLEMENTATION_BIBLE.md §11.
 """
 
 from __future__ import annotations
+
+from weftlyflow.credentials.base import BaseCredentialType, CredentialTestResult
+from weftlyflow.credentials.cipher import CredentialCipher, generate_key, random_nonce
+from weftlyflow.credentials.registry import (
+    CredentialRegistryError,
+    CredentialTypeRegistry,
+)
+from weftlyflow.credentials.resolver import (
+    CredentialResolver,
+    DatabaseCredentialResolver,
+    InMemoryCredentialResolver,
+)
+
+__all__ = [
+    "BaseCredentialType",
+    "CredentialCipher",
+    "CredentialRegistryError",
+    "CredentialResolver",
+    "CredentialTestResult",
+    "CredentialTypeRegistry",
+    "DatabaseCredentialResolver",
+    "InMemoryCredentialResolver",
+    "generate_key",
+    "random_nonce",
+]
