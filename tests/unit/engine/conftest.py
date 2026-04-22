@@ -19,15 +19,14 @@ from weftlyflow.nodes.registry import NodeRegistry
 
 @pytest.fixture
 def loaded_registry() -> NodeRegistry:
-    """Return a registry populated with every built-in core node.
+    """Return a registry populated with every built-in node.
 
-    Sixteen built-ins as of Phase 6-core: the Phase-4 set plus Switch,
-    Filter, Merge, Rename Keys, DateTime Ops, Evaluate Expression,
-    Stop & Error, Execution Data.
+    Seventeen built-ins as of the first Tier-2 ship: the Phase-6-core set
+    plus :class:`~weftlyflow.nodes.integrations.slack.SlackNode`.
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 16, f"expected 16 built-in nodes, got {count}"
+    assert count == 17, f"expected 17 built-in nodes, got {count}"
     return registry
 
 

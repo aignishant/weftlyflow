@@ -9,9 +9,9 @@
   "permissions": {
     "defaultMode": "default",
     "allow": [
-      "Read(**)",
-      "Glob(**)",
-      "Grep(**)",
+      "Read",
+      "Glob",
+      "Grep",
       "Bash(ls:*)",
       "Bash(pwd)",
       "Bash(cat:*)",
@@ -50,8 +50,8 @@
       "Bash(npm run lint:*)"
     ],
     "ask": [
-      "Edit(**)",
-      "Write(**)",
+      "Edit",
+      "Write",
       "Bash(git add:*)",
       "Bash(git commit:*)",
       "Bash(pip install:*)",
@@ -125,10 +125,65 @@
   "autoCompact": true,
   "enableAllProjectMcpServers": true,
   "statusLine": {
-    "type": "default",
-    "showCost": true,
-    "showModel": true,
-    "showBranch": true
+    "type": "command",
+    "command": "echo 'Veloralm ready'"
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          { "type": "command", "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/block-dangerous-bash.sh" }
+        ]
+      },
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/block-secret-writes.sh" },
+          { "type": "command", "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/block-n8n-copy.sh" }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit",
+        "hooks": [
+          { "type": "command", "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/post-edit-format.sh" }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/session-start.sh" }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "matcher": "*",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/karpathy-reminder.sh",
+            "timeout": 5
+          },
+          {
+            "type": "prompt",
+            "prompt": "If the user's prompt mentions deploying, cutting a release, migrations, or pushing to main, remind them the /deploy-check skill should run first and that pushing to main requires explicit approval. If the prompt involves adding a new built-in node, remind them to scaffold via the /scaffold-node skill so the IP-compliance rules in IMPLEMENTATION_BIBLE.md §23 are honored."
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "*",
+        "hooks": [
+          { "type": "command", "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/session-end.sh" }
+        ]
+      }
+    ]
   },
   "_comments": {
     "model": "Valid: claude-opus-4-7, claude-sonnet-4-6, claude-haiku-4-5. Opus for bible edits, architecture, IP-review. Sonnet for routine work.",

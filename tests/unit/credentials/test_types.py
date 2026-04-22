@@ -77,10 +77,10 @@ async def test_oauth2_test_complains_without_token() -> None:
     assert "access_token" in res.message.lower()
 
 
-def test_registry_load_builtins_registers_all_five() -> None:
+def test_registry_load_builtins_registers_all_builtins() -> None:
     reg = CredentialTypeRegistry()
     added = reg.load_builtins()
-    assert added == 5
+    assert added == 6
     slugs = {cls.slug for cls in reg.catalog()}
     assert slugs == {
         "weftlyflow.bearer_token",
@@ -88,6 +88,7 @@ def test_registry_load_builtins_registers_all_five() -> None:
         "weftlyflow.api_key_header",
         "weftlyflow.api_key_query",
         "weftlyflow.oauth2_generic",
+        "weftlyflow.slack_api",
     }
 
 

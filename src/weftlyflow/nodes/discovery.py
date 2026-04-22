@@ -24,20 +24,30 @@ if TYPE_CHECKING:
     from collections.abc import Iterator
     from pathlib import Path
 
-_BUILTIN_PACKAGE: str = "weftlyflow.nodes.core"
+_BUILTIN_PACKAGES: tuple[str, ...] = (
+    "weftlyflow.nodes.core",
+    "weftlyflow.nodes.integrations",
+    "weftlyflow.nodes.ai",
+)
 _NODE_ATTRIBUTE: str = "NODE"
 _BASE_TYPES: tuple[type, ...] = (BaseNode, BaseTriggerNode, BasePollerNode)
 
 
 def iter_builtin_nodes(*, strict: bool = True) -> Iterator[type]:
-    """Walk :mod:`weftlyflow.nodes.core` and yield every node class found.
+    """Walk every built-in node package and yield each node class found.
+
+    Scans ``weftlyflow.nodes.core``, ``weftlyflow.nodes.integrations``, and
+    ``weftlyflow.nodes.ai`` in order so Tier-1 core nodes, Tier-2/3
+    integrations, and AI nodes are all discoverable through the same entry
+    point.
 
     Args:
         strict: Raise on import failures. When False, failing submodules are
             silently skipped so a malformed community package doesn't take
             down the whole server.
     """
-    yield from _iter_nodes_under_package(_BUILTIN_PACKAGE, strict=strict)
+    for package in _BUILTIN_PACKAGES:
+        yield from _iter_nodes_under_package(package, strict=strict)
 
 
 def iter_nodes_in_directory(directory: Path, *, strict: bool = False) -> Iterator[type]:
