@@ -14,6 +14,7 @@ https://api.slack.com/web#methods for the authoritative list.
 
 from __future__ import annotations
 
+from collections.abc import Callable
 from typing import Any
 
 from weftlyflow.nodes.integrations.slack.constants import (
@@ -22,8 +23,11 @@ from weftlyflow.nodes.integrations.slack.constants import (
     DEFAULT_LIST_LIMIT,
     ENDPOINT_BY_OPERATION,
     MAX_LIST_LIMIT,
+    OP_ADD_REACTION,
     OP_DELETE_MESSAGE,
+    OP_GET_CHANNEL_HISTORY,
     OP_LIST_CHANNELS,
+    OP_LIST_USERS,
     OP_POST_MESSAGE,
     OP_UPDATE_MESSAGE,
 )
@@ -116,6 +120,52 @@ def _build_list_channels(params: dict[str, Any], *, default_channel: str) -> Req
     return "POST", ENDPOINT_BY_OPERATION[OP_LIST_CHANNELS], body
 
 
+def _build_get_channel_history(
+    params: dict[str, Any],
+    *,
+    default_channel: str,
+) -> RequestSpec:
+    channel = _required_channel(params, default_channel=default_channel)
+    limit = _coerce_limit(params.get("limit"))
+    body: dict[str, Any] = {"channel": channel, "limit": limit}
+    for window_key in ("oldest", "latest"):
+        value = str(params.get(window_key) or "").strip()
+        if value:
+            body[window_key] = value
+    cursor = str(params.get("cursor") or "").strip()
+    if cursor:
+        body["cursor"] = cursor
+    if "inclusive" in params:
+        body["inclusive"] = bool(params.get("inclusive"))
+    return "POST", ENDPOINT_BY_OPERATION[OP_GET_CHANNEL_HISTORY], body
+
+
+def _build_add_reaction(params: dict[str, Any], *, default_channel: str) -> RequestSpec:
+    channel = _required_channel(params, default_channel=default_channel)
+    ts = str(params.get("ts") or "").strip()
+    if not ts:
+        msg = "Slack: add_reaction requires 'ts' (the message timestamp)"
+        raise ValueError(msg)
+    emoji = str(params.get("emoji") or "").strip().strip(":")
+    if not emoji:
+        msg = "Slack: add_reaction requires 'emoji' (e.g. 'thumbsup')"
+        raise ValueError(msg)
+    body: dict[str, Any] = {"channel": channel, "timestamp": ts, "name": emoji}
+    return "POST", ENDPOINT_BY_OPERATION[OP_ADD_REACTION], body
+
+
+def _build_list_users(params: dict[str, Any], *, default_channel: str) -> RequestSpec:
+    del default_channel  # list_users is workspace-scoped, not channel-scoped.
+    limit = _coerce_limit(params.get("limit"))
+    body: dict[str, Any] = {"limit": limit}
+    cursor = str(params.get("cursor") or "").strip()
+    if cursor:
+        body["cursor"] = cursor
+    if "include_locale" in params:
+        body["include_locale"] = bool(params.get("include_locale"))
+    return "POST", ENDPOINT_BY_OPERATION[OP_LIST_USERS], body
+
+
 def _required_channel(params: dict[str, Any], *, default_channel: str) -> str:
     channel = str(params.get("channel") or "").strip()
     if not channel:
@@ -169,9 +219,13 @@ def _coerce_channel_types(raw: Any) -> list[str]:
     return items
 
 
-_BUILDERS: dict[str, Any] = {
+_Builder = Callable[..., RequestSpec]
+_BUILDERS: dict[str, _Builder] = {
     OP_POST_MESSAGE: _build_post_message,
     OP_UPDATE_MESSAGE: _build_update_message,
     OP_DELETE_MESSAGE: _build_delete_message,
     OP_LIST_CHANNELS: _build_list_channels,
+    OP_GET_CHANNEL_HISTORY: _build_get_channel_history,
+    OP_ADD_REACTION: _build_add_reaction,
+    OP_LIST_USERS: _build_list_users,
 }

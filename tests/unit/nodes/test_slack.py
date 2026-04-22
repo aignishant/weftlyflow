@@ -244,6 +244,133 @@ async def test_delete_message_posts_channel_and_ts() -> None:
 
 
 @respx.mock
+async def test_get_channel_history_emits_messages_list() -> None:
+    route = respx.post("https://slack.com/api/conversations.history").mock(
+        return_value=Response(
+            200,
+            json={
+                "ok": True,
+                "messages": [{"ts": "1.1", "text": "hi"}, {"ts": "1.2", "text": "bye"}],
+                "has_more": False,
+            },
+        ),
+    )
+    node = Node(
+        id="node_1",
+        name="Slack",
+        type="weftlyflow.slack",
+        parameters={
+            "operation": "get_channel_history",
+            "channel": "C1",
+            "limit": 25,
+            "oldest": "1.0",
+            "inclusive": True,
+        },
+        credentials={"slack_api": _CRED_ID},
+    )
+    out = await SlackNode().execute(_ctx_for(node, resolver=_resolver()), [Item()])
+    [result] = out[0]
+    assert [m["text"] for m in result.json["messages"]] == ["hi", "bye"]
+    body = json.loads(route.calls.last.request.content)
+    assert body == {"channel": "C1", "limit": 25, "oldest": "1.0", "inclusive": True}
+
+
+@respx.mock
+async def test_add_reaction_posts_name_and_timestamp() -> None:
+    route = respx.post("https://slack.com/api/reactions.add").mock(
+        return_value=Response(200, json={"ok": True}),
+    )
+    node = Node(
+        id="node_1",
+        name="Slack",
+        type="weftlyflow.slack",
+        parameters={
+            "operation": "add_reaction",
+            "channel": "C1",
+            "ts": "1700000000.000100",
+            "emoji": ":thumbsup:",
+        },
+        credentials={"slack_api": _CRED_ID},
+    )
+    await SlackNode().execute(_ctx_for(node, resolver=_resolver()), [Item()])
+    body = json.loads(route.calls.last.request.content)
+    assert body == {
+        "channel": "C1",
+        "timestamp": "1700000000.000100",
+        "name": "thumbsup",
+    }
+
+
+@respx.mock
+async def test_add_reaction_requires_ts() -> None:
+    node = Node(
+        id="node_1",
+        name="Slack",
+        type="weftlyflow.slack",
+        parameters={"operation": "add_reaction", "channel": "C1", "emoji": "eyes"},
+        credentials={"slack_api": _CRED_ID},
+    )
+    with pytest.raises(NodeExecutionError, match="ts"):
+        await SlackNode().execute(_ctx_for(node, resolver=_resolver()), [Item()])
+
+
+@respx.mock
+async def test_list_users_emits_members_list() -> None:
+    route = respx.post("https://slack.com/api/users.list").mock(
+        return_value=Response(
+            200,
+            json={
+                "ok": True,
+                "members": [{"id": "U1", "name": "ada"}, {"id": "U2", "name": "grace"}],
+                "response_metadata": {"next_cursor": ""},
+            },
+        ),
+    )
+    node = Node(
+        id="node_1",
+        name="Slack",
+        type="weftlyflow.slack",
+        parameters={"operation": "list_users", "limit": 50, "include_locale": True},
+        credentials={"slack_api": _CRED_ID},
+    )
+    out = await SlackNode().execute(_ctx_for(node, resolver=_resolver()), [Item()])
+    [result] = out[0]
+    assert [m["name"] for m in result.json["members"]] == ["ada", "grace"]
+    body = json.loads(route.calls.last.request.content)
+    assert body == {"limit": 50, "include_locale": True}
+
+
+@respx.mock
+async def test_slack_oauth2_credential_injects_same_header() -> None:
+    route = respx.post("https://slack.com/api/chat.postMessage").mock(
+        return_value=Response(200, json={"ok": True}),
+    )
+    from weftlyflow.credentials.types import SlackOAuth2Credential
+
+    resolver = InMemoryCredentialResolver(
+        types={"weftlyflow.slack_oauth2": SlackOAuth2Credential},
+        rows={
+            _CRED_ID: (
+                "weftlyflow.slack_oauth2",
+                {"access_token": "xoxb-oauth", "default_channel": "C42"},
+                _PROJECT_ID,
+            ),
+        },
+    )
+    node = Node(
+        id="node_1",
+        name="Slack",
+        type="weftlyflow.slack",
+        parameters={"operation": "post_message", "text": "hi"},
+        credentials={"slack_api": _CRED_ID},
+    )
+    await SlackNode().execute(_ctx_for(node, resolver=resolver), [Item()])
+    assert route.calls.last.request.headers["authorization"] == "Bearer xoxb-oauth"
+    body = json.loads(route.calls.last.request.content)
+    assert body["channel"] == "C42"
+
+
+@respx.mock
 async def test_list_channels_returns_channels_array() -> None:
     route = respx.post("https://slack.com/api/conversations.list").mock(
         return_value=Response(
@@ -345,7 +472,7 @@ def test_build_request_rejects_blocks_of_wrong_shape() -> None:
 
 
 def test_build_request_post_message_requires_body() -> None:
-    with pytest.raises(ValueError, match="text.*blocks|blocks.*text"):
+    with pytest.raises(ValueError, match=r"text.*blocks|blocks.*text"):
         build_request("post_message", {"channel": "C1"})
 
 
@@ -367,3 +494,29 @@ def test_build_request_list_channels_rejects_negative_limit() -> None:
 def test_build_request_unknown_operation_raises() -> None:
     with pytest.raises(ValueError, match="unsupported operation"):
         build_request("eat_lunch", {})
+
+
+def test_build_request_add_reaction_strips_colons() -> None:
+    _, _, body = build_request(
+        "add_reaction",
+        {"channel": "C1", "ts": "1.1", "emoji": ":eyes:"},
+    )
+    assert body == {"channel": "C1", "timestamp": "1.1", "name": "eyes"}
+
+
+def test_build_request_add_reaction_requires_emoji() -> None:
+    with pytest.raises(ValueError, match="emoji"):
+        build_request("add_reaction", {"channel": "C1", "ts": "1.1"})
+
+
+def test_build_request_get_channel_history_caps_limit() -> None:
+    _, _, body = build_request(
+        "get_channel_history",
+        {"channel": "C1", "limit": 5000},
+    )
+    assert body["limit"] == 1000
+
+
+def test_build_request_list_users_defaults_limit() -> None:
+    _, _, body = build_request("list_users", {})
+    assert body == {"limit": 100}

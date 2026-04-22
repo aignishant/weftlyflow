@@ -26,7 +26,7 @@ def loaded_registry() -> NodeRegistry:
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 17, f"expected 17 built-in nodes, got {count}"
+    assert count == 26, f"expected 26 built-in nodes, got {count}"
     return registry
 
 

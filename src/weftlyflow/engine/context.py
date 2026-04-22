@@ -25,6 +25,7 @@ if TYPE_CHECKING:
     from weftlyflow.domain.execution import ExecutionMode, Item
     from weftlyflow.domain.workflow import Node, Workflow
     from weftlyflow.engine.hooks import LifecycleHooks
+    from weftlyflow.engine.subworkflow import SubWorkflowRunner
 
 
 @dataclass(slots=True)
@@ -53,6 +54,7 @@ class ExecutionContext:
     hooks: LifecycleHooks | None = None
     canceled: bool = False
     credential_resolver: CredentialResolver | None = None
+    sub_workflow_runner: SubWorkflowRunner | None = None
 
     def param(self, name: str, default: Any = None) -> Any:
         """Return the raw parameter value — no expression evaluation.

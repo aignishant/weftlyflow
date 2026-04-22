@@ -14,6 +14,7 @@ from weftlyflow.credentials.types import (
     BasicAuthCredential,
     BearerTokenCredential,
     OAuth2GenericCredential,
+    SlackOAuth2Credential,
 )
 
 
@@ -77,10 +78,29 @@ async def test_oauth2_test_complains_without_token() -> None:
     assert "access_token" in res.message.lower()
 
 
+async def test_slack_oauth2_injects_bearer_token() -> None:
+    req = _fresh_request()
+    out = await SlackOAuth2Credential().inject({"access_token": "xoxb-oauth"}, req)
+    assert out.headers["Authorization"] == "Bearer xoxb-oauth"
+
+
+async def test_slack_oauth2_test_complains_without_token() -> None:
+    res = await SlackOAuth2Credential().test({"access_token": ""})
+    assert res.ok is False
+    assert "access_token" in res.message.lower()
+
+
+def test_slack_oauth2_has_slack_default_endpoints() -> None:
+    props = {p.name: p for p in SlackOAuth2Credential.properties}
+    assert props["authorization_url"].default == "https://slack.com/oauth/v2/authorize"
+    assert props["token_url"].default == "https://slack.com/api/oauth.v2.access"
+    assert "chat:write" in str(props["scope"].default)
+
+
 def test_registry_load_builtins_registers_all_builtins() -> None:
     reg = CredentialTypeRegistry()
     added = reg.load_builtins()
-    assert added == 6
+    assert added == 7
     slugs = {cls.slug for cls in reg.catalog()}
     assert slugs == {
         "weftlyflow.bearer_token",
@@ -89,6 +109,7 @@ def test_registry_load_builtins_registers_all_builtins() -> None:
         "weftlyflow.api_key_query",
         "weftlyflow.oauth2_generic",
         "weftlyflow.slack_api",
+        "weftlyflow.slack_oauth2",
     }
 
 

@@ -22,8 +22,12 @@ Parameters (all expression-capable):
 
 Credentials:
 
-* slot ``"slack_api"`` — required; resolved to a
-  :class:`SlackApiCredential` payload.
+* slot ``"slack_api"`` — required; accepts either a
+  :class:`~weftlyflow.credentials.types.slack_api.SlackApiCredential`
+  (raw ``xoxb-``/``xoxp-`` token) or a
+  :class:`~weftlyflow.credentials.types.slack_oauth2.SlackOAuth2Credential`
+  (OAuth2 flow). Both inject the same ``Authorization: Bearer ...`` header
+  and expose ``access_token`` plus an optional ``default_channel``.
 
 Output:
 
@@ -56,8 +60,11 @@ from weftlyflow.nodes.integrations.slack.constants import (
     API_BASE_URL,
     DEFAULT_LIST_LIMIT,
     DEFAULT_TIMEOUT_SECONDS,
+    OP_ADD_REACTION,
     OP_DELETE_MESSAGE,
+    OP_GET_CHANNEL_HISTORY,
     OP_LIST_CHANNELS,
+    OP_LIST_USERS,
     OP_POST_MESSAGE,
     OP_UPDATE_MESSAGE,
     SUPPORTED_OPERATIONS,
@@ -69,10 +76,27 @@ if TYPE_CHECKING:
 
 
 _CREDENTIAL_SLOT: str = "slack_api"
-_CREDENTIAL_SLUG: str = "weftlyflow.slack_api"
+_CREDENTIAL_SLUGS: tuple[str, ...] = (
+    "weftlyflow.slack_api",
+    "weftlyflow.slack_oauth2",
+)
 _MESSAGE_OPERATIONS: frozenset[str] = frozenset(
     {OP_POST_MESSAGE, OP_UPDATE_MESSAGE, OP_DELETE_MESSAGE},
 )
+_CHANNEL_REQUIRING_OPERATIONS: frozenset[str] = frozenset(
+    _MESSAGE_OPERATIONS | {OP_GET_CHANNEL_HISTORY, OP_ADD_REACTION},
+)
+_CURSOR_OPERATIONS: frozenset[str] = frozenset(
+    {OP_LIST_CHANNELS, OP_GET_CHANNEL_HISTORY, OP_LIST_USERS},
+)
+_LIMIT_OPERATIONS: frozenset[str] = frozenset(
+    {OP_LIST_CHANNELS, OP_GET_CHANNEL_HISTORY, OP_LIST_USERS},
+)
+_COLLECTION_KEY_BY_OPERATION: dict[str, str] = {
+    OP_LIST_CHANNELS: "channels",
+    OP_GET_CHANNEL_HISTORY: "messages",
+    OP_LIST_USERS: "members",
+}
 
 log = structlog.get_logger(__name__)
 
@@ -93,7 +117,7 @@ class SlackNode(BaseNode):
             CredentialSlot(
                 name=_CREDENTIAL_SLOT,
                 required=True,
-                credential_types=[_CREDENTIAL_SLUG],
+                credential_types=list(_CREDENTIAL_SLUGS),
             ),
         ],
         properties=[
@@ -108,6 +132,9 @@ class SlackNode(BaseNode):
                     PropertyOption(value=OP_UPDATE_MESSAGE, label="Update Message"),
                     PropertyOption(value=OP_DELETE_MESSAGE, label="Delete Message"),
                     PropertyOption(value=OP_LIST_CHANNELS, label="List Channels"),
+                    PropertyOption(value=OP_GET_CHANNEL_HISTORY, label="Get Channel History"),
+                    PropertyOption(value=OP_ADD_REACTION, label="Add Reaction"),
+                    PropertyOption(value=OP_LIST_USERS, label="List Users"),
                 ],
             ),
             PropertySchema(
@@ -116,7 +143,7 @@ class SlackNode(BaseNode):
                 type="string",
                 description="Channel id (C0123...) or name (#general).",
                 display_options=DisplayOptions(
-                    show={"operation": list(_MESSAGE_OPERATIONS)},
+                    show={"operation": list(_CHANNEL_REQUIRING_OPERATIONS)},
                 ),
             ),
             PropertySchema(
@@ -142,10 +169,52 @@ class SlackNode(BaseNode):
                 name="ts",
                 display_name="Message Timestamp",
                 type="string",
-                description="The 'ts' value of the message to update or delete.",
+                description="The 'ts' value of the target message.",
                 display_options=DisplayOptions(
-                    show={"operation": [OP_UPDATE_MESSAGE, OP_DELETE_MESSAGE]},
+                    show={
+                        "operation": [
+                            OP_UPDATE_MESSAGE,
+                            OP_DELETE_MESSAGE,
+                            OP_ADD_REACTION,
+                        ],
+                    },
                 ),
+            ),
+            PropertySchema(
+                name="emoji",
+                display_name="Emoji",
+                type="string",
+                description="Emoji name — e.g. 'thumbsup' (no surrounding colons).",
+                display_options=DisplayOptions(show={"operation": [OP_ADD_REACTION]}),
+            ),
+            PropertySchema(
+                name="oldest",
+                display_name="Oldest",
+                type="string",
+                description="Return history starting at this Slack ts (exclusive).",
+                display_options=DisplayOptions(show={"operation": [OP_GET_CHANNEL_HISTORY]}),
+            ),
+            PropertySchema(
+                name="latest",
+                display_name="Latest",
+                type="string",
+                description="Return history up to this Slack ts (exclusive).",
+                display_options=DisplayOptions(show={"operation": [OP_GET_CHANNEL_HISTORY]}),
+            ),
+            PropertySchema(
+                name="inclusive",
+                display_name="Inclusive",
+                type="boolean",
+                default=False,
+                description="Include messages at oldest/latest boundaries.",
+                display_options=DisplayOptions(show={"operation": [OP_GET_CHANNEL_HISTORY]}),
+            ),
+            PropertySchema(
+                name="include_locale",
+                display_name="Include Locale",
+                type="boolean",
+                default=False,
+                display_options=DisplayOptions(show={"operation": [OP_LIST_USERS]}),
             ),
             PropertySchema(
                 name="thread_ts",
@@ -175,13 +244,17 @@ class SlackNode(BaseNode):
                 display_name="Limit",
                 type="number",
                 default=DEFAULT_LIST_LIMIT,
-                display_options=DisplayOptions(show={"operation": [OP_LIST_CHANNELS]}),
+                display_options=DisplayOptions(
+                    show={"operation": list(_LIMIT_OPERATIONS)},
+                ),
             ),
             PropertySchema(
                 name="cursor",
                 display_name="Cursor",
                 type="string",
-                display_options=DisplayOptions(show={"operation": [OP_LIST_CHANNELS]}),
+                display_options=DisplayOptions(
+                    show={"operation": list(_CURSOR_OPERATIONS)},
+                ),
             ),
             PropertySchema(
                 name="types",
@@ -257,9 +330,12 @@ class SlackNode(BaseNode):
             msg = f"Slack: unsupported operation {operation!r}"
             raise NodeExecutionError(msg, node_id=ctx.node.id)
 
-        http_method, slack_method, body = build_request(
-            operation, params, default_channel=default_channel,
-        )
+        try:
+            http_method, slack_method, body = build_request(
+                operation, params, default_channel=default_channel,
+            )
+        except ValueError as exc:
+            raise NodeExecutionError(str(exc), node_id=ctx.node.id, original=exc) from exc
         try:
             response = await client.request(
                 http_method,
@@ -282,9 +358,10 @@ class SlackNode(BaseNode):
             "ok": ok,
             "response": payload,
         }
-        if operation == OP_LIST_CHANNELS and isinstance(payload, dict):
-            channels = payload.get("channels", [])
-            result["channels"] = channels if isinstance(channels, list) else []
+        collection_key = _COLLECTION_KEY_BY_OPERATION.get(operation)
+        if collection_key is not None and isinstance(payload, dict):
+            value = payload.get(collection_key, [])
+            result[collection_key] = value if isinstance(value, list) else []
         if not ok:
             error = _error_message(payload, response.status_code)
             logger.warning(

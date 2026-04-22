@@ -25,6 +25,7 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.api_key_query",
     "weftlyflow.credentials.types.oauth2_generic",
     "weftlyflow.credentials.types.slack_api",
+    "weftlyflow.credentials.types.slack_oauth2",
 )
 
 

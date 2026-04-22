@@ -63,6 +63,9 @@ dependencies = [
     "anyio>=4.3",
     "jinja2>=3.1",      # internal templates only (emails), NOT the expression engine
     "python-dateutil>=2.9",
+    # parsing — HTML (BeautifulSoup + soupsieve CSS selectors) + safe XML
+    "beautifulsoup4>=4.12",
+    "defusedxml>=0.7",
 ]
 
 [project.optional-dependencies]
@@ -81,6 +84,7 @@ dev = [
     "mypy>=1.10",
     "pre-commit>=3.7",
     "types-python-dateutil",
+    "types-defusedxml",
 ]
 docs = [
     "mkdocs-material>=9.5",
