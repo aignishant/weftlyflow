@@ -3,9 +3,11 @@
 For each input item the node reads the :class:`BinaryRef` at
 ``binary_property`` and copies its bytes to the configured ``path``.
 
-Only filesystem-scheme refs (``fs:<abs path>``) are resolved directly;
-other schemes (``db:``, ``s3:``) would require the binary-store service
-and raise :class:`ValueError` until that service lands.
+Filesystem-scheme refs (``fs:<abs path>``) are resolved via ``shutil`` for
+a zero-copy fast path. Refs with any other scheme are delegated to the
+execution's configured
+:class:`~weftlyflow.binary.store.BinaryStore` — if no store is wired,
+non-fs schemes raise :class:`ValueError`.
 
 The item is emitted unchanged on the ``main`` output port so downstream
 nodes can reference the original JSON payload.
@@ -17,6 +19,7 @@ import shutil
 from pathlib import Path
 from typing import ClassVar
 
+from weftlyflow.binary.store import BinaryStore
 from weftlyflow.domain.execution import BinaryRef, Item
 from weftlyflow.domain.node_spec import NodeCategory, NodeSpec, PropertySchema
 from weftlyflow.domain.workflow import Port
@@ -88,24 +91,39 @@ class WriteBinaryFileNode(BaseNode):
                     "is missing or not a BinaryRef"
                 )
                 raise ValueError(msg)
-            _write_ref(ref, destination=resolved_path, overwrite=overwrite)
+            await _write_ref(
+                ref,
+                destination=resolved_path,
+                overwrite=overwrite,
+                store=ctx.binary_store,
+            )
         return [list(items)]
 
 
-def _write_ref(ref: BinaryRef, *, destination: str, overwrite: bool) -> None:
-    if not ref.data_ref.startswith(_FS_SCHEME):
-        msg = (
-            f"Write Binary File: unsupported data_ref scheme "
-            f"{ref.data_ref!r} — only 'fs:' is implemented"
-        )
-        raise ValueError(msg)
-    source = Path(ref.data_ref.removeprefix(_FS_SCHEME)).expanduser()
-    if not source.is_file():
-        msg = f"Write Binary File: source {source!s} does not exist"
-        raise ValueError(msg)
+async def _write_ref(
+    ref: BinaryRef,
+    *,
+    destination: str,
+    overwrite: bool,
+    store: BinaryStore | None,
+) -> None:
     dest = Path(destination).expanduser()
     if dest.exists() and not overwrite:
         msg = f"Write Binary File: destination {dest!s} exists and overwrite=False"
         raise ValueError(msg)
     dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copyfile(source, dest)
+    if ref.data_ref.startswith(_FS_SCHEME):
+        source = Path(ref.data_ref.removeprefix(_FS_SCHEME)).expanduser()
+        if not source.is_file():
+            msg = f"Write Binary File: source {source!s} does not exist"
+            raise ValueError(msg)
+        shutil.copyfile(source, dest)
+        return
+    if store is None:
+        msg = (
+            f"Write Binary File: unsupported data_ref scheme "
+            f"{ref.data_ref!r} — only 'fs:' is implemented"
+        )
+        raise ValueError(msg)
+    data = await store.get(ref)
+    dest.write_bytes(data)

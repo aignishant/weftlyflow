@@ -14,6 +14,8 @@ from typing import Any
 import pytest
 
 from tests.unit.engine.conftest import build_workflow
+from weftlyflow.binary import InMemoryBinaryStore
+from weftlyflow.binary.store import BinaryStore
 from weftlyflow.domain.execution import BinaryRef, Item
 from weftlyflow.domain.workflow import Node
 from weftlyflow.engine.context import ExecutionContext
@@ -32,6 +34,7 @@ def _ctx_for(
     inputs: dict[str, list[Item]] | None = None,
     static_data: dict[str, Any] | None = None,
     sub_workflow_runner: SubWorkflowRunner | None = None,
+    binary_store: BinaryStore | None = None,
     mode: str = "manual",
 ) -> ExecutionContext:
     wf = build_workflow([node], [])
@@ -43,6 +46,7 @@ def _ctx_for(
         inputs=inputs or {},
         static_data=static_data if static_data is not None else {},
         sub_workflow_runner=sub_workflow_runner,
+        binary_store=binary_store,
     )
 
 
@@ -215,6 +219,22 @@ async def test_write_binary_file_honours_overwrite_false(tmp_path: Path) -> None
             _ctx_for(node, inputs={"main": items}), items,
         )
     assert dest.read_bytes() == b"existing"
+
+
+async def test_write_binary_file_uses_binary_store_for_non_fs_ref(
+    tmp_path: Path,
+) -> None:
+    store = InMemoryBinaryStore()
+    ref = await store.put(b"from-store", filename="b", mime_type="x")
+    dest = tmp_path / "out" / "written.bin"
+    node = Node(
+        id="n_w", name="w", type="weftlyflow.write_binary_file",
+        parameters={"path": str(dest)},
+    )
+    items = [Item(json={}, binary={"data": ref})]
+    ctx = _ctx_for(node, inputs={"main": items}, binary_store=store)
+    await WriteBinaryFileNode().execute(ctx, items)
+    assert dest.read_bytes() == b"from-store"
 
 
 # --- Function Call ----------------------------------------------------------

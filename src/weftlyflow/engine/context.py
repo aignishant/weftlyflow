@@ -21,6 +21,7 @@ from weftlyflow.expression.proxies import build_proxies, filter_env
 from weftlyflow.expression.resolver import resolve, resolve_tree
 
 if TYPE_CHECKING:
+    from weftlyflow.binary.store import BinaryStore
     from weftlyflow.credentials.resolver import CredentialResolver
     from weftlyflow.domain.execution import ExecutionMode, Item
     from weftlyflow.domain.workflow import Node, Workflow
@@ -55,6 +56,7 @@ class ExecutionContext:
     canceled: bool = False
     credential_resolver: CredentialResolver | None = None
     sub_workflow_runner: SubWorkflowRunner | None = None
+    binary_store: BinaryStore | None = None
 
     def param(self, name: str, default: Any = None) -> Any:
         """Return the raw parameter value — no expression evaluation.
