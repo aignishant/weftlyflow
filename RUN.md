@@ -378,15 +378,65 @@ OAuth2 handshake (manual, when you have a real provider):
 
 ### Phase 5 — Frontend MVP
 
+Vue 3 + Vite + TypeScript SPA under `/frontend`. The dev server proxies
+`/api`, `/oauth2`, and `/webhook` to the backend at `:5678`.
+
+One-time setup (per machine):
+
 ```bash
 cd frontend
 npm install
-npm run typecheck
-npm run lint
-npm run test
-npm run build                      # emits dist/
-npx playwright test                # golden-path E2E
+npx playwright install --with-deps chromium   # only needed for `npm run e2e`
 ```
+
+Gate (runs without a backend; pure TS/build):
+
+```bash
+cd frontend
+npm run typecheck                  # vue-tsc --noEmit
+npm run test                       # vitest — unit smoke
+npm run build                      # production bundle → dist/
+```
+
+Live dev — API + SPA side-by-side:
+
+```bash
+# Terminal 1 — backend (set the bootstrap admin once; SQLite file persists).
+WEFTLYFLOW_BOOTSTRAP_ADMIN_EMAIL=admin@weftlyflow.io \
+WEFTLYFLOW_BOOTSTRAP_ADMIN_PASSWORD=s3cret \
+make dev-api
+
+# Terminal 2 — Vite dev server.
+make dev-frontend                  # → http://localhost:5173
+```
+
+Sign in as `admin@weftlyflow.io` / `s3cret`. The editor lets you:
+
+1. Create a workflow from the Home page.
+2. Drag nodes from the palette onto the Vue Flow canvas, wire ports by
+   dragging between handles, edit parameters + credentials in the right
+   inspector.
+3. Click Execute to run the workflow inline and inspect per-node run data
+   in the bottom panel.
+4. Activate / Deactivate a workflow to register its webhook + schedule
+   triggers against the backend's trigger manager.
+5. Manage credentials under the Credentials tab (`New credential` modal
+   reads the type catalog and encrypts the payload server-side).
+
+Golden-path Playwright E2E (needs backend running + `playwright install`):
+
+```bash
+cd frontend
+WEFTLYFLOW_BOOTSTRAP_ADMIN_EMAIL=admin@weftlyflow.io \
+WEFTLYFLOW_BOOTSTRAP_ADMIN_PASSWORD=s3cret \
+npm run e2e
+```
+
+The test logs in, creates a workflow, adds a Set node from the palette,
+executes it, asserts the run panel shows status=success, then deletes
+the workflow. It spins up Vite itself (`webServer` in
+`playwright.config.ts`) but expects the backend to already be running
+on `:5678`.
 
 ### Phase 6+ — Integration nodes
 
