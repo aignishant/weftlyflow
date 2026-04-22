@@ -22,12 +22,16 @@
     monday_api.py             : Monday.com unprefixed ``Authorization`` token.
     zendesk_api.py            : Zendesk Basic auth with ``/token`` email suffix.
     brevo_api.py              : Brevo ``api-key`` lowercase header.
+    pagerduty_api.py          : PagerDuty ``Token token=<key>`` + From header.
+    algolia_api.py            : Algolia dual ``X-Algolia-*`` headers.
+    mailchimp_api.py          : Mailchimp Basic auth with dc parsed from key.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
 
 from __future__ import annotations
 
+from weftlyflow.credentials.types.algolia_api import AlgoliaApiCredential
 from weftlyflow.credentials.types.api_key_header import ApiKeyHeaderCredential
 from weftlyflow.credentials.types.api_key_query import ApiKeyQueryCredential
 from weftlyflow.credentials.types.basic_auth import BasicAuthCredential
@@ -40,9 +44,11 @@ from weftlyflow.credentials.types.google_sheets_oauth2 import GoogleSheetsOAuth2
 from weftlyflow.credentials.types.hubspot_private_app import HubSpotPrivateAppCredential
 from weftlyflow.credentials.types.intercom_api import IntercomApiCredential
 from weftlyflow.credentials.types.jira_cloud import JiraCloudCredential
+from weftlyflow.credentials.types.mailchimp_api import MailchimpApiCredential
 from weftlyflow.credentials.types.monday_api import MondayApiCredential
 from weftlyflow.credentials.types.notion_api import NotionApiCredential
 from weftlyflow.credentials.types.oauth2_generic import OAuth2GenericCredential
+from weftlyflow.credentials.types.pagerduty_api import PagerDutyApiCredential
 from weftlyflow.credentials.types.shopify_admin import ShopifyAdminCredential
 from weftlyflow.credentials.types.slack_api import SlackApiCredential
 from weftlyflow.credentials.types.slack_oauth2 import SlackOAuth2Credential
@@ -52,6 +58,7 @@ from weftlyflow.credentials.types.twilio_api import TwilioApiCredential
 from weftlyflow.credentials.types.zendesk_api import ZendeskApiCredential
 
 __all__ = [
+    "AlgoliaApiCredential",
     "ApiKeyHeaderCredential",
     "ApiKeyQueryCredential",
     "BasicAuthCredential",
@@ -64,9 +71,11 @@ __all__ = [
     "HubSpotPrivateAppCredential",
     "IntercomApiCredential",
     "JiraCloudCredential",
+    "MailchimpApiCredential",
     "MondayApiCredential",
     "NotionApiCredential",
     "OAuth2GenericCredential",
+    "PagerDutyApiCredential",
     "ShopifyAdminCredential",
     "SlackApiCredential",
     "SlackOAuth2Credential",
