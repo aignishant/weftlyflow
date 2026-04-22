@@ -32,6 +32,9 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.telegram_bot",
     "weftlyflow.credentials.types.trello_api",
     "weftlyflow.credentials.types.hubspot_private_app",
+    "weftlyflow.credentials.types.jira_cloud",
+    "weftlyflow.credentials.types.shopify_admin",
+    "weftlyflow.credentials.types.clickup_api",
 )
 
 

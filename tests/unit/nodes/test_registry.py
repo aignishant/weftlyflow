@@ -94,7 +94,7 @@ def test_register_node_decorator_registers_class():
 def test_load_builtins_registers_every_core_node():
     reg = NodeRegistry()
     added = reg.load_builtins()
-    assert added == 34
+    assert added == 40
     types = {spec.type for spec in reg.catalog()}
     assert types == {
         "weftlyflow.manual_trigger",
@@ -131,6 +131,12 @@ def test_load_builtins_registers_every_core_node():
         "weftlyflow.discord",
         "weftlyflow.airtable",
         "weftlyflow.mailgun",
+        "weftlyflow.telegram",
+        "weftlyflow.trello",
+        "weftlyflow.hubspot",
+        "weftlyflow.jira",
+        "weftlyflow.shopify",
+        "weftlyflow.clickup",
     }
 
 

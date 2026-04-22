@@ -13,6 +13,9 @@
     telegram_bot.py           : Telegram bot token — embedded in URL path.
     trello_api.py             : Trello key + token as query parameters.
     hubspot_private_app.py    : HubSpot Private-App Bearer token.
+    jira_cloud.py             : Jira Cloud email + API token basic auth.
+    shopify_admin.py          : Shopify Admin API ``X-Shopify-Access-Token``.
+    clickup_api.py            : ClickUp unprefixed ``Authorization`` token.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -23,11 +26,14 @@ from weftlyflow.credentials.types.api_key_header import ApiKeyHeaderCredential
 from weftlyflow.credentials.types.api_key_query import ApiKeyQueryCredential
 from weftlyflow.credentials.types.basic_auth import BasicAuthCredential
 from weftlyflow.credentials.types.bearer_token import BearerTokenCredential
+from weftlyflow.credentials.types.clickup_api import ClickUpApiCredential
 from weftlyflow.credentials.types.discord_bot import DiscordBotCredential
 from weftlyflow.credentials.types.google_sheets_oauth2 import GoogleSheetsOAuth2Credential
 from weftlyflow.credentials.types.hubspot_private_app import HubSpotPrivateAppCredential
+from weftlyflow.credentials.types.jira_cloud import JiraCloudCredential
 from weftlyflow.credentials.types.notion_api import NotionApiCredential
 from weftlyflow.credentials.types.oauth2_generic import OAuth2GenericCredential
+from weftlyflow.credentials.types.shopify_admin import ShopifyAdminCredential
 from weftlyflow.credentials.types.slack_api import SlackApiCredential
 from weftlyflow.credentials.types.slack_oauth2 import SlackOAuth2Credential
 from weftlyflow.credentials.types.telegram_bot import TelegramBotCredential
@@ -38,11 +44,14 @@ __all__ = [
     "ApiKeyQueryCredential",
     "BasicAuthCredential",
     "BearerTokenCredential",
+    "ClickUpApiCredential",
     "DiscordBotCredential",
     "GoogleSheetsOAuth2Credential",
     "HubSpotPrivateAppCredential",
+    "JiraCloudCredential",
     "NotionApiCredential",
     "OAuth2GenericCredential",
+    "ShopifyAdminCredential",
     "SlackApiCredential",
     "SlackOAuth2Credential",
     "TelegramBotCredential",
