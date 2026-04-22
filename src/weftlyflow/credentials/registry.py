@@ -26,6 +26,12 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.oauth2_generic",
     "weftlyflow.credentials.types.slack_api",
     "weftlyflow.credentials.types.slack_oauth2",
+    "weftlyflow.credentials.types.notion_api",
+    "weftlyflow.credentials.types.google_sheets_oauth2",
+    "weftlyflow.credentials.types.discord_bot",
+    "weftlyflow.credentials.types.telegram_bot",
+    "weftlyflow.credentials.types.trello_api",
+    "weftlyflow.credentials.types.hubspot_private_app",
 )
 
 
