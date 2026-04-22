@@ -438,9 +438,87 @@ the workflow. It spins up Vite itself (`webServer` in
 `playwright.config.ts`) but expects the backend to already be running
 on `:5678`.
 
-### Phase 6+ — Integration nodes
+### Phase 6-core — Tier-1 node backfill
 
-Each new node ships with its own test folder. Validation:
+Adds the remaining Tier-1 MVP nodes (bible §25): `switch`, `filter`,
+`merge`, `rename_keys`, `datetime_ops`, `evaluate_expression`,
+`stop_and_error`, `execution_data`. The registry now ships **16
+built-ins**.
+
+Validation:
+
+```bash
+make lint && make typecheck && make test
+pytest tests/unit/nodes/test_phase6_nodes.py -v    # 22 per-node unit tests
+pytest tests/integration/test_phase6_nodes.py -v   # 2 integration chains
+```
+
+Quick smoke — run a chained workflow through the new nodes:
+
+```bash
+python - <<'PY'
+import asyncio
+
+from weftlyflow.domain.execution import Item
+from weftlyflow.domain.ids import new_node_id, new_workflow_id
+from weftlyflow.domain.workflow import Connection, Node, Workflow
+from weftlyflow.engine.executor import WorkflowExecutor
+from weftlyflow.nodes.registry import NodeRegistry
+
+registry = NodeRegistry()
+registry.load_builtins()
+
+trig = Node(id=new_node_id(), name="Trigger", type="weftlyflow.manual_trigger")
+flt = Node(
+    id=new_node_id(), name="Adults", type="weftlyflow.filter",
+    parameters={"field": "age", "operator": "greater_than_or_equal", "value": 18},
+)
+ev = Node(
+    id=new_node_id(), name="Tag", type="weftlyflow.evaluate_expression",
+    parameters={"expression": "{{ $json.name.upper() }}", "output_field": "display_name"},
+)
+sw = Node(
+    id=new_node_id(), name="Route", type="weftlyflow.switch",
+    parameters={
+        "field": "country",
+        "cases": [{"value": "US", "port": "case_1"}, {"value": "GB", "port": "case_2"}],
+        "fallback_port": "default",
+    },
+)
+us = Node(id=new_node_id(), name="US", type="weftlyflow.no_op")
+gb = Node(id=new_node_id(), name="GB", type="weftlyflow.no_op")
+other = Node(id=new_node_id(), name="Other", type="weftlyflow.no_op")
+
+wf = Workflow(
+    id=new_workflow_id(), project_id="pr_demo", name="demo",
+    nodes=[trig, flt, ev, sw, us, gb, other],
+    connections=[
+        Connection(source_node=trig.id, target_node=flt.id),
+        Connection(source_node=flt.id, target_node=ev.id),
+        Connection(source_node=ev.id, target_node=sw.id),
+        Connection(source_node=sw.id, target_node=us.id, source_port="case_1", source_index=0),
+        Connection(source_node=sw.id, target_node=gb.id, source_port="case_2", source_index=1),
+        Connection(source_node=sw.id, target_node=other.id, source_port="default", source_index=6),
+    ],
+)
+items = [
+    Item(json={"age": 10, "name": "Ada",    "country": "GB"}),
+    Item(json={"age": 30, "name": "Grace",  "country": "US"}),
+    Item(json={"age": 42, "name": "Edsger", "country": "NL"}),
+]
+execution = asyncio.run(WorkflowExecutor(registry).run(wf, initial_items=items))
+print("status:", execution.status)
+print("us     ->", [i.json["display_name"] for i in execution.run_data.per_node[us.id][0].items[0]])
+print("other  ->", [i.json["display_name"] for i in execution.run_data.per_node[other.id][0].items[0]])
+PY
+```
+
+Expected: `status: success`, `us` contains `['GRACE']`, `other` contains
+`['EDSGER']` (Ada was filtered before reaching Switch).
+
+### Phase 6+ — Integration nodes (Tier-2)
+
+Tier-2 integrations still ship one PR at a time (see bible §25). Template:
 
 ```bash
 make lint && make typecheck
