@@ -94,7 +94,7 @@ def test_register_node_decorator_registers_class():
 def test_load_builtins_registers_every_core_node():
     reg = NodeRegistry()
     added = reg.load_builtins()
-    assert added == 61
+    assert added == 73
     types = {spec.type for spec in reg.catalog()}
     assert types == {
         "weftlyflow.manual_trigger",
@@ -158,6 +158,18 @@ def test_load_builtins_registers_every_core_node():
         "weftlyflow.elasticsearch",
         "weftlyflow.dropbox",
         "weftlyflow.twitch",
+        "weftlyflow.salesforce",
+        "weftlyflow.zoom",
+        "weftlyflow.microsoft_graph",
+        "weftlyflow.asana",
+        "weftlyflow.box",
+        "weftlyflow.snowflake",
+        "weftlyflow.datadog",
+        "weftlyflow.activecampaign",
+        "weftlyflow.aws_s3",
+        "weftlyflow.openai",
+        "weftlyflow.xero",
+        "weftlyflow.netsuite",
     }
 
 

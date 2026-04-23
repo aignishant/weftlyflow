@@ -56,6 +56,18 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.elasticsearch_api",
     "weftlyflow.credentials.types.dropbox_api",
     "weftlyflow.credentials.types.twitch_api",
+    "weftlyflow.credentials.types.salesforce_api",
+    "weftlyflow.credentials.types.zoom_api",
+    "weftlyflow.credentials.types.microsoft_graph",
+    "weftlyflow.credentials.types.asana_api",
+    "weftlyflow.credentials.types.box_api",
+    "weftlyflow.credentials.types.snowflake_api",
+    "weftlyflow.credentials.types.datadog_api",
+    "weftlyflow.credentials.types.activecampaign_api",
+    "weftlyflow.credentials.types.aws_s3",
+    "weftlyflow.credentials.types.openai_api",
+    "weftlyflow.credentials.types.xero_api",
+    "weftlyflow.credentials.types.netsuite_api",
 )
 
 
