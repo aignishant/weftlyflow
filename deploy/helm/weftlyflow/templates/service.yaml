@@ -1,0 +1,28 @@
+{{/*
+service.yaml — ClusterIP Service for the API Deployment.
+
+Exposes port 80 (or service.port) → container 5678. Ingress, load-balancers,
+and other consumers should reference this Service rather than pod IPs.
+*/}}
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "weftlyflow.fullname" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "weftlyflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+  {{- with .Values.service.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.targetPort }}
+      protocol: TCP
+      name: http
+  selector:
+    {{- include "weftlyflow.selectorLabels" . | nindent 4 }}
+    app.kubernetes.io/component: api

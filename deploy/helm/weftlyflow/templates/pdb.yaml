@@ -1,0 +1,42 @@
+{{/*
+pdb.yaml — PodDisruptionBudgets for api and worker.
+
+Prevents Kubernetes from evicting all replicas simultaneously during node
+maintenance or voluntary disruptions. Beat is a singleton (1 replica) and
+therefore does not get a PDB — disruption is accepted as a brief scheduling
+gap.
+*/}}
+{{- if .Values.pdb.api.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "weftlyflow.fullname" . }}-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "weftlyflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: api
+spec:
+  minAvailable: {{ .Values.pdb.api.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "weftlyflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+{{- end }}
+{{- if .Values.pdb.worker.enabled }}
+---
+apiVersion: policy/v1
+kind: PodDisruptionBudget
+metadata:
+  name: {{ include "weftlyflow.fullname" . }}-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "weftlyflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: worker
+spec:
+  minAvailable: {{ .Values.pdb.worker.minAvailable }}
+  selector:
+    matchLabels:
+      {{- include "weftlyflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+{{- end }}

@@ -1448,7 +1448,7 @@ Eighty-one integrations shipped through tranche-26 (see `docs/changelog.md`).
 - [x] External-secrets provider interface (`weftlyflow.credentials.external`) — `SecretProvider` protocol + `EnvSecretProvider` + `SecretProviderRegistry` + `VaultSecretProvider` (KV v2, token auth) + `OnePasswordSecretProvider` (Connect REST, bearer token). AWS Secrets Manager adapter pending.
 - [x] Audit-log retention — `audit_events` table + Alembic migration `0004` + `AuditEventRepository` + daily beat task `weftlyflow.prune_audit_events` driven by `audit_retention_days` setting.
 - SAML/OIDC SSO.
-- Kubernetes Helm chart.
+- [x] Kubernetes Helm chart — `deploy/helm/weftlyflow/` (Chart 0.1.0; api/worker/beat Deployments, migration Job hook, optional Bitnami postgresql+redis sub-charts, HPA/PDB/NetworkPolicy/Ingress templates).
 
 ---
 

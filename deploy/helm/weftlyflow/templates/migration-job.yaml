@@ -1,0 +1,66 @@
+{{/*
+migration-job.yaml — Pre-install / pre-upgrade Helm hook that runs
+`alembic upgrade head` before any Deployment rollout.
+
+Helm waits for this Job to reach Completed status before proceeding.
+If the Job fails, the upgrade is rolled back. The Job uses the api image
+(which ships alembic.ini and all migration scripts) with an overridden
+command — no extra image is needed.
+
+Hook weights: pre-install runs before resource creation; pre-upgrade runs
+before the new ReplicaSets are applied. Both share weight 0 so they run
+in the order Helm resolves them (single job, no ordering concern).
+*/}}
+{{- if .Values.migrationJob.enabled }}
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "weftlyflow.fullname" . }}-migration-{{ .Release.Revision }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "weftlyflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: migration
+  annotations:
+    # Helm hook annotations — run before install and before upgrade.
+    "helm.sh/hook": pre-install,pre-upgrade
+    "helm.sh/hook-weight": "0"
+    # Delete the Job after it succeeds to keep the namespace tidy.
+    # Change to "before-hook-creation" if you want to retain logs.
+    "helm.sh/hook-delete-policy": hook-succeeded
+spec:
+  activeDeadlineSeconds: {{ .Values.migrationJob.activeDeadlineSeconds }}
+  backoffLimit: {{ .Values.migrationJob.backoffLimit }}
+  template:
+    metadata:
+      labels:
+        {{- include "weftlyflow.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: migration
+    spec:
+      restartPolicy: OnFailure
+      serviceAccountName: {{ include "weftlyflow.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: migration
+          image: {{ include "weftlyflow.image" (dict "component" "api" "Values" .Values "Chart" .Chart) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          command: ["alembic", "upgrade", "head"]
+          envFrom:
+            {{- include "weftlyflow.envFrom" . | nindent 12 }}
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          resources:
+            {{- toYaml .Values.migrationJob.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: false
+            capabilities:
+              drop: [ALL]
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 1000
+{{- end }}

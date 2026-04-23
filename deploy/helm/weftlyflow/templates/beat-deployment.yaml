@@ -1,0 +1,81 @@
+{{/*
+beat-deployment.yaml — Celery Beat periodic-task scheduler.
+
+LEADER ELECTION CONSTRAINT (IMPLEMENTATION_BIBLE §13.3): replicas is
+hard-coded to 1. Multiple beat instances would each enqueue every periodic
+task, causing duplicate executions. Do not add an HPA for this Deployment.
+
+There is no readiness probe — Kubernetes has no concept of "ready" for a
+scheduler. Liveness uses `celery status` to verify the control channel is
+responding. A brief outage during node scheduling is acceptable; Kubernetes
+will restart the pod and beat will resume from the last schedule.
+*/}}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "weftlyflow.fullname" . }}-beat
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "weftlyflow.labels" . | nindent 4 }}
+    app.kubernetes.io/component: beat
+spec:
+  # Hard-coded to 1. See the leader election note in the file header.
+  replicas: 1
+  strategy:
+    # Recreate ensures the old beat pod is terminated before the new one
+    # starts, avoiding the window where two beat instances overlap during a
+    # rolling update.
+    type: Recreate
+  selector:
+    matchLabels:
+      {{- include "weftlyflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: beat
+  template:
+    metadata:
+      labels:
+        {{- include "weftlyflow.selectorLabels" . | nindent 8 }}
+        app.kubernetes.io/component: beat
+      {{- with .Values.beat.podAnnotations }}
+      annotations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+    spec:
+      serviceAccountName: {{ include "weftlyflow.serviceAccountName" . }}
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.beat.podSecurityContext }}
+      securityContext:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      containers:
+        - name: beat
+          image: {{ include "weftlyflow.image" (dict "component" "beat" "Values" .Values "Chart" .Chart) }}
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          envFrom:
+            {{- include "weftlyflow.envFrom" . | nindent 12 }}
+          {{- with .Values.extraEnv }}
+          env:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+          livenessProbe:
+            {{- toYaml .Values.beat.livenessProbe | nindent 12 }}
+          resources:
+            {{- toYaml .Values.beat.resources | nindent 12 }}
+          {{- with .Values.beat.securityContext }}
+          securityContext:
+            {{- toYaml . | nindent 12 }}
+          {{- end }}
+      {{- with .Values.beat.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.beat.tolerations }}
+      tolerations:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.beat.affinity }}
+      affinity:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

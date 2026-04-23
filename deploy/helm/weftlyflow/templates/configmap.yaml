@@ -1,0 +1,17 @@
+{{/*
+configmap.yaml — Non-sensitive WEFTLYFLOW_* environment variables.
+
+Sensitive values (JWT key, encryption key, DSNs) live exclusively in
+secret.yaml. Never move a secret here.
+*/}}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "weftlyflow.configMapName" . }}
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "weftlyflow.labels" . | nindent 4 }}
+data:
+  {{- range $key, $value := .Values.config }}
+  {{ $key }}: {{ $value | quote }}
+  {{- end }}

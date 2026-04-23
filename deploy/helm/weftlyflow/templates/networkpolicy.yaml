@@ -1,0 +1,103 @@
+{{/*
+networkpolicy.yaml — Restrict pod-to-pod traffic when networkPolicy.enabled is true.
+
+Rules allow:
+  api      → postgres (5432), redis (6379), egress to internet
+  worker   → postgres (5432), redis (6379), egress to internet
+  beat     → redis (6379)
+  ingress  → api on 5678 from anywhere within the cluster
+
+Requires a NetworkPolicy-aware CNI (Calico, Cilium, Weave, etc.).
+*/}}
+{{- if .Values.networkPolicy.enabled }}
+---
+# Allow ingress to the API from any pod in the same namespace.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "weftlyflow.fullname" . }}-api
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "weftlyflow.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "weftlyflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: api
+  policyTypes:
+    - Ingress
+    - Egress
+  ingress:
+    - ports:
+        - port: 5678
+  egress:
+    # Postgres
+    - ports:
+        - port: 5432
+    # Redis
+    - ports:
+        - port: 6379
+    # DNS
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    # External HTTPS (webhooks, integrations)
+    - ports:
+        - port: 443
+        - port: 80
+---
+# Worker: can reach postgres and redis; no ingress traffic.
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "weftlyflow.fullname" . }}-worker
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "weftlyflow.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "weftlyflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: worker
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - port: 5432
+    - ports:
+        - port: 6379
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+    - ports:
+        - port: 443
+        - port: 80
+---
+# Beat: only needs Redis (broker).
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "weftlyflow.fullname" . }}-beat
+  namespace: {{ .Release.Namespace }}
+  labels:
+    {{- include "weftlyflow.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    matchLabels:
+      {{- include "weftlyflow.selectorLabels" . | nindent 6 }}
+      app.kubernetes.io/component: beat
+  policyTypes:
+    - Egress
+  egress:
+    - ports:
+        - port: 6379
+    - ports:
+        - port: 53
+          protocol: UDP
+        - port: 53
+          protocol: TCP
+{{- end }}

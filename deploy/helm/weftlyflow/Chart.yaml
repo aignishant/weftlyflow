@@ -1,0 +1,29 @@
+apiVersion: v2
+name: weftlyflow
+description: Self-hosted workflow automation platform — Helm chart for Kubernetes.
+type: application
+version: 0.1.0
+appVersion: "0.1.0a0"
+
+# Bitnami sub-charts are optional. Gate them with postgresql.enabled /
+# redis.enabled in values.yaml. When disabled, point at external instances
+# via externalDatabase.url and externalRedis.url.
+dependencies:
+  - name: postgresql
+    version: "15.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: postgresql.enabled
+  - name: redis
+    version: "19.x.x"
+    repository: https://charts.bitnami.com/bitnami
+    condition: redis.enabled
+
+maintainers:
+  - name: Weftlyflow contributors
+    email: noreply@weftlyflow.example.com
+
+keywords:
+  - workflow
+  - automation
+  - celery
+  - fastapi

@@ -1,0 +1,418 @@
+# =============================================================================
+# Weftlyflow Helm values — read top-to-bottom; every knob is documented here.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Global image settings
+# All three Deployments (api, worker, beat) pull from the same registry but
+# different image names. Override per-component if you build images separately.
+# -----------------------------------------------------------------------------
+image:
+  registry: ghcr.io
+  # Repository prefix — actual image names are <prefix>/api, /worker, /beat.
+  repositoryPrefix: weftlyflow/weftlyflow
+  # Tag defaults to the chart's appVersion; override for a specific release.
+  tag: ""
+  pullPolicy: IfNotPresent
+
+# List of imagePullSecrets if your registry requires authentication.
+# Example: [ {name: my-registry-secret} ]
+imagePullSecrets: []
+
+# -----------------------------------------------------------------------------
+# Service account
+# A single ServiceAccount is shared by all three Deployments.
+# -----------------------------------------------------------------------------
+serviceAccount:
+  create: true
+  # Annotations are useful for IRSA (AWS), Workload Identity (GCP), etc.
+  annotations: {}
+  name: ""
+
+# -----------------------------------------------------------------------------
+# Secrets
+# Two modes:
+#   (a) Let the chart create a Secret from values below (existingSecret: "").
+#   (b) Point at your own pre-created Secret (existingSecret: "my-secret").
+#       In mode (b) none of the inline values below are used.
+#
+# Sensitive keys the chart-managed Secret contains:
+#   WEFTLYFLOW_JWT_SECRET_KEY     — HS256 signing key (generate once, never rotate without re-issuing tokens)
+#   WEFTLYFLOW_ENCRYPTION_KEY     — Fernet key (base64-urlsafe, 32 raw bytes → 44 chars)
+#   WEFTLYFLOW_DATABASE_URL       — full DSN including credentials
+#   WEFTLYFLOW_REDIS_URL          — used by the API for direct Redis access
+#   WEFTLYFLOW_CELERY_BROKER_URL  — Celery broker
+#   WEFTLYFLOW_CELERY_RESULT_BACKEND — Celery result store
+#
+# IMPORTANT: never commit real values here. Use --set or a sealed-secrets
+# workflow to inject secrets at deploy time.
+# -----------------------------------------------------------------------------
+existingSecret: ""
+
+secrets:
+  jwtSecretKey: "change-me-before-production"
+  encryptionKey: ""
+  # If postgresql.enabled is true these are constructed automatically from
+  # the bitnami sub-chart; leave empty to use that automatic URL.
+  # If postgresql.enabled is false and externalDatabase.url is set, that
+  # value is used. Only set databaseUrl here to override both.
+  databaseUrl: ""
+  # Same logic applies to the four Redis URLs.
+  redisUrl: ""
+  celeryBrokerUrl: ""
+  celeryResultBackend: ""
+
+# -----------------------------------------------------------------------------
+# External database (used when postgresql.enabled is false)
+# -----------------------------------------------------------------------------
+externalDatabase:
+  # Full async DSN, e.g. postgresql+psycopg://user:pass@host:5432/dbname
+  url: ""
+
+# -----------------------------------------------------------------------------
+# External Redis (used when redis.enabled is false)
+# -----------------------------------------------------------------------------
+externalRedis:
+  # e.g. redis://:password@myredis:6379/0
+  url: ""
+
+# -----------------------------------------------------------------------------
+# ConfigMap — non-sensitive environment variables injected into all Deployments.
+# Add any WEFTLYFLOW_* setting that is NOT a secret here.
+# -----------------------------------------------------------------------------
+config:
+  WEFTLYFLOW_ENV: "production"
+  WEFTLYFLOW_LOG_LEVEL: "info"
+  WEFTLYFLOW_LOG_FORMAT: "json"
+  WEFTLYFLOW_HOST: "0.0.0.0"
+  WEFTLYFLOW_PORT: "5678"
+  # Public-facing URL; used for webhook callback generation.
+  WEFTLYFLOW_PUBLIC_URL: "http://localhost:5678"
+  WEFTLYFLOW_CORS_ORIGINS: ""
+  WEFTLYFLOW_REGISTRATION_ENABLED: "true"
+  WEFTLYFLOW_MFA_REQUIRED: "false"
+  WEFTLYFLOW_METRICS_ENABLED: "true"
+  WEFTLYFLOW_TRACING_ENABLED: "false"
+  WEFTLYFLOW_AUDIT_RETENTION_DAYS: "90"
+  # Code node is off by default — review IMPLEMENTATION_BIBLE §26 first.
+  WEFTLYFLOW_ENABLE_CODE_NODE: "false"
+
+# Extra env vars injected verbatim into all Deployments (list of {name, value}).
+# Use this for settings not listed in config above.
+# Example:
+#   extraEnv:
+#     - name: WEFTLYFLOW_SENTRY_DSN
+#       value: "https://..."
+extraEnv: []
+
+# Extra envFrom sources (ConfigMapRef / SecretRef) applied to all Deployments.
+# Useful for mounting a pre-existing ConfigMap or Secret wholesale.
+# Example:
+#   extraEnvFrom:
+#     - secretRef:
+#         name: my-extra-secrets
+extraEnvFrom: []
+
+# -----------------------------------------------------------------------------
+# API Deployment
+# Serves the FastAPI app on port 5678. Webhook ingress runs on the same pod
+# (same image, same routes) — no separate webhook Deployment.
+# -----------------------------------------------------------------------------
+api:
+  replicaCount: 2
+
+  resources:
+    requests:
+      cpu: 250m
+      memory: 256Mi
+    limits:
+      cpu: 1000m
+      memory: 512Mi
+
+  # Readiness probe — gates traffic. The /healthz endpoint returns 200 when
+  # DB + Redis connections are live.
+  readinessProbe:
+    httpGet:
+      path: /healthz
+      port: 5678
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    failureThreshold: 3
+
+  # Liveness probe — restarts the pod if the app hangs.
+  livenessProbe:
+    httpGet:
+      path: /healthz
+      port: 5678
+    initialDelaySeconds: 20
+    periodSeconds: 30
+    failureThreshold: 3
+
+  # Pod-level annotations (e.g. Prometheus scrape annotations).
+  podAnnotations:
+    prometheus.io/scrape: "true"
+    prometheus.io/port: "5678"
+    prometheus.io/path: "/metrics"
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    fsGroup: 1000
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop: [ALL]
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  # Extra volumes / volumeMounts for community-node directories, etc.
+  extraVolumes: []
+  extraVolumeMounts: []
+
+# -----------------------------------------------------------------------------
+# Worker Deployment (Celery worker)
+# Queues: executions, polling, io, priority — matches Dockerfile CMD.
+# -----------------------------------------------------------------------------
+worker:
+  replicaCount: 2
+
+  resources:
+    requests:
+      cpu: 500m
+      memory: 512Mi
+    limits:
+      cpu: 2000m
+      memory: 1Gi
+
+  # Exec-based liveness: asks the worker to ping itself via Celery inspect.
+  livenessProbe:
+    exec:
+      command:
+        - celery
+        - -A
+        - weftlyflow.worker.app
+        - inspect
+        - ping
+        - -d
+        - "celery@$HOSTNAME"
+    initialDelaySeconds: 30
+    periodSeconds: 60
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  readinessProbe:
+    exec:
+      command:
+        - celery
+        - -A
+        - weftlyflow.worker.app
+        - inspect
+        - ping
+        - -d
+        - "celery@$HOSTNAME"
+    initialDelaySeconds: 20
+    periodSeconds: 30
+    timeoutSeconds: 10
+    failureThreshold: 3
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop: [ALL]
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+  extraVolumes: []
+  extraVolumeMounts: []
+
+# -----------------------------------------------------------------------------
+# Beat Deployment (Celery Beat scheduler)
+# IMPORTANT: replicas is hard-coded to 1 in the template (leader election
+# constraint per IMPLEMENTATION_BIBLE §13.3). Do not override via HPA.
+# There is intentionally no readiness probe — liveness uses process check.
+# -----------------------------------------------------------------------------
+beat:
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+  # Beat has no healthz endpoint. Liveness checks the process is responsive
+  # via a lightweight Celery inspect call (beat registers a control channel).
+  livenessProbe:
+    exec:
+      command:
+        - celery
+        - -A
+        - weftlyflow.worker.app
+        - status
+    initialDelaySeconds: 30
+    periodSeconds: 60
+    timeoutSeconds: 15
+    failureThreshold: 3
+
+  podAnnotations: {}
+
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+
+  securityContext:
+    allowPrivilegeEscalation: false
+    readOnlyRootFilesystem: false
+    capabilities:
+      drop: [ALL]
+
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+
+# -----------------------------------------------------------------------------
+# Service (ClusterIP for the API)
+# -----------------------------------------------------------------------------
+service:
+  type: ClusterIP
+  port: 80
+  targetPort: 5678
+  annotations: {}
+
+# -----------------------------------------------------------------------------
+# Ingress (disabled by default)
+# Enable and configure to expose the API outside the cluster.
+# -----------------------------------------------------------------------------
+ingress:
+  enabled: false
+  className: ""
+  annotations: {}
+  # Example:
+  #   kubernetes.io/ingress.class: nginx
+  #   cert-manager.io/cluster-issuer: letsencrypt-prod
+  hosts:
+    - host: weftlyflow.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls: []
+  # Example:
+  #   - secretName: weftlyflow-tls
+  #     hosts:
+  #       - weftlyflow.example.com
+
+# -----------------------------------------------------------------------------
+# Horizontal Pod Autoscaler (disabled by default)
+# Enable independently for api and worker. Beat must never scale above 1.
+# -----------------------------------------------------------------------------
+hpa:
+  api:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 10
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+  worker:
+    enabled: false
+    minReplicas: 2
+    maxReplicas: 20
+    targetCPUUtilizationPercentage: 70
+    targetMemoryUtilizationPercentage: 80
+
+# -----------------------------------------------------------------------------
+# Pod Disruption Budgets
+# Prevents Kubernetes from evicting all pods simultaneously during node drains.
+# -----------------------------------------------------------------------------
+pdb:
+  api:
+    enabled: true
+    minAvailable: 1
+  worker:
+    enabled: true
+    minAvailable: 1
+
+# -----------------------------------------------------------------------------
+# Network Policy (disabled by default)
+# When enabled, restricts ingress/egress to only known peers (api, worker,
+# beat, postgres, redis). Requires a CNI that honours NetworkPolicy (Calico,
+# Cilium, Weave).
+# -----------------------------------------------------------------------------
+networkPolicy:
+  enabled: false
+
+# -----------------------------------------------------------------------------
+# Migration Job (pre-install / pre-upgrade Helm hook)
+# Runs `alembic upgrade head` using the api image before any Deployment
+# rollout. Helm blocks the upgrade until the Job succeeds.
+# -----------------------------------------------------------------------------
+migrationJob:
+  enabled: true
+  # Seconds before Helm considers the hook timed out.
+  activeDeadlineSeconds: 300
+  # How many times to retry on failure (e.g. DB not ready yet).
+  backoffLimit: 4
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 256Mi
+
+# -----------------------------------------------------------------------------
+# Bitnami PostgreSQL sub-chart — disable when using an external DB.
+# Only the minimal overrides are set here; see the bitnami/postgresql chart
+# for the full values schema.
+# Docs: https://github.com/bitnami/charts/tree/main/bitnami/postgresql
+# -----------------------------------------------------------------------------
+postgresql:
+  enabled: true
+  auth:
+    username: weftlyflow
+    password: weftlyflow
+    database: weftlyflow
+    # Use existingSecret to avoid storing the password in values.
+    existingSecret: ""
+  primary:
+    persistence:
+      enabled: true
+      size: 8Gi
+    resources:
+      requests:
+        cpu: 250m
+        memory: 256Mi
+
+# -----------------------------------------------------------------------------
+# Bitnami Redis sub-chart — disable when using external Redis.
+# Docs: https://github.com/bitnami/charts/tree/main/bitnami/redis
+# -----------------------------------------------------------------------------
+redis:
+  enabled: true
+  architecture: standalone
+  auth:
+    enabled: false
+    # Set to true and provide a password for production use.
+  master:
+    persistence:
+      enabled: true
+      size: 4Gi
+    # append-only for broker durability; noeviction on result backend.
+    extraFlags:
+      - "--appendonly yes"
+    resources:
+      requests:
+        cpu: 100m
+        memory: 128Mi
