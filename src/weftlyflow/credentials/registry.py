@@ -82,6 +82,9 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.pinecone_api",
     "weftlyflow.credentials.types.gmail_oauth2",
     "weftlyflow.credentials.types.google_drive_oauth2",
+    "weftlyflow.credentials.types.segment_write_key",
+    "weftlyflow.credentials.types.mixpanel_api",
+    "weftlyflow.credentials.types.posthog_api",
 )
 
 

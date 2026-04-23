@@ -63,6 +63,9 @@
     pinecone_api.py           : Pinecone ``Api-Key`` + control/data-plane host split.
     gmail_oauth2.py           : Gmail OAuth2 — pre-filled endpoints + send scope.
     google_drive_oauth2.py    : Google Drive OAuth2 — pre-filled endpoints + file scope.
+    segment_write_key.py      : Segment Basic auth with write_key as username, empty password.
+    mixpanel_api.py           : Mixpanel project_token + api_secret (no-op inject).
+    posthog_api.py            : PostHog project_api_key (no-op inject — carried in body).
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -104,6 +107,7 @@ from weftlyflow.credentials.types.mailchimp_api import MailchimpApiCredential
 from weftlyflow.credentials.types.mapbox_api import MapboxApiCredential
 from weftlyflow.credentials.types.mattermost_api import MattermostApiCredential
 from weftlyflow.credentials.types.microsoft_graph import MicrosoftGraphCredential
+from weftlyflow.credentials.types.mixpanel_api import MixpanelApiCredential
 from weftlyflow.credentials.types.monday_api import MondayApiCredential
 from weftlyflow.credentials.types.netsuite_api import NetSuiteApiCredential
 from weftlyflow.credentials.types.notion_api import NotionApiCredential
@@ -114,10 +118,12 @@ from weftlyflow.credentials.types.pagerduty_api import PagerDutyApiCredential
 from weftlyflow.credentials.types.paypal_api import PayPalApiCredential
 from weftlyflow.credentials.types.pinecone_api import PineconeApiCredential
 from weftlyflow.credentials.types.pipedrive_api import PipedriveApiCredential
+from weftlyflow.credentials.types.posthog_api import PostHogApiCredential
 from weftlyflow.credentials.types.pushover_api import PushoverApiCredential
 from weftlyflow.credentials.types.quickbooks_oauth2 import QuickBooksOAuth2Credential
 from weftlyflow.credentials.types.rocket_chat_api import RocketChatApiCredential
 from weftlyflow.credentials.types.salesforce_api import SalesforceApiCredential
+from weftlyflow.credentials.types.segment_write_key import SegmentWriteKeyCredential
 from weftlyflow.credentials.types.shopify_admin import ShopifyAdminCredential
 from weftlyflow.credentials.types.slack_api import SlackApiCredential
 from weftlyflow.credentials.types.slack_oauth2 import SlackOAuth2Credential
@@ -169,6 +175,7 @@ __all__ = [
     "MapboxApiCredential",
     "MattermostApiCredential",
     "MicrosoftGraphCredential",
+    "MixpanelApiCredential",
     "MondayApiCredential",
     "NetSuiteApiCredential",
     "NotionApiCredential",
@@ -179,10 +186,12 @@ __all__ = [
     "PayPalApiCredential",
     "PineconeApiCredential",
     "PipedriveApiCredential",
+    "PostHogApiCredential",
     "PushoverApiCredential",
     "QuickBooksOAuth2Credential",
     "RocketChatApiCredential",
     "SalesforceApiCredential",
+    "SegmentWriteKeyCredential",
     "ShopifyAdminCredential",
     "SlackApiCredential",
     "SlackOAuth2Credential",
