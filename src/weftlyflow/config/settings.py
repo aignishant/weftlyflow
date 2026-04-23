@@ -233,6 +233,25 @@ class WeftlyflowSettings(BaseSettings):
         description="Per-request HTTP timeout when reading from 1Password Connect.",
     )
 
+    # --- external secret providers (AWS Secrets Manager) ---
+    aws_secrets_enabled: bool = Field(
+        default=False,
+        description=(
+            "Register the ``AWSSecretsManagerProvider`` so credentials can "
+            "reference ``aws:<secret-id>[#<field>]`` paths. Requires the "
+            "``aws-secrets`` optional extra (``pip install 'weftlyflow[aws-secrets]'``). "
+            "Credentials come from the standard boto3 chain — static env vars, "
+            "IAM role on EC2, IRSA on EKS, ECS task roles, etc."
+        ),
+    )
+    aws_secrets_region: str = Field(
+        default="",
+        description=(
+            "AWS region for Secrets Manager lookups. Empty string defers to "
+            "the boto3 region chain (``AWS_REGION`` / ``AWS_DEFAULT_REGION``)."
+        ),
+    )
+
     # --- audit ---
     audit_retention_days: int = Field(
         default=90,

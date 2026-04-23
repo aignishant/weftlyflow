@@ -175,6 +175,25 @@ def _build_secret_provider_registry(
             ),
         )
 
+    if settings.aws_secrets_enabled:
+        # Lazy import — boto3 only lands in the install when the
+        # ``aws-secrets`` extra is requested.
+        try:
+            from weftlyflow.credentials.external.aws_provider import (  # noqa: PLC0415
+                AWSSecretsManagerProvider,
+            )
+        except ImportError as exc:
+            msg = (
+                "aws_secrets_enabled=true but boto3 is not installed — "
+                "install with 'pip install weftlyflow[aws-secrets]'"
+            )
+            raise RuntimeError(msg) from exc
+        secret_registry.register(
+            AWSSecretsManagerProvider(
+                region_name=settings.aws_secrets_region or None,
+            ),
+        )
+
     return secret_registry
 
 
