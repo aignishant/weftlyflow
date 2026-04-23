@@ -15,10 +15,10 @@ Why this layer exists:
 * **Dev ergonomics** — developers can point credentials at environment
   variables without running a real vault.
 
-See IMPLEMENTATION_BIBLE.md §11.4. This subpackage contains only the
-provider abstractions and the built-in :class:`EnvSecretProvider`. Vault /
-AWS / 1Password adapters will arrive later and must conform to
-:class:`SecretProvider`.
+See IMPLEMENTATION_BIBLE.md §11.4. This subpackage contains the provider
+abstractions, the built-in :class:`EnvSecretProvider`, and the
+:class:`VaultSecretProvider` (HashiCorp Vault KV v2). AWS / 1Password
+adapters will arrive later and must conform to :class:`SecretProvider`.
 """
 
 from __future__ import annotations
@@ -31,7 +31,14 @@ from weftlyflow.credentials.external.base import (
     parse_reference,
 )
 from weftlyflow.credentials.external.env_provider import EnvSecretProvider
-from weftlyflow.credentials.external.registry import SecretProviderRegistry
+from weftlyflow.credentials.external.registry import (
+    SecretProviderRegistry,
+    UnknownSecretSchemeError,
+)
+from weftlyflow.credentials.external.vault_provider import (
+    VaultAuthError,
+    VaultSecretProvider,
+)
 
 __all__ = [
     "EnvSecretProvider",
@@ -40,5 +47,8 @@ __all__ = [
     "SecretProviderError",
     "SecretProviderRegistry",
     "SecretReference",
+    "UnknownSecretSchemeError",
+    "VaultAuthError",
+    "VaultSecretProvider",
     "parse_reference",
 ]

@@ -183,6 +183,33 @@ class WeftlyflowSettings(BaseSettings):
         ),
     )
 
+    # --- external secret providers (Vault) ---
+    vault_enabled: bool = Field(
+        default=False,
+        description=(
+            "Register the ``VaultSecretProvider`` with the secret-provider "
+            "registry so credentials can reference ``vault:...`` paths. "
+            "Requires ``vault_address`` and ``vault_token`` to be set."
+        ),
+    )
+    vault_address: str = Field(
+        default="",
+        description="Base URL of the Vault server — e.g. ``https://vault:8200``.",
+    )
+    vault_token: SecretStr = Field(
+        default=SecretStr(""),
+        description="Vault token sent via the ``X-Vault-Token`` header.",
+    )
+    vault_namespace: str = Field(
+        default="",
+        description="Optional Vault Enterprise namespace (``X-Vault-Namespace`` header).",
+    )
+    vault_timeout_seconds: float = Field(
+        default=5.0,
+        gt=0,
+        description="Per-request HTTP timeout when reading from Vault.",
+    )
+
     # --- audit ---
     audit_retention_days: int = Field(
         default=90,

@@ -33,6 +33,11 @@ from weftlyflow.auth.bootstrap import ensure_bootstrap_admin
 from weftlyflow.config import get_settings
 from weftlyflow.config.logging import configure_logging
 from weftlyflow.credentials.cipher import CredentialCipher, generate_key
+from weftlyflow.credentials.external import (
+    EnvSecretProvider,
+    SecretProviderRegistry,
+    VaultSecretProvider,
+)
 from weftlyflow.credentials.registry import CredentialTypeRegistry
 from weftlyflow.credentials.resolver import DatabaseCredentialResolver
 from weftlyflow.db.base import Base
@@ -116,6 +121,47 @@ def _build_oidc_provider(settings: WeftlyflowSettings) -> OIDCProvider | None:
     )
 
 
+def _build_secret_provider_registry(
+    settings: WeftlyflowSettings,
+) -> SecretProviderRegistry:
+    """Assemble the global secret-provider registry from settings.
+
+    ``EnvSecretProvider`` is always registered — it has no configuration and
+    is the fallback that dev environments rely on. Other providers are
+    opt-in via their ``*_enabled`` flag; enabling one without populating the
+    required settings fails fast at boot.
+
+    Raises:
+        RuntimeError: when ``vault_enabled`` is true but ``vault_address`` or
+            ``vault_token`` is blank.
+    """
+    secret_registry = SecretProviderRegistry()
+    secret_registry.register(EnvSecretProvider())
+
+    if settings.vault_enabled:
+        missing = [
+            name
+            for name, value in (
+                ("WEFTLYFLOW_VAULT_ADDRESS", settings.vault_address),
+                ("WEFTLYFLOW_VAULT_TOKEN", settings.vault_token.get_secret_value()),
+            )
+            if not value
+        ]
+        if missing:
+            msg = f"vault_enabled=true but missing required settings: {', '.join(missing)}"
+            raise RuntimeError(msg)
+        secret_registry.register(
+            VaultSecretProvider(
+                address=settings.vault_address,
+                token=settings.vault_token.get_secret_value(),
+                namespace=settings.vault_namespace,
+                timeout_seconds=settings.vault_timeout_seconds,
+            ),
+        )
+
+    return secret_registry
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     """Bootstrap shared resources at startup, tear down at shutdown."""
@@ -145,8 +191,10 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     if not encryption_key:
         encryption_key = generate_key()
         log.warning("encryption_key_missing_using_ephemeral")
-    old_keys = [k.strip() for k in settings.encryption_key_old_keys.split(",") if k.strip()]
-    credential_cipher = CredentialCipher(encryption_key, old_keys=old_keys)
+    credential_cipher = CredentialCipher(
+        encryption_key,
+        old_keys=[k.strip() for k in settings.encryption_key_old_keys.split(",") if k.strip()],
+    )
 
     credential_types = CredentialTypeRegistry()
     credential_types.load_builtins()
@@ -187,6 +235,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.credential_cipher = credential_cipher
     app.state.credential_types = credential_types
     app.state.credential_resolver = credential_resolver
+    app.state.secret_provider_registry = _build_secret_provider_registry(settings)
 
     app.state.sso_oidc_provider = _build_oidc_provider(settings)
 

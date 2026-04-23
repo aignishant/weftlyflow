@@ -1445,7 +1445,7 @@ Eighty-one integrations shipped through tranche-26 (see `docs/changelog.md`).
 - [x] Subprocess sandbox runner for the Code node (`setrlimit` + `prctl(PR_SET_NO_NEW_PRIVS)` + RestrictedPython child).
 - [x] Expression-sandbox fuzz testing (`tests/unit/expression/test_sandbox_fuzz.py`, Hypothesis-driven with `WEFTLYFLOW_FUZZ_EXAMPLES` env override for CI budget).
 - [x] Prometheus metrics wiring — `/metrics` endpoint (gated by `metrics_enabled`), counters/histograms emitted by the executor, expression resolver, and webhook ingress.
-- [x] External-secrets provider interface (`weftlyflow.credentials.external`) — `SecretProvider` protocol + `EnvSecretProvider` + `SecretProviderRegistry`. Vault/AWS/1Password adapters pending.
+- [x] External-secrets provider interface (`weftlyflow.credentials.external`) — `SecretProvider` protocol + `EnvSecretProvider` + `SecretProviderRegistry` + `VaultSecretProvider` (KV v2, token auth). AWS / 1Password adapters pending.
 - [x] Audit-log retention — `audit_events` table + Alembic migration `0004` + `AuditEventRepository` + daily beat task `weftlyflow.prune_audit_events` driven by `audit_retention_days` setting.
 - SAML/OIDC SSO.
 - Kubernetes Helm chart.
