@@ -69,6 +69,9 @@
     plaid_api.py              : Plaid client_id + secret inside body + env-based host.
     klaviyo_api.py            : Klaviyo ``Authorization: Klaviyo-API-Key`` + revision header.
     harvest_api.py            : Harvest Bearer + mandatory ``Harvest-Account-ID`` header.
+    mongodb_atlas_api.py      : MongoDB Atlas HTTP Digest via public_key + private_key.
+    ga4_measurement.py        : GA4 Measurement Protocol dual-query-param auth.
+    reddit_oauth2.py          : Reddit Bearer + platform-formatted User-Agent.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -96,6 +99,7 @@ from weftlyflow.credentials.types.dropbox_api import DropboxApiCredential
 from weftlyflow.credentials.types.elasticsearch_api import ElasticsearchApiCredential
 from weftlyflow.credentials.types.facebook_graph import FacebookGraphCredential
 from weftlyflow.credentials.types.freshdesk_api import FreshdeskApiCredential
+from weftlyflow.credentials.types.ga4_measurement import Ga4MeasurementCredential
 from weftlyflow.credentials.types.ghost_admin import GhostAdminCredential
 from weftlyflow.credentials.types.gitlab_token import GitLabTokenCredential
 from weftlyflow.credentials.types.gmail_oauth2 import GmailOAuth2Credential
@@ -114,6 +118,7 @@ from weftlyflow.credentials.types.mattermost_api import MattermostApiCredential
 from weftlyflow.credentials.types.microsoft_graph import MicrosoftGraphCredential
 from weftlyflow.credentials.types.mixpanel_api import MixpanelApiCredential
 from weftlyflow.credentials.types.monday_api import MondayApiCredential
+from weftlyflow.credentials.types.mongodb_atlas_api import MongoDbAtlasApiCredential
 from weftlyflow.credentials.types.netsuite_api import NetSuiteApiCredential
 from weftlyflow.credentials.types.notion_api import NotionApiCredential
 from weftlyflow.credentials.types.oauth2_generic import OAuth2GenericCredential
@@ -127,6 +132,7 @@ from weftlyflow.credentials.types.plaid_api import PlaidApiCredential
 from weftlyflow.credentials.types.posthog_api import PostHogApiCredential
 from weftlyflow.credentials.types.pushover_api import PushoverApiCredential
 from weftlyflow.credentials.types.quickbooks_oauth2 import QuickBooksOAuth2Credential
+from weftlyflow.credentials.types.reddit_oauth2 import RedditOAuth2Credential
 from weftlyflow.credentials.types.rocket_chat_api import RocketChatApiCredential
 from weftlyflow.credentials.types.salesforce_api import SalesforceApiCredential
 from weftlyflow.credentials.types.segment_write_key import SegmentWriteKeyCredential
@@ -167,6 +173,7 @@ __all__ = [
     "ElasticsearchApiCredential",
     "FacebookGraphCredential",
     "FreshdeskApiCredential",
+    "Ga4MeasurementCredential",
     "GhostAdminCredential",
     "GitLabTokenCredential",
     "GmailOAuth2Credential",
@@ -185,6 +192,7 @@ __all__ = [
     "MicrosoftGraphCredential",
     "MixpanelApiCredential",
     "MondayApiCredential",
+    "MongoDbAtlasApiCredential",
     "NetSuiteApiCredential",
     "NotionApiCredential",
     "OAuth2GenericCredential",
@@ -198,6 +206,7 @@ __all__ = [
     "PostHogApiCredential",
     "PushoverApiCredential",
     "QuickBooksOAuth2Credential",
+    "RedditOAuth2Credential",
     "RocketChatApiCredential",
     "SalesforceApiCredential",
     "SegmentWriteKeyCredential",
