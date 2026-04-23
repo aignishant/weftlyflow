@@ -44,6 +44,8 @@ from weftlyflow.engine.graph import WorkflowGraph
 from weftlyflow.engine.hooks import NullHooks
 from weftlyflow.engine.runtime import RunState
 from weftlyflow.nodes.base import BaseNode
+from weftlyflow.observability import metrics
+from weftlyflow.utils.redaction import safe_error_message
 
 if TYPE_CHECKING:
     from weftlyflow.credentials.resolver import CredentialResolver
@@ -149,6 +151,9 @@ class WorkflowExecutor:
             await self._hooks.on_node_start(ctx, node)
             run_data = await self._run_one(node, ctx, state)
             state.record(node_id, run_data)
+            metrics.node_duration_seconds.labels(node_type=node.type).observe(
+                max(run_data.execution_time_ms, 0) / 1000.0,
+            )
             await self._hooks.on_node_end(ctx, node, run_data)
 
             if run_data.status == STATUS_ERROR and not node.continue_on_fail:
@@ -169,6 +174,13 @@ class WorkflowExecutor:
             )
 
         execution = state.build_execution()
+        metrics.executions_total.labels(status=execution.status, mode=str(mode)).inc()
+        if execution.finished_at is not None:
+            elapsed_seconds = max(
+                (execution.finished_at - execution.started_at).total_seconds(),
+                0.0,
+            )
+            metrics.execution_duration_seconds.observe(elapsed_seconds)
         await self._hooks.on_execution_end(_exit_context(workflow, state, self._hooks), execution)
         return execution
 
@@ -225,15 +237,24 @@ class WorkflowExecutor:
         state: RunState,
         started_at: datetime,
     ) -> NodeRunData:
-        """Turn a raised exception into either a run-data entry or a halt."""
+        """Turn a raised exception into either a run-data entry or a halt.
+
+        Persisted error messages are always routed through
+        :func:`safe_error_message` so credential decrypt errors, HTTP
+        response bodies, DB connection URLs, and other secret-bearing
+        strings never land in ``NodeError.message`` (which is readable by
+        any user with execution-read access). The full exception is still
+        available to operators through structured logs.
+        """
+        safe_message = safe_error_message(exc)
         if node.continue_on_fail:
             error_item = Item(
                 json={},
-                error=NodeError(message=str(exc), code=type(exc).__name__),
+                error=NodeError(message=safe_message, code=type(exc).__name__),
             )
             return _elapsed(started_at, [[error_item]], STATUS_ERROR)
 
-        wrapped = NodeExecutionError(str(exc), node_id=node.id, original=exc)
+        wrapped = NodeExecutionError(safe_message, node_id=node.id, original=exc)
         await self._hooks.on_node_error(ctx, node, wrapped)
         state.mark_failed(node.id, wrapped)
         return NodeRunData(
@@ -241,7 +262,7 @@ class WorkflowExecutor:
             execution_time_ms=_elapsed_ms(started_at),
             started_at=started_at,
             status=STATUS_ERROR,
-            error=NodeError(message=str(exc), code=type(exc).__name__),
+            error=NodeError(message=safe_message, code=type(exc).__name__),
         )
 
 

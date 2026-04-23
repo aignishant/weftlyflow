@@ -31,6 +31,7 @@ from weftlyflow.credentials.registry import CredentialTypeRegistry
 from weftlyflow.credentials.resolver import DatabaseCredentialResolver
 from weftlyflow.db.base import Base
 from weftlyflow.db.entities import (  # noqa: F401 — register tables on Base.metadata
+    AuditEventEntity,
     CredentialEntity,
     ExecutionDataEntity,
     ExecutionEntity,

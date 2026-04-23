@@ -14,11 +14,26 @@ from __future__ import annotations
 
 import os
 from dataclasses import dataclass, field
+from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
+from weftlyflow.config import get_settings
 from weftlyflow.domain.constants import MAIN_PORT
 from weftlyflow.expression.proxies import build_proxies, filter_env
 from weftlyflow.expression.resolver import resolve, resolve_tree
+
+
+@lru_cache(maxsize=1)
+def _cached_exposed_env() -> dict[str, str]:
+    """Snapshot the exposed-env subset once per process.
+
+    ``os.environ`` is read exactly once per worker boot; expression
+    evaluation then reads from this dict on the hot path. Clearing the
+    cache is only needed in tests and is done via
+    ``_cached_exposed_env.cache_clear()``.
+    """
+    allowlist = get_settings().exposed_env_var_list
+    return filter_env(dict(os.environ), allowlist=allowlist)
 
 if TYPE_CHECKING:
     from weftlyflow.binary.store import BinaryStore
@@ -122,5 +137,5 @@ class ExecutionContext:
             project_id=self.workflow.project_id,
             execution_id=self.execution_id,
             execution_mode=self.mode,
-            env_vars=filter_env(dict(os.environ)),
+            env_vars=_cached_exposed_env(),
         )

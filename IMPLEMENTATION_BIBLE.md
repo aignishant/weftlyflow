@@ -1389,38 +1389,39 @@ Full ``make lint && make typecheck && make test && pytest -m integration
 
 ### Phase 3 — Workers + webhooks + triggers (2–3 sessions)
 
-- Celery app, task `execute_workflow`.
-- Redis job queue, leader election.
-- Webhook router + registry.
-- APScheduler-driven polling.
-- Manual-trigger + webhook-trigger + schedule-trigger nodes.
+- [x] Celery app, task `execute_workflow`.
+- [x] Redis job queue, leader election.
+- [x] Webhook router + registry.
+- [x] APScheduler-driven polling.
+- [x] Manual-trigger + webhook-trigger + schedule-trigger nodes.
 
 **Acceptance:** An HTTP POST to a webhook URL triggers a workflow, which executes in a worker and writes the execution.
 
 ### Phase 4 — Expression engine + credentials (1–2 sessions)
 
-- `{{ ... }}` tokenizer + RestrictedPython sandbox.
-- Proxies (`$json`, `$input`, `$now`, ...).
-- Credential registry + Fernet encryption.
-- Credential types: bearer, basic, API key (header/query), generic OAuth2.
-- OAuth2 callback route + refresh task.
+- [x] `{{ ... }}` tokenizer + RestrictedPython sandbox.
+- [x] Proxies (`$json`, `$input`, `$now`, ...).
+- [x] Credential registry + Fernet encryption.
+- [x] Credential types: bearer, basic, API key (header/query), generic OAuth2.
+- [x] OAuth2 callback route + refresh task.
 
 **Acceptance:** HTTP Request node can use a credential and an expression in its URL.
 
 ### Phase 5 — Frontend MVP (3–4 sessions)
 
-- Vue 3 + Vite scaffold.
-- Pinia stores, typed API client.
-- Editor view with Vue Flow canvas, node palette, parameter form generator.
-- Executions view (list + detail with run-data inspector).
-- Credentials view.
-- Golden-path Playwright E2E test.
+- [x] Vue 3 + Vite scaffold.
+- [x] Pinia stores, typed API client.
+- [x] Editor view with Vue Flow canvas, node palette, parameter form generator.
+- [x] Executions view (list + detail with run-data inspector).
+- [x] Credentials view.
+- [x] Golden-path Playwright E2E test.
 
 **Acceptance:** A user can build + run a workflow entirely in the browser.
 
 ### Phase 6 — Integration nodes wave 1 (ongoing, each integration is a ticket)
 
 Tier-2 nodes (see §25). Add them one PR at a time — never in a single mega-PR.
+Eighty-one integrations shipped through tranche-26 (see `docs/changelog.md`).
 
 ### Phase 7 — AI nodes (3–4 sessions)
 
@@ -1431,11 +1432,23 @@ Tier-2 nodes (see §25). Add them one PR at a time — never in a single mega-PR
 
 ### Phase 8 — Hardening (ongoing)
 
+**Phase 8a — Sandbox & expression hardening (2026-04-23, delivered):**
+- [x] Strict `_getattr_` guard in the expression sandbox — blocks dunder-like names, `format`/`format_map` on strings, and `mro` globally; closes the `"{0.__globals__}".format(lambda: 1)` escape.
+- [x] `type`, `setattr`, `delattr`, `__build_class__`, `globals`, `vars`, `dir`, `getattr` removed from allowed expression builtins.
+- [x] `$env` switched to an explicit `WEFTLYFLOW_EXPOSED_ENV_VARS` allowlist, cached at worker boot. Prefix-based fallback kept for dev.
+- [x] Expression wall-clock guard (`WEFTLYFLOW_EXPRESSION_TIMEOUT_SECONDS`, default 2 s) + Celery `task_soft_time_limit` / `task_time_limit`.
+- [x] `NodeError.message` redaction — `CredentialDecryptError` and friends map to opaque strings; a regex scrubber drops URLs with embedded credentials, bearer tokens, and long base64 blobs from arbitrary exception text.
+- [x] `weftlyflow.code` gated behind `WEFTLYFLOW_ENABLE_CODE_NODE`; non-empty snippets raise instead of silently no-op.
+- [x] Regression corpus of 40+ known RestrictedPython bypass payloads (`tests/unit/expression/test_sandbox_bypass_corpus.py`).
+
+**Phase 8b — Remaining hardening work:**
+- [x] Subprocess sandbox runner for the Code node (`setrlimit` + `prctl(PR_SET_NO_NEW_PRIVS)` + RestrictedPython child).
+- [x] Expression-sandbox fuzz testing (`tests/unit/expression/test_sandbox_fuzz.py`, Hypothesis-driven with `WEFTLYFLOW_FUZZ_EXAMPLES` env override for CI budget).
+- [x] Prometheus metrics wiring — `/metrics` endpoint (gated by `metrics_enabled`), counters/histograms emitted by the executor, expression resolver, and webhook ingress.
+- [x] External-secrets provider interface (`weftlyflow.credentials.external`) — `SecretProvider` protocol + `EnvSecretProvider` + `SecretProviderRegistry`. Vault/AWS/1Password adapters pending.
+- [x] Audit-log retention — `audit_events` table + Alembic migration `0004` + `AuditEventRepository` + daily beat task `weftlyflow.prune_audit_events` driven by `audit_retention_days` setting.
 - SAML/OIDC SSO.
-- Prometheus/OTel dashboards.
 - Kubernetes Helm chart.
-- External-secrets integration.
-- Role-based audit log retention.
 
 ---
 
@@ -1507,6 +1520,8 @@ Chat: `trigger_chat`, `chat_respond`.
 |---|---|---|
 | 2026-04-21 | Initial | First draft as **Loomflow**. Stack locked: Python 3.12 / FastAPI / SQLAlchemy 2 / Vue 3 / Vue Flow / Celery / Redis / RestrictedPython. |
 | 2026-04-21 | Rename | **Loomflow → Weftlyflow.** Reason: `loomflow.com` was held by an unrelated Mumbai catalog-software firm; `weftlyflow` validated clean on PyPI, npm, GitHub, and trademark registries. Python package path changed from `src/loomflow/` to `src/weftlyflow/`; env-var prefix `LOOMFLOW_` → `WEFTLYFLOW_`; node-type slugs `loomflow.*` → `weftlyflow.*`. Mass find/replace across 91 files; `LoomDateTime` identifier replaced with `WeftlyflowDateTime`; no functional changes. |
+| 2026-04-23 | Roadmap sync | Phase 3/4/5 marked complete to match shipped state. Phase 8 split into 8a (delivered: sandbox hardening — strict `_getattr_`, `$env` allowlist, expression timeout, `NodeError.message` redaction, `weftlyflow.code` gated behind a settings flag, 40+ bypass-payload regression corpus; risk-register items #2 and #7 materially reduced) and 8b (remaining: subprocess runner, SSO, dashboards, Helm, external secrets, audit-log retention, sandbox fuzzing). Audit confirmed the `str.format`-based sandbox escape (`"{0.__globals__}".format(lambda: 1)`) and `list.mro()` walk; both closed at runtime via the guarded `_getattr_`. |
+| 2026-04-23 | Phase 8b progress | Shipped: (1) subprocess sandbox runner — child uses RestrictedPython + `setrlimit(CPU/AS/NOFILE/NPROC/FSIZE)` + `prctl(PR_SET_NO_NEW_PRIVS)`, parent enforces wall-clock via `subprocess.run(timeout=...)`; (2) Hypothesis fuzz suite for the expression sandbox; (3) Prometheus `/metrics` endpoint + emit points in executor, expression resolver, webhook ingress; (4) external-secrets scaffolding — `SecretProvider` protocol, `EnvSecretProvider`, `SecretProviderRegistry` (Vault/AWS/1Password adapters pending); (5) `audit_events` table + migration `0004` + `AuditEventRepository` + daily Celery-beat retention sweep driven by `audit_retention_days`. Remaining 8b items: SAML/OIDC SSO, Kubernetes Helm chart. |
 
 ---
 

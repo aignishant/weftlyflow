@@ -9,11 +9,11 @@ A node is a Python class that subclasses `BaseNode` (action), `BaseTriggerNode` 
 1. Create `src/weftlyflow/nodes/<tier>/<slug>/` with `node.py`, `spec.py`, `__init__.py`, `icons/` and `README.md`.
 2. Implement `execute()` / `trigger` methods.
 3. Add tests at `tests/nodes/<slug>/` — at minimum: happy path, error path, `continue_on_fail`, property validation.
-4. Cite the provider's **official** API docs in the module docstring. Never cite n8n.
+4. Cite the provider's **official** API docs in the module docstring. Never cite third-party integration pages.
 
 ## Non-negotiables (IP compliance)
 
-- Do not copy code, identifiers, display names, or property descriptions from `/home/nishantgupta/Downloads/n8n-master/`.
+- Do not copy code, identifiers, display names, or property descriptions from any upstream reference source.
 - SVG icons sourced from Lucide / Simple Icons / hand-drawn.
 - Test fixtures handcrafted or from the provider's docs.
 

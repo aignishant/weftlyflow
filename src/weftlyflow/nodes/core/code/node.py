@@ -1,22 +1,28 @@
 """Code node — run a sandboxed Python snippet per item or per run.
 
-Phase-1 implementation is an **identity pass-through**: the ``code`` parameter
-is accepted and type-checked but not executed. The executor's
-``continue_on_fail`` / retry / hook semantics can still be exercised through
-this node while the sandbox is under construction.
+Snippets execute inside a subprocess sandbox (:mod:`weftlyflow.worker.sandbox_runner`)
+with OS-level ``rlimit`` + ``no-new-privs`` applied. The subprocess
+interprets the snippet through :mod:`RestrictedPython` in ``exec`` mode,
+so the defence is layered: syntax-level rejection of dangerous constructs,
+runtime ``_getattr_`` guard, and OS-level process confinement.
 
-Phase 4 replaces :meth:`CodeNode._run_snippet` with a ``RestrictedPython``
-invocation that compiles the snippet once per run and evaluates it against a
-hardened globals dict. The node spec and the public surface remain the same;
-existing workflows continue to load.
+Empty snippets remain a benign identity pass-through so workflows that
+were saved against earlier stub versions don't start executing anything
+the first time the sandbox becomes available.
 
-See IMPLEMENTATION_BIBLE.md §10 and §14 for the sandbox design.
+Registration is gated behind ``settings.enable_code_node`` (see
+:mod:`weftlyflow.nodes.core.code.__init__`); operators must opt in
+explicitly. See IMPLEMENTATION_BIBLE.md §10 and §26 risk #2 for the
+threat model.
 """
 
 from __future__ import annotations
 
 from typing import ClassVar
 
+import structlog
+
+from weftlyflow.domain.errors import NodeExecutionError
 from weftlyflow.domain.execution import Item
 from weftlyflow.domain.node_spec import (
     NodeCategory,
@@ -27,10 +33,24 @@ from weftlyflow.domain.node_spec import (
 from weftlyflow.domain.workflow import Port
 from weftlyflow.engine.context import ExecutionContext
 from weftlyflow.nodes.base import BaseNode
+from weftlyflow.worker.sandbox_runner import (
+    SandboxError,
+    SandboxSnippetError,
+    SandboxTimeoutError,
+    build_limits_from_settings,
+    run_snippet,
+)
+
+log = structlog.get_logger(__name__)
 
 
 class CodeNode(BaseNode):
-    """Execute a Python snippet against the incoming items (stubbed in Phase 1)."""
+    """Execute a Python snippet against the incoming items.
+
+    The snippet surface is currently unimplemented; a non-empty ``code``
+    parameter raises :class:`NodeExecutionError`. Empty snippets remain a
+    benign identity pass-through so serialisation tests stay green.
+    """
 
     spec: ClassVar[NodeSpec] = NodeSpec(
         type="weftlyflow.code",
@@ -69,11 +89,46 @@ class CodeNode(BaseNode):
         ctx: ExecutionContext,
         items: list[Item],
     ) -> list[list[Item]]:
-        """Return the items unchanged. Real sandbox evaluation arrives in Phase 4."""
-        snippet = ctx.param("code", default="")
-        return [self._run_snippet(snippet=snippet if isinstance(snippet, str) else "", items=items)]
+        """Execute ``code`` against ``items`` inside the subprocess sandbox.
 
-    def _run_snippet(self, *, snippet: str, items: list[Item]) -> list[Item]:
-        """Identity in Phase 1. Kept as a seam so Phase 4 swaps the sandbox in here."""
-        del snippet
-        return list(items)
+        Empty snippets pass items through unchanged — the harmless
+        identity path. Non-empty snippets are forwarded to
+        :func:`weftlyflow.worker.sandbox_runner.run_snippet`, which
+        forks a child process with rlimits applied and interprets the
+        snippet through :mod:`RestrictedPython`.
+
+        Raises:
+            NodeExecutionError: when the snippet times out, escapes the
+                sandbox syntax guard, or returns a malformed result.
+        """
+        raw = ctx.param("code", default="")
+        snippet = raw if isinstance(raw, str) else ""
+        if not snippet.strip():
+            return [list(items)]
+
+        request_items = [dict(item.json) for item in items]
+        try:
+            response_items = run_snippet(
+                snippet,
+                request_items,
+                limits=build_limits_from_settings(),
+            )
+        except SandboxTimeoutError as exc:
+            raise NodeExecutionError(
+                f"code node timed out: {exc}",
+                node_id=ctx.node.id,
+                original=exc,
+            ) from exc
+        except SandboxSnippetError as exc:
+            raise NodeExecutionError(
+                f"code node snippet failed: {exc}",
+                node_id=ctx.node.id,
+                original=exc,
+            ) from exc
+        except SandboxError as exc:
+            raise NodeExecutionError(
+                f"code node sandbox error: {exc}",
+                node_id=ctx.node.id,
+                original=exc,
+            ) from exc
+        return [[Item(json=row) for row in response_items]]

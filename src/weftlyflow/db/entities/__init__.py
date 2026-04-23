@@ -19,6 +19,7 @@ and the sharing tables.
 
 from __future__ import annotations
 
+from weftlyflow.db.entities.audit_event import AuditEventEntity
 from weftlyflow.db.entities.credential import CredentialEntity
 from weftlyflow.db.entities.execution import ExecutionEntity
 from weftlyflow.db.entities.execution_data import ExecutionDataEntity
@@ -31,6 +32,7 @@ from weftlyflow.db.entities.webhook import WebhookEntity
 from weftlyflow.db.entities.workflow import WorkflowEntity
 
 __all__ = [
+    "AuditEventEntity",
     "CredentialEntity",
     "ExecutionDataEntity",
     "ExecutionEntity",

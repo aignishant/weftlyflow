@@ -21,9 +21,12 @@ expression-heavy workflow don't re-parse the same chunk on each item.
 
 from __future__ import annotations
 
+import concurrent.futures
 from functools import lru_cache
 from typing import TYPE_CHECKING, Any
 
+from weftlyflow.config import get_settings
+from weftlyflow.expression.errors import ExpressionTimeoutError
 from weftlyflow.expression.sandbox import compile_expression, evaluate
 from weftlyflow.expression.tokenizer import (
     ExpressionChunk,
@@ -32,12 +35,47 @@ from weftlyflow.expression.tokenizer import (
     is_single_expression,
     tokenize,
 )
+from weftlyflow.observability import metrics
 
 if TYPE_CHECKING:
     from collections.abc import Mapping
 
 
 _COMPILE_CACHE_SIZE: int = 1024
+
+# Dedicated executor for expression evaluation. A single shared pool means
+# runaway expressions do not multiply into unbounded thread creation — at
+# worst they queue. Daemon threads so interpreter shutdown is not blocked.
+_EVAL_POOL: concurrent.futures.ThreadPoolExecutor = concurrent.futures.ThreadPoolExecutor(
+    max_workers=4,
+    thread_name_prefix="weftlyflow-expr",
+)
+
+
+def _evaluate_with_timeout(code: Any, proxies: dict[str, Any]) -> Any:
+    """Run :func:`evaluate` under the configured wall-clock budget.
+
+    On timeout we raise :class:`ExpressionTimeoutError`; the worker thread
+    keeps running in the pool until it either finishes or is torn down with
+    the process, but the caller is unblocked.
+
+    This is a soft guard — a truly malicious expression can still burn a
+    worker thread until Celery's hard ``task_time_limit`` kills the
+    process. Layered defence.
+    """
+    timeout = get_settings().expression_timeout_seconds
+    future = _EVAL_POOL.submit(evaluate, code, proxies)
+    try:
+        value = future.result(timeout=timeout)
+    except concurrent.futures.TimeoutError as exc:
+        metrics.expression_evaluations_total.labels(outcome="timeout").inc()
+        msg = f"expression exceeded {timeout}s wall-clock budget"
+        raise ExpressionTimeoutError(msg) from exc
+    except Exception:
+        metrics.expression_evaluations_total.labels(outcome="error").inc()
+        raise
+    metrics.expression_evaluations_total.labels(outcome="success").inc()
+    return value
 
 
 @lru_cache(maxsize=_COMPILE_CACHE_SIZE)
@@ -61,14 +99,14 @@ def resolve(template: Any, proxies: Mapping[str, Any]) -> Any:
     if is_single_expression(chunks):
         chunk = chunks[0]
         assert isinstance(chunk, ExpressionChunk)
-        return evaluate(_compile_cached(chunk.source), dict(proxies))
+        return _evaluate_with_timeout(_compile_cached(chunk.source), dict(proxies))
 
     parts: list[str] = []
     for chunk in chunks:
         if isinstance(chunk, LiteralChunk):
             parts.append(chunk.text)
         else:
-            value = evaluate(_compile_cached(chunk.source), dict(proxies))
+            value = _evaluate_with_timeout(_compile_cached(chunk.source), dict(proxies))
             parts.append("" if value is None else str(value))
     return "".join(parts)
 

@@ -25,6 +25,7 @@ from typing import TYPE_CHECKING, Any
 from fastapi import APIRouter, HTTPException, Request, status
 from fastapi.responses import JSONResponse
 
+from weftlyflow.observability import metrics
 from weftlyflow.webhooks.constants import WEBHOOK_URL_PREFIX
 from weftlyflow.webhooks.handler import enqueue_from_webhook
 from weftlyflow.webhooks.parser import parse_request
@@ -52,6 +53,9 @@ async def ingest_webhook(path: str, request: Request) -> JSONResponse:
 
     entry = registry.match(path, request.method)
     if entry is None:
+        metrics.webhook_requests_total.labels(
+            method=request.method, outcome="not_found"
+        ).inc()
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"no webhook registered for {request.method} /webhook/{path}",
@@ -74,6 +78,10 @@ async def ingest_webhook(path: str, request: Request) -> JSONResponse:
         "query_all": parsed.query_all,
         "body": parsed.body,
     }
+
+    metrics.webhook_requests_total.labels(
+        method=request.method, outcome="accepted"
+    ).inc()
 
     result = await enqueue_from_webhook(
         queue=queue,

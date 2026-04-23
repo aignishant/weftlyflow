@@ -1,6 +1,11 @@
 """Celery tasks that consume the execution queue.
 
-One task today — :func:`execute_workflow` — drains the ``executions`` queue.
+Two tasks today:
+
+* :func:`execute_workflow` — drains the ``executions`` queue.
+* :func:`prune_audit_events` — beat-scheduled retention sweep over the
+  ``audit_events`` table.
+
 Each task body is deliberately small: marshal the payload, acquire an
 idempotency claim, delegate to :mod:`weftlyflow.worker.execution`, release.
 
@@ -102,6 +107,44 @@ def _resolve_worker_resources() -> tuple[Any, Any]:
     registry = NodeRegistry()
     registry.load_builtins()
     return session_factory, registry
+
+
+@celery_app.task(  # type: ignore[untyped-decorator]
+    name="weftlyflow.prune_audit_events",
+    queue="io",
+    acks_late=True,
+)
+def prune_audit_events() -> dict[str, int | str]:
+    """Delete ``audit_events`` rows older than ``audit_retention_days``.
+
+    Scheduled by Celery beat (see :mod:`weftlyflow.worker.app`). Returns a
+    small dict so operators can see how many rows were trimmed per tick via
+    the Celery result backend.
+    """
+    import asyncio  # noqa: PLC0415
+
+    from weftlyflow.config import get_settings  # noqa: PLC0415
+
+    session_factory, _ = _resolve_worker_resources()
+    retention_days = get_settings().audit_retention_days
+    deleted = asyncio.run(_run_prune(session_factory, retention_days))
+    log.info(
+        "audit_retention_sweep",
+        deleted=deleted,
+        retention_days=retention_days,
+    )
+    return {"deleted": deleted, "retention_days": retention_days}
+
+
+async def _run_prune(session_factory: Any, retention_days: int) -> int:
+    from weftlyflow.db.repositories.audit_event_repo import (  # noqa: PLC0415
+        AuditEventRepository,
+    )
+
+    async with session_factory() as session:
+        deleted = await AuditEventRepository(session).purge_older_than(retention_days)
+        await session.commit()
+        return deleted
 
 
 def register_tasks() -> None:

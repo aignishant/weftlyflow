@@ -20,10 +20,15 @@ from __future__ import annotations
 from tests.unit.engine.conftest import build_workflow, connect, make_node
 from weftlyflow.domain.execution import Item
 from weftlyflow.engine.executor import WorkflowExecutor
+from weftlyflow.nodes.core.code.node import CodeNode
 from weftlyflow.nodes.registry import NodeRegistry
 
 
 async def test_five_node_workflow_runs_end_to_end(loaded_registry: NodeRegistry) -> None:
+    # Code node is gated behind a settings flag (off by default); register
+    # it explicitly for this acceptance test so the false branch has a
+    # real destination. The node runs as identity for empty snippets.
+    loaded_registry.register(CodeNode)
     trigger = make_node(node_type="weftlyflow.manual_trigger", name="Trigger")
     setter = make_node(
         node_type="weftlyflow.set",

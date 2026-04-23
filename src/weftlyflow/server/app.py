@@ -37,6 +37,7 @@ from weftlyflow.credentials.registry import CredentialTypeRegistry
 from weftlyflow.credentials.resolver import DatabaseCredentialResolver
 from weftlyflow.db.base import Base
 from weftlyflow.db.entities import (  # noqa: F401 — register tables on Base.metadata
+    AuditEventEntity,
     CredentialEntity,
     ExecutionDataEntity,
     ExecutionEntity,
@@ -55,8 +56,10 @@ from weftlyflow.server.routers import auth as auth_router
 from weftlyflow.server.routers import credentials as credentials_router
 from weftlyflow.server.routers import executions as executions_router
 from weftlyflow.server.routers import health as health_router
+from weftlyflow.server.routers import metrics as metrics_router
 from weftlyflow.server.routers import node_types as node_types_router
 from weftlyflow.server.routers import oauth2 as oauth2_router
+from weftlyflow.server.routers import sso as sso_router
 from weftlyflow.server.routers import webhooks_ingress as webhooks_ingress_router
 from weftlyflow.server.routers import workflows as workflows_router
 from weftlyflow.triggers.leader import InMemoryLeaderLock
@@ -68,7 +71,49 @@ from weftlyflow.worker.queue import InlineExecutionQueue
 if TYPE_CHECKING:
     from sqlalchemy.ext.asyncio import AsyncEngine
 
+    from weftlyflow.auth.sso.oidc import OIDCProvider
+    from weftlyflow.config.settings import WeftlyflowSettings
+
 log = structlog.get_logger(__name__)
+
+
+def _build_oidc_provider(settings: WeftlyflowSettings) -> OIDCProvider | None:
+    """Construct the OIDC provider from settings, or return ``None`` when disabled.
+
+    Raises:
+        RuntimeError: when ``sso_oidc_enabled`` is true but one of the four
+            required ``sso_oidc_*`` settings is missing.
+    """
+    if not settings.sso_oidc_enabled:
+        return None
+
+    from weftlyflow.auth.sso.oidc import OIDCConfig, OIDCProvider  # noqa: PLC0415
+
+    missing = [
+        name
+        for name, value in (
+            ("WEFTLYFLOW_SSO_OIDC_ISSUER_URL", settings.sso_oidc_issuer_url),
+            ("WEFTLYFLOW_SSO_OIDC_CLIENT_ID", settings.sso_oidc_client_id),
+            (
+                "WEFTLYFLOW_SSO_OIDC_CLIENT_SECRET",
+                settings.sso_oidc_client_secret.get_secret_value(),
+            ),
+            ("WEFTLYFLOW_SSO_OIDC_REDIRECT_URI", settings.sso_oidc_redirect_uri),
+        )
+        if not value
+    ]
+    if missing:
+        msg = f"sso_oidc_enabled=true but missing required settings: {', '.join(missing)}"
+        raise RuntimeError(msg)
+    return OIDCProvider(
+        OIDCConfig(
+            issuer_url=settings.sso_oidc_issuer_url,
+            client_id=settings.sso_oidc_client_id,
+            client_secret=settings.sso_oidc_client_secret.get_secret_value(),
+            redirect_uri=settings.sso_oidc_redirect_uri,
+            scopes=tuple(settings.sso_oidc_scope_list),
+        ),
+    )
 
 
 @asynccontextmanager
@@ -143,6 +188,8 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.credential_types = credential_types
     app.state.credential_resolver = credential_resolver
 
+    app.state.sso_oidc_provider = _build_oidc_provider(settings)
+
     try:
         yield
     finally:
@@ -178,6 +225,7 @@ def create_app() -> FastAPI:
     register_exception_handlers(app)
 
     app.include_router(health_router.router)
+    app.include_router(metrics_router.router)
     app.include_router(auth_router.router)
     app.include_router(workflows_router.router)
     app.include_router(executions_router.router)
@@ -185,6 +233,7 @@ def create_app() -> FastAPI:
     app.include_router(credentials_router.router)
     app.include_router(credentials_router.credential_types_router)
     app.include_router(oauth2_router.router)
+    app.include_router(sso_router.router)
     app.include_router(webhooks_ingress_router.router)
 
     return app

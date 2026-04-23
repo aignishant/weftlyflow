@@ -21,31 +21,16 @@ from weftlyflow.nodes.registry import NodeRegistry
 def loaded_registry() -> NodeRegistry:
     """Return a registry populated with every built-in node.
 
-    One hundred and six built-ins as of the Tier-2 twenty-sixth-tranche ship:
-    the Phase-6-core set plus the eighty-one integration nodes
-    (``slack``, ``github``, ``sendgrid``, ``notion``, ``stripe``,
-    ``google_sheets``, ``discord``, ``airtable``, ``mailgun``,
-    ``telegram``, ``trello``, ``hubspot``, ``jira``, ``shopify``,
-    ``clickup``, ``twilio``, ``gitlab``, ``intercom``, ``monday``,
-    ``zendesk``, ``brevo``, ``pagerduty``, ``algolia``, ``mailchimp``,
-    ``pipedrive``, ``zoho_crm``, ``mattermost``, ``cloudflare``,
-    ``freshdesk``, ``supabase``, ``okta``, ``linear``, ``pushover``,
-    ``elasticsearch``, ``dropbox``, ``twitch``, ``salesforce``,
-    ``zoom``, ``microsoft_graph``, ``asana``, ``box``,
-    ``snowflake``, ``datadog``, ``activecampaign``, ``aws_s3``,
-    ``openai``, ``xero``, ``netsuite``, ``quickbooks``, ``square``,
-    ``facebook_graph``, ``anthropic``, ``bitbucket``, ``paypal``,
-    ``mapbox``, ``rocket_chat``, ``contentful``, ``hasura``,
-    ``ghost``, ``pinecone``, ``gmail``, ``google_drive``,
-    ``onedrive``, ``segment``, ``mixpanel``, ``posthog``,
-    ``plaid``, ``klaviyo``, ``harvest``, ``mongodb_atlas``, ``ga4``,
-    ``reddit``, ``coinbase``, ``binance``, ``alpaca``, ``asc``,
-    ``docusign``, ``cloudinary``, ``gcs``, ``azure_blob``,
-    ``backblaze_b2``).
+    One hundred and five built-ins as of the sandbox-hardening pass: every
+    Phase-6-core node plus eighty-one Tier-2 integrations. The Code node
+    (``weftlyflow.code``) is deliberately excluded from the default count
+    — it is now gated behind ``settings.enable_code_node`` until the
+    subprocess sandbox runner lands (see IMPLEMENTATION_BIBLE.md §26
+    risk #2). Tests that need the Code node should register it directly.
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 106, f"expected 106 built-in nodes, got {count}"
+    assert count == 105, f"expected 105 built-in nodes, got {count}"
     return registry
 
 

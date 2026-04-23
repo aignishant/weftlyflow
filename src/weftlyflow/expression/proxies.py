@@ -191,13 +191,25 @@ def _binary_view(ref: Any) -> dict[str, Any]:
     }
 
 
-def filter_env(raw_env: dict[str, str], *, prefix: str = "WEFTLYFLOW_VAR_") -> dict[str, str]:
-    """Keep only ``WEFTLYFLOW_VAR_*`` entries and strip the prefix.
+def filter_env(
+    raw_env: dict[str, str],
+    *,
+    allowlist: list[str] | None = None,
+    prefix: str = "WEFTLYFLOW_VAR_",
+) -> dict[str, str]:
+    """Return the subset of ``raw_env`` exposed to workflow expressions.
 
-    Every expression has access to ``$env``, but only to variables the
-    operator explicitly exposed under the reserved prefix. This prevents
-    accidental leakage of database URLs, keys, etc.
+    When ``allowlist`` is given, **only** those variable names are returned
+    (unchanged keys, no prefix rewriting). This is the production path —
+    the operator opts in explicitly via ``WEFTLYFLOW_EXPOSED_ENV_VARS``.
+
+    When ``allowlist`` is ``None``, the legacy ``WEFTLYFLOW_VAR_*`` prefix
+    scheme is used (kept for the dev-mode default). Prefix-based filtering
+    is strictly worse than an explicit allowlist because a typoed env var
+    name silently leaks — new deployments should always use ``allowlist``.
     """
+    if allowlist is not None:
+        return {name: raw_env[name] for name in allowlist if name in raw_env}
     return {
         key[len(prefix) :]: value
         for key, value in raw_env.items()

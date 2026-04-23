@@ -198,6 +198,7 @@ markers = [
     "node: per-node test",
     "live: hits real external services (opt-in)",
     "load: performance / load test",
+    "sandbox: spawns real subprocesses for the Code-node sandbox",
 ]
 
 [tool.coverage.run]

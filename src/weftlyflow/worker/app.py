@@ -12,6 +12,7 @@ Invocation::
 from __future__ import annotations
 
 from celery import Celery
+from celery.schedules import crontab
 
 from weftlyflow.config import get_settings
 
@@ -33,8 +34,20 @@ celery_app.conf.update(
     task_track_started=True,
     task_acks_late=True,
     worker_prefetch_multiplier=1,
+    worker_hijack_root_logger=False,
+    task_soft_time_limit=_settings.worker_task_soft_time_limit_seconds,
+    task_time_limit=_settings.worker_task_time_limit_seconds,
     task_default_queue="executions",
     task_routes={
         "weftlyflow.execute_workflow": {"queue": "executions"},
+        "weftlyflow.prune_audit_events": {"queue": "io"},
+    },
+    beat_schedule={
+        "prune-audit-events-daily": {
+            "task": "weftlyflow.prune_audit_events",
+            # 03:17 UTC — odd minute avoids the top-of-hour rush most
+            # third-party cron setups land on.
+            "schedule": crontab(hour="3", minute="17"),
+        },
     },
 )

@@ -6,7 +6,7 @@ All notable user-facing changes. Format follows [Keep a Changelog](https://keepa
 
 ### Added
 - Phase 0 bootstrap: repo layout, `pyproject.toml`, `Makefile`, `Dockerfile`s, `docker-compose.yml`, pre-commit config.
-- Project identity: **Weftlyflow**, clean-room Python replica of n8n's architecture.
+- Project identity: **Weftlyflow**, original Python workflow automation platform.
 - `IMPLEMENTATION_BIBLE.md` — the canonical design document.
 - Domain dataclasses: `Workflow`, `Node`, `Connection`, `Execution`, `Item`, `RunData`, `NodeSpec`.
 - FastAPI skeleton with `/healthz`, `/readyz`.

@@ -3,8 +3,8 @@
 ## Option A — Docker (recommended)
 
 ```bash
-git clone <weftlyflow-repo> ng8
-cd ng8
+git clone <weftlyflow-repo> weftlyflow
+cd weftlyflow
 cp .env.example .env
 # Generate an encryption key:
 python -c "from cryptography.fernet import Fernet; print(Fernet.generate_key().decode())"

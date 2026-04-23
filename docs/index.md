@@ -12,7 +12,6 @@ A workflow engine. You build a **workflow** — a directed graph of **nodes** co
 
 ## What Weftlyflow is not
 
-- A drop-in replacement for n8n workflow JSON. Our schema is intentionally different.
 - A hosted SaaS. Self-host first.
 - An AI chat app — though it makes deploying a chat-triggered agent very easy.
 
@@ -27,4 +26,4 @@ A workflow engine. You build a **workflow** — a directed graph of **nodes** co
 
 ## Provenance
 
-Weftlyflow is an **original Python implementation inspired by n8n's architecture**. It is not a fork. See [`IMPLEMENTATION_BIBLE.md §23`](https://example.com/weftlyflow/blob/main/IMPLEMENTATION_BIBLE.md) for the clean-room rules every contribution must follow.
+Weftlyflow is an **original, independent Python implementation**. It is not a fork. See [`IMPLEMENTATION_BIBLE.md §23`](https://example.com/weftlyflow/blob/main/IMPLEMENTATION_BIBLE.md) for the clean-room rules every contribution must follow.

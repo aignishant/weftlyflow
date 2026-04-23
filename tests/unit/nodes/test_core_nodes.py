@@ -112,16 +112,37 @@ async def test_if_node_unknown_operator_raises():
         await IfNode().execute(_ctx_for(node, []), [])
 
 
-async def test_code_node_is_identity_in_phase_1():
+async def test_code_node_is_identity_for_empty_snippet():
+    """Empty snippets pass items through — the legitimate no-op path."""
+    node = Node(
+        id="node_1",
+        name="c",
+        type="weftlyflow.code",
+        parameters={"code": "", "mode": "run_once_for_all"},
+    )
+    items = [Item(json={"v": 1})]
+    out = await CodeNode().execute(_ctx_for(node, items), items)
+    assert out[0] == items
+
+
+async def test_code_node_refuses_non_empty_snippet_until_sandbox_lands():
+    """Non-empty snippets must raise until the subprocess sandbox exists.
+
+    Silently discarding user code would bite the operator the moment a
+    real sandbox shipped — every saved snippet would suddenly start
+    executing. Loud failure is the safer default.
+    """
+    from weftlyflow.domain.errors import NodeExecutionError
+
     node = Node(
         id="node_1",
         name="c",
         type="weftlyflow.code",
         parameters={
-            "code": "raise Exception('should not run in phase 1')",
+            "code": "raise Exception('should not run until sandbox lands')",
             "mode": "run_once_for_all",
         },
     )
     items = [Item(json={"v": 1})]
-    out = await CodeNode().execute(_ctx_for(node, items), items)
-    assert out[0] == items
+    with pytest.raises(NodeExecutionError):
+        await CodeNode().execute(_ctx_for(node, items), items)
