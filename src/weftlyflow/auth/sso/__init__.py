@@ -1,9 +1,13 @@
 """Single Sign-On adapters.
 
-Weftlyflow ships with one built-in SSO protocol — **OIDC** — covering the
-common enterprise IdPs (Google Workspace, Microsoft Entra / Azure AD,
-Keycloak, Okta, Auth0). SAML is intentionally left to a future phase and
-lives behind the ``sso`` optional-dependency group (``python3-saml``).
+Weftlyflow ships two built-in SSO protocols covering the common enterprise
+IdPs:
+
+* **OIDC** — Google Workspace, Microsoft Entra / Azure AD, Keycloak, Okta,
+  Auth0, and any other OAuth2/OIDC-compliant IdP. Always available.
+* **SAML 2.0** — ADFS, Shibboleth, legacy enterprise IdPs. Lives behind the
+  ``sso`` optional-dependency group (``python3-saml``) so the default
+  install stays free of ``xmlsec``'s C dependencies.
 
 Public surface:
 
@@ -13,6 +17,12 @@ Public surface:
 * :class:`OIDCProvider` — the built-in OpenID-Connect adapter.
 * :func:`make_state_token` / :func:`verify_state_token` — signed, short-lived
   CSRF tokens carried through the IdP round-trip.
+
+SAML adapter symbols (``SAMLConfig``, ``SAMLProvider``) are deliberately
+**not** re-exported here — importing them eagerly would drag ``python3-saml``
+into every process that touches the ``weftlyflow.auth.sso`` namespace.
+Callers should ``from weftlyflow.auth.sso.saml import SAMLProvider`` on the
+rare code paths that actually need SAML.
 """
 
 from __future__ import annotations

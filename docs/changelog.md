@@ -52,6 +52,16 @@ All notable user-facing changes. Format follows [Keep a Changelog](https://keepa
   `sso_oidc_issuer_url`, `sso_oidc_client_id`, `sso_oidc_client_secret`,
   `sso_oidc_redirect_uri`, `sso_oidc_scopes`, `sso_oidc_auto_provision`,
   `sso_post_login_redirect`.
+- **SAML 2.0 SSO** adapter (`weftlyflow.auth.sso.saml`) on top of
+  `python3-saml` with `/api/v1/auth/sso/saml/metadata` (SP descriptor),
+  `/login` (HTTP-Redirect binding out), and `/acs` (HTTP-POST binding in).
+  Carries the state token as SAML `RelayState`; validates assertion
+  signature, audience, and conditions via the OneLogin toolkit. Behind the
+  `sso` optional extra. Settings: `sso_saml_enabled`,
+  `sso_saml_sp_entity_id`, `sso_saml_sp_acs_url`,
+  `sso_saml_idp_metadata_xml`, `sso_saml_sp_x509_cert`,
+  `sso_saml_sp_private_key`, `sso_saml_want_assertions_signed`,
+  `sso_saml_auto_provision`.
 
 **Audit log**
 - `audit_events` table + repository, Alembic migration `0004_phase8_audit_events`,
@@ -86,10 +96,10 @@ All notable user-facing changes. Format follows [Keep a Changelog](https://keepa
 
 ### Known gaps
 
-- **SAML SSO** adapter not yet wired — `python3-saml` is available as an
-  optional extra (`weftlyflow[sso]`) but the provider class and
-  `/api/v1/auth/sso/saml/*` routes are pending.
 - **Phase 7 AI nodes** — LangChain / OpenAI / Anthropic / vector-store nodes
   have not started; the `ai` optional extra is reserved for that tranche.
 - **Phase 6 integrations** — ongoing; roughly one-third of the planned node
   catalogue is live.
+- **SAML SLO** (single log-out) and encrypted assertions — both supported by
+  `python3-saml` but intentionally not exposed yet; Weftlyflow sessions are
+  stateless JWTs and IdP-initiated logout is a separate design question.

@@ -183,6 +183,69 @@ class WeftlyflowSettings(BaseSettings):
         ),
     )
 
+    # --- SSO (SAML 2.0) ---
+    sso_saml_enabled: bool = Field(
+        default=False,
+        description=(
+            "Mount the ``/api/v1/auth/sso/saml/*`` routes. Requires the "
+            "``sso_saml_*`` settings below to be populated and the ``sso`` "
+            "optional extra installed (``pip install 'weftlyflow[sso]'``)."
+        ),
+    )
+    sso_saml_sp_entity_id: str = Field(
+        default="",
+        description=(
+            "The Service Provider's entity ID. Usually the fully-qualified "
+            "metadata URL, e.g. "
+            "``https://weftlyflow.example.com/api/v1/auth/sso/saml/metadata``."
+        ),
+    )
+    sso_saml_sp_acs_url: str = Field(
+        default="",
+        description=(
+            "Fully-qualified HTTPS URL of the SP's Assertion Consumer Service "
+            "— e.g. ``https://weftlyflow.example.com/api/v1/auth/sso/saml/acs``. "
+            "Must match the value registered with the IdP exactly."
+        ),
+    )
+    sso_saml_idp_metadata_xml: str = Field(
+        default="",
+        description=(
+            "Full IdP metadata XML document. Paste the contents verbatim; "
+            "the adapter parses the IdP's SSO endpoint, entity ID, and "
+            "signing cert from it at server boot."
+        ),
+    )
+    sso_saml_sp_x509_cert: str = Field(
+        default="",
+        description=(
+            "Optional PEM-encoded SP signing cert. When both this and "
+            "``sso_saml_sp_private_key`` are set, AuthnRequests are signed."
+        ),
+    )
+    sso_saml_sp_private_key: SecretStr = Field(
+        default=SecretStr(""),
+        description=(
+            "Optional PEM-encoded SP signing key. Pairs with "
+            "``sso_saml_sp_x509_cert``."
+        ),
+    )
+    sso_saml_want_assertions_signed: bool = Field(
+        default=True,
+        description=(
+            "Require the IdP's assertion XML be signed. Keep true outside "
+            "of local development — unsigned assertions are trivially "
+            "forgeable."
+        ),
+    )
+    sso_saml_auto_provision: bool = Field(
+        default=True,
+        description=(
+            "When true, first-time SAML logins create a local user row + "
+            "personal project. Disable to require pre-provisioning."
+        ),
+    )
+
     # --- external secret providers (Vault) ---
     vault_enabled: bool = Field(
         default=False,

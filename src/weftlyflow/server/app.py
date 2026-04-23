@@ -75,9 +75,10 @@ from weftlyflow.webhooks.registry import WebhookRegistry
 from weftlyflow.worker.queue import InlineExecutionQueue
 
 if TYPE_CHECKING:
-    from sqlalchemy.ext.asyncio import AsyncEngine
+    from sqlalchemy.ext.asyncio import AsyncEngine, AsyncSession
 
     from weftlyflow.auth.sso.oidc import OIDCProvider
+    from weftlyflow.auth.sso.saml import SAMLProvider
     from weftlyflow.config.settings import WeftlyflowSettings
 
 log = structlog.get_logger(__name__)
@@ -118,6 +119,72 @@ def _build_oidc_provider(settings: WeftlyflowSettings) -> OIDCProvider | None:
             client_secret=settings.sso_oidc_client_secret.get_secret_value(),
             redirect_uri=settings.sso_oidc_redirect_uri,
             scopes=tuple(settings.sso_oidc_scope_list),
+        ),
+    )
+
+
+def _build_credential_stack(
+    settings: WeftlyflowSettings,
+    session_factory: async_sessionmaker[AsyncSession],
+) -> tuple[CredentialCipher, CredentialTypeRegistry, DatabaseCredentialResolver]:
+    """Assemble the credential cipher + type registry + resolver triple.
+
+    Split out of :func:`lifespan` so the boot sequence stays under the
+    PLR0915 budget. No side effects beyond instantiating the three objects.
+    """
+    encryption_key = settings.encryption_key.get_secret_value()
+    if not encryption_key:
+        encryption_key = generate_key()
+        log.warning("encryption_key_missing_using_ephemeral")
+    cipher = CredentialCipher(
+        encryption_key,
+        old_keys=[k.strip() for k in settings.encryption_key_old_keys.split(",") if k.strip()],
+    )
+    types = CredentialTypeRegistry()
+    types.load_builtins()
+    resolver = DatabaseCredentialResolver(
+        session_factory=session_factory,
+        cipher=cipher,
+        types=types,
+    )
+    return cipher, types, resolver
+
+
+def _build_saml_provider(settings: WeftlyflowSettings) -> SAMLProvider | None:
+    """Construct the SAML provider from settings, or return ``None`` when disabled.
+
+    Raises:
+        RuntimeError: when ``sso_saml_enabled`` is true but a required
+            setting is missing, or when ``python3-saml`` is not installed.
+    """
+    if not settings.sso_saml_enabled:
+        return None
+
+    try:
+        from weftlyflow.auth.sso.saml import SAMLConfig, SAMLProvider  # noqa: PLC0415
+    except ImportError as exc:
+        msg = (
+            "sso_saml_enabled=true but python3-saml is not installed — "
+            "install with 'pip install weftlyflow[sso]'"
+        )
+        raise RuntimeError(msg) from exc
+
+    _require_settings(
+        "sso_saml",
+        (
+            ("WEFTLYFLOW_SSO_SAML_SP_ENTITY_ID", settings.sso_saml_sp_entity_id),
+            ("WEFTLYFLOW_SSO_SAML_SP_ACS_URL", settings.sso_saml_sp_acs_url),
+            ("WEFTLYFLOW_SSO_SAML_IDP_METADATA_XML", settings.sso_saml_idp_metadata_xml),
+        ),
+    )
+    return SAMLProvider(
+        SAMLConfig(
+            sp_entity_id=settings.sso_saml_sp_entity_id,
+            sp_acs_url=settings.sso_saml_sp_acs_url,
+            idp_metadata_xml=settings.sso_saml_idp_metadata_xml,
+            x509_cert=settings.sso_saml_sp_x509_cert,
+            private_key=settings.sso_saml_sp_private_key.get_secret_value(),
+            want_assertions_signed=settings.sso_saml_want_assertions_signed,
         ),
     )
 
@@ -237,22 +304,9 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
         )
         await session.commit()
 
-    encryption_key = settings.encryption_key.get_secret_value()
-    if not encryption_key:
-        encryption_key = generate_key()
-        log.warning("encryption_key_missing_using_ephemeral")
-    credential_cipher = CredentialCipher(
-        encryption_key,
-        old_keys=[k.strip() for k in settings.encryption_key_old_keys.split(",") if k.strip()],
-    )
-
-    credential_types = CredentialTypeRegistry()
-    credential_types.load_builtins()
-
-    credential_resolver = DatabaseCredentialResolver(
-        session_factory=session_factory,
-        cipher=credential_cipher,
-        types=credential_types,
+    credential_cipher, credential_types, credential_resolver = _build_credential_stack(
+        settings,
+        session_factory,
     )
 
     webhook_registry = WebhookRegistry()
@@ -288,6 +342,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
     app.state.secret_provider_registry = _build_secret_provider_registry(settings)
 
     app.state.sso_oidc_provider = _build_oidc_provider(settings)
+    app.state.sso_saml_provider = _build_saml_provider(settings)
 
     try:
         yield
@@ -333,6 +388,7 @@ def create_app() -> FastAPI:
     app.include_router(credentials_router.credential_types_router)
     app.include_router(oauth2_router.router)
     app.include_router(sso_router.router)
+    app.include_router(sso_router.saml_router)
     app.include_router(webhooks_ingress_router.router)
 
     return app

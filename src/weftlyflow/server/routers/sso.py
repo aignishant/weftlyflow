@@ -1,6 +1,6 @@
-"""SSO login + callback routes (OIDC).
+"""SSO login + callback routes (OIDC + SAML 2.0).
 
-Flow:
+OIDC flow:
 
 1. Browser hits ``GET /api/v1/auth/sso/oidc/login``.
 2. Server mints a signed state token and 302s the browser at the IdP's
@@ -15,9 +15,14 @@ Flow:
    with the tokens attached as URL fragment parameters so nothing hits the
    server access log.
 
-The routes are only mounted when ``sso_oidc_enabled`` is true; the app
-factory validates that the four ``sso_oidc_*`` settings are populated
-before registering the router.
+SAML flow is analogous but uses the SAML 2.0 Web-Browser SSO profile —
+HTTP-Redirect out, HTTP-POST in. The state token travels as
+``RelayState``; the assertion comes back as a form-POSTed ``SAMLResponse``
+field. ``GET /api/v1/auth/sso/saml/metadata`` emits the SP metadata XML
+that the IdP administrator needs to complete the trust.
+
+Both routers are only mounted when the relevant ``sso_*_enabled`` flag is
+true; the app factory validates the required settings at server boot.
 """
 
 from __future__ import annotations
@@ -26,7 +31,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 from urllib.parse import urlencode
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 
 from weftlyflow.auth.constants import (
@@ -52,8 +57,10 @@ if TYPE_CHECKING:
 
     from weftlyflow.auth.sso.base import SSOUserInfo
     from weftlyflow.auth.sso.oidc import OIDCProvider
+    from weftlyflow.auth.sso.saml import SAMLProvider
 
 router = APIRouter(prefix="/api/v1/auth/sso/oidc", tags=["auth", "sso"])
+saml_router = APIRouter(prefix="/api/v1/auth/sso/saml", tags=["auth", "sso"])
 
 # SSO-only users never authenticate with a password; this sentinel fails
 # :func:`verify_password` fast because it is not a valid PHC hash string.
@@ -183,3 +190,125 @@ def _build_redirect(*, base: str, access_token: str, refresh_token: str) -> str:
     )
     separator = "&" if "#" in base else "#"
     return f"{base}{separator}{fragment}"
+
+
+@saml_router.get("/metadata", summary="Emit SP metadata XML")
+async def saml_metadata(request: Request) -> Response:
+    """Return the Service Provider metadata XML for IdP admins to import."""
+    provider: SAMLProvider | None = getattr(request.app.state, "sso_saml_provider", None)
+    if provider is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    await provider.prime()
+    xml = provider.metadata_xml()
+    return Response(content=xml, media_type="application/samlmetadata+xml")
+
+
+@saml_router.get("/login", summary="Redirect to the configured SAML IdP")
+async def saml_login(request: Request) -> RedirectResponse:
+    """302 the browser to the IdP's SSO endpoint with a signed RelayState."""
+    provider: SAMLProvider | None = getattr(request.app.state, "sso_saml_provider", None)
+    if provider is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    settings = get_settings()
+    await provider.prime()
+    state = make_state_token(secret_key=settings.secret_key.get_secret_value())
+    target = provider.authorization_url(state=state)
+    return RedirectResponse(url=target, status_code=status.HTTP_302_FOUND)
+
+
+@saml_router.post("/acs", summary="Assertion Consumer Service endpoint")
+async def saml_acs(
+    request: Request,
+    session: AsyncSession = Depends(get_db),
+) -> RedirectResponse:
+    """Validate the POSTed SAMLResponse, mint tokens, redirect."""
+    provider: SAMLProvider | None = getattr(request.app.state, "sso_saml_provider", None)
+    if provider is None:
+        raise HTTPException(status_code=status.HTTP_404_NOT_FOUND)
+    settings = get_settings()
+    form = await request.form()
+    params = {k: str(v) for k, v in form.items()}
+
+    raw_state = params.get("RelayState", "")
+    if not raw_state:
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="missing RelayState")
+    try:
+        verify_state_token(raw_state, secret_key=settings.secret_key.get_secret_value())
+    except SSOStateError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="invalid RelayState token",
+        ) from exc
+
+    try:
+        user_info = await provider.complete(params)
+    except SSOError as exc:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"SAML exchange failed: {exc}",
+        ) from exc
+
+    if not settings.sso_saml_auto_provision:
+        existing = await UserRepository(session).get_entity_by_email(user_info.email)
+        if existing is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="user does not exist and SSO auto-provisioning is disabled",
+            )
+
+    user_id, default_project_id = await _find_or_provision_saml(session, user_info)
+    await session.commit()
+
+    pair = issue_token_pair(
+        user_id=user_id,
+        default_project_id=default_project_id,
+        secret_key=settings.secret_key.get_secret_value(),
+    )
+    await RefreshTokenRepository(session).create(
+        jti=pair.refresh_jti,
+        user_id=user_id,
+        token_hash=pair.refresh_hash,
+        issued_at=datetime.now(UTC),
+        expires_at=pair.refresh_expires_at,
+    )
+    await session.commit()
+
+    redirect_url = _build_redirect(
+        base=settings.sso_post_login_redirect,
+        access_token=pair.access_token,
+        refresh_token=pair.refresh_token,
+    )
+    return RedirectResponse(url=redirect_url, status_code=status.HTTP_302_FOUND)
+
+
+async def _find_or_provision_saml(
+    session: AsyncSession,
+    user_info: SSOUserInfo,
+) -> tuple[str, str | None]:
+    """Return ``(user_id, default_project_id)`` for a SAML-authenticated user.
+
+    Mirrors :func:`_find_or_provision` but honours ``sso_saml_auto_provision``
+    instead of the OIDC equivalent.
+    """
+    user_repo = UserRepository(session)
+    existing_entity = await user_repo.get_entity_by_email(user_info.email)
+    if existing_entity is not None:
+        return existing_entity.id, existing_entity.default_project_id
+
+    project_id = new_project_id()
+    user_id = new_user_id()
+    await ProjectRepository(session).create(
+        project_id=project_id,
+        name=user_info.display_name or user_info.email.split("@")[0],
+        kind=PROJECT_KIND_PERSONAL,
+        owner_id=user_id,
+    )
+    await user_repo.create(
+        user_id=user_id,
+        email=user_info.email,
+        password_hash=_SSO_PASSWORD_SENTINEL,
+        display_name=user_info.display_name,
+        global_role=ROLE_MEMBER,
+        default_project_id=project_id,
+    )
+    return user_id, project_id
