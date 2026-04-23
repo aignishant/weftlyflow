@@ -61,6 +61,8 @@
     hasura_api.py             : Hasura ``X-Hasura-Admin-Secret`` + optional role header.
     ghost_admin.py            : Ghost Admin ``Authorization: Ghost <HS256 JWT>`` per request.
     pinecone_api.py           : Pinecone ``Api-Key`` + control/data-plane host split.
+    gmail_oauth2.py           : Gmail OAuth2 — pre-filled endpoints + send scope.
+    google_drive_oauth2.py    : Google Drive OAuth2 — pre-filled endpoints + file scope.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -90,6 +92,8 @@ from weftlyflow.credentials.types.facebook_graph import FacebookGraphCredential
 from weftlyflow.credentials.types.freshdesk_api import FreshdeskApiCredential
 from weftlyflow.credentials.types.ghost_admin import GhostAdminCredential
 from weftlyflow.credentials.types.gitlab_token import GitLabTokenCredential
+from weftlyflow.credentials.types.gmail_oauth2 import GmailOAuth2Credential
+from weftlyflow.credentials.types.google_drive_oauth2 import GoogleDriveOAuth2Credential
 from weftlyflow.credentials.types.google_sheets_oauth2 import GoogleSheetsOAuth2Credential
 from weftlyflow.credentials.types.hasura_api import HasuraApiCredential
 from weftlyflow.credentials.types.hubspot_private_app import HubSpotPrivateAppCredential
@@ -153,6 +157,8 @@ __all__ = [
     "FreshdeskApiCredential",
     "GhostAdminCredential",
     "GitLabTokenCredential",
+    "GmailOAuth2Credential",
+    "GoogleDriveOAuth2Credential",
     "GoogleSheetsOAuth2Credential",
     "HasuraApiCredential",
     "HubSpotPrivateAppCredential",
