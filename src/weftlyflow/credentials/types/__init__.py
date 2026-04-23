@@ -55,6 +55,12 @@
     anthropic_api.py          : Anthropic ``x-api-key`` + ``anthropic-version`` header pair.
     bitbucket_api.py          : Bitbucket Cloud Basic auth + workspace-scoped URL paths.
     paypal_api.py             : PayPal OAuth2 Client Credentials — runtime token fetch.
+    mapbox_api.py             : Mapbox ``?access_token=`` query-param auth.
+    rocket_chat_api.py        : Rocket.Chat ``X-Auth-Token`` + ``X-User-Id`` dual header.
+    contentful_api.py         : Contentful Bearer — split mgmt (CMA) vs CDN (CDA) hosts.
+    hasura_api.py             : Hasura ``X-Hasura-Admin-Secret`` + optional role header.
+    ghost_admin.py            : Ghost Admin ``Authorization: Ghost <HS256 JWT>`` per request.
+    pinecone_api.py           : Pinecone ``Api-Key`` + control/data-plane host split.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -75,19 +81,23 @@ from weftlyflow.credentials.types.box_api import BoxApiCredential
 from weftlyflow.credentials.types.brevo_api import BrevoApiCredential
 from weftlyflow.credentials.types.clickup_api import ClickUpApiCredential
 from weftlyflow.credentials.types.cloudflare_api import CloudflareApiCredential
+from weftlyflow.credentials.types.contentful_api import ContentfulApiCredential
 from weftlyflow.credentials.types.datadog_api import DatadogApiCredential
 from weftlyflow.credentials.types.discord_bot import DiscordBotCredential
 from weftlyflow.credentials.types.dropbox_api import DropboxApiCredential
 from weftlyflow.credentials.types.elasticsearch_api import ElasticsearchApiCredential
 from weftlyflow.credentials.types.facebook_graph import FacebookGraphCredential
 from weftlyflow.credentials.types.freshdesk_api import FreshdeskApiCredential
+from weftlyflow.credentials.types.ghost_admin import GhostAdminCredential
 from weftlyflow.credentials.types.gitlab_token import GitLabTokenCredential
 from weftlyflow.credentials.types.google_sheets_oauth2 import GoogleSheetsOAuth2Credential
+from weftlyflow.credentials.types.hasura_api import HasuraApiCredential
 from weftlyflow.credentials.types.hubspot_private_app import HubSpotPrivateAppCredential
 from weftlyflow.credentials.types.intercom_api import IntercomApiCredential
 from weftlyflow.credentials.types.jira_cloud import JiraCloudCredential
 from weftlyflow.credentials.types.linear_api import LinearApiCredential
 from weftlyflow.credentials.types.mailchimp_api import MailchimpApiCredential
+from weftlyflow.credentials.types.mapbox_api import MapboxApiCredential
 from weftlyflow.credentials.types.mattermost_api import MattermostApiCredential
 from weftlyflow.credentials.types.microsoft_graph import MicrosoftGraphCredential
 from weftlyflow.credentials.types.monday_api import MondayApiCredential
@@ -98,9 +108,11 @@ from weftlyflow.credentials.types.okta_api import OktaApiCredential
 from weftlyflow.credentials.types.openai_api import OpenAIApiCredential
 from weftlyflow.credentials.types.pagerduty_api import PagerDutyApiCredential
 from weftlyflow.credentials.types.paypal_api import PayPalApiCredential
+from weftlyflow.credentials.types.pinecone_api import PineconeApiCredential
 from weftlyflow.credentials.types.pipedrive_api import PipedriveApiCredential
 from weftlyflow.credentials.types.pushover_api import PushoverApiCredential
 from weftlyflow.credentials.types.quickbooks_oauth2 import QuickBooksOAuth2Credential
+from weftlyflow.credentials.types.rocket_chat_api import RocketChatApiCredential
 from weftlyflow.credentials.types.salesforce_api import SalesforceApiCredential
 from weftlyflow.credentials.types.shopify_admin import ShopifyAdminCredential
 from weftlyflow.credentials.types.slack_api import SlackApiCredential
@@ -132,19 +144,23 @@ __all__ = [
     "BrevoApiCredential",
     "ClickUpApiCredential",
     "CloudflareApiCredential",
+    "ContentfulApiCredential",
     "DatadogApiCredential",
     "DiscordBotCredential",
     "DropboxApiCredential",
     "ElasticsearchApiCredential",
     "FacebookGraphCredential",
     "FreshdeskApiCredential",
+    "GhostAdminCredential",
     "GitLabTokenCredential",
     "GoogleSheetsOAuth2Credential",
+    "HasuraApiCredential",
     "HubSpotPrivateAppCredential",
     "IntercomApiCredential",
     "JiraCloudCredential",
     "LinearApiCredential",
     "MailchimpApiCredential",
+    "MapboxApiCredential",
     "MattermostApiCredential",
     "MicrosoftGraphCredential",
     "MondayApiCredential",
@@ -155,9 +171,11 @@ __all__ = [
     "OpenAIApiCredential",
     "PagerDutyApiCredential",
     "PayPalApiCredential",
+    "PineconeApiCredential",
     "PipedriveApiCredential",
     "PushoverApiCredential",
     "QuickBooksOAuth2Credential",
+    "RocketChatApiCredential",
     "SalesforceApiCredential",
     "ShopifyAdminCredential",
     "SlackApiCredential",
