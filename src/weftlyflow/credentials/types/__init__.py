@@ -75,6 +75,9 @@
     coinbase_exchange.py      : Coinbase Exchange HMAC-SHA256 quad-header signing.
     binance_api.py            : Binance Spot HMAC-SHA256 query-param signature + API-key header.
     alpaca_api.py             : Alpaca Markets dual ``APCA-API-*`` headers + paper/live routing.
+    asc_api.py                : Apple App Store Connect ES256 JWT minted per request.
+    docusign_jwt.py           : DocuSign RS256 JWT Grant — runtime Bearer exchange.
+    cloudinary_api.py         : Cloudinary Basic auth + SHA-1 signed upload/destroy bodies.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -88,6 +91,7 @@ from weftlyflow.credentials.types.anthropic_api import AnthropicApiCredential
 from weftlyflow.credentials.types.api_key_header import ApiKeyHeaderCredential
 from weftlyflow.credentials.types.api_key_query import ApiKeyQueryCredential
 from weftlyflow.credentials.types.asana_api import AsanaApiCredential
+from weftlyflow.credentials.types.asc_api import AscApiCredential
 from weftlyflow.credentials.types.aws_s3 import AwsS3Credential
 from weftlyflow.credentials.types.basic_auth import BasicAuthCredential
 from weftlyflow.credentials.types.bearer_token import BearerTokenCredential
@@ -97,10 +101,12 @@ from weftlyflow.credentials.types.box_api import BoxApiCredential
 from weftlyflow.credentials.types.brevo_api import BrevoApiCredential
 from weftlyflow.credentials.types.clickup_api import ClickUpApiCredential
 from weftlyflow.credentials.types.cloudflare_api import CloudflareApiCredential
+from weftlyflow.credentials.types.cloudinary_api import CloudinaryApiCredential
 from weftlyflow.credentials.types.coinbase_exchange import CoinbaseExchangeCredential
 from weftlyflow.credentials.types.contentful_api import ContentfulApiCredential
 from weftlyflow.credentials.types.datadog_api import DatadogApiCredential
 from weftlyflow.credentials.types.discord_bot import DiscordBotCredential
+from weftlyflow.credentials.types.docusign_jwt import DocuSignJwtCredential
 from weftlyflow.credentials.types.dropbox_api import DropboxApiCredential
 from weftlyflow.credentials.types.elasticsearch_api import ElasticsearchApiCredential
 from weftlyflow.credentials.types.facebook_graph import FacebookGraphCredential
@@ -165,6 +171,7 @@ __all__ = [
     "ApiKeyHeaderCredential",
     "ApiKeyQueryCredential",
     "AsanaApiCredential",
+    "AscApiCredential",
     "AwsS3Credential",
     "BasicAuthCredential",
     "BearerTokenCredential",
@@ -174,10 +181,12 @@ __all__ = [
     "BrevoApiCredential",
     "ClickUpApiCredential",
     "CloudflareApiCredential",
+    "CloudinaryApiCredential",
     "CoinbaseExchangeCredential",
     "ContentfulApiCredential",
     "DatadogApiCredential",
     "DiscordBotCredential",
+    "DocuSignJwtCredential",
     "DropboxApiCredential",
     "ElasticsearchApiCredential",
     "FacebookGraphCredential",

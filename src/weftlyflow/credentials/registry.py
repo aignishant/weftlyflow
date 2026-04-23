@@ -94,6 +94,9 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.coinbase_exchange",
     "weftlyflow.credentials.types.binance_api",
     "weftlyflow.credentials.types.alpaca_api",
+    "weftlyflow.credentials.types.asc_api",
+    "weftlyflow.credentials.types.docusign_jwt",
+    "weftlyflow.credentials.types.cloudinary_api",
 )
 
 

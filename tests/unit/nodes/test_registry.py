@@ -94,7 +94,7 @@ def test_register_node_decorator_registers_class():
 def test_load_builtins_registers_every_core_node():
     reg = NodeRegistry()
     added = reg.load_builtins()
-    assert added == 100
+    assert added == 103
     types = {spec.type for spec in reg.catalog()}
     assert types == {
         "weftlyflow.manual_trigger",
@@ -197,6 +197,9 @@ def test_load_builtins_registers_every_core_node():
         "weftlyflow.coinbase",
         "weftlyflow.binance",
         "weftlyflow.alpaca",
+        "weftlyflow.asc",
+        "weftlyflow.docusign",
+        "weftlyflow.cloudinary",
     }
 
 
