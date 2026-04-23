@@ -66,6 +66,9 @@
     segment_write_key.py      : Segment Basic auth with write_key as username, empty password.
     mixpanel_api.py           : Mixpanel project_token + api_secret (no-op inject).
     posthog_api.py            : PostHog project_api_key (no-op inject — carried in body).
+    plaid_api.py              : Plaid client_id + secret inside body + env-based host.
+    klaviyo_api.py            : Klaviyo ``Authorization: Klaviyo-API-Key`` + revision header.
+    harvest_api.py            : Harvest Bearer + mandatory ``Harvest-Account-ID`` header.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -98,10 +101,12 @@ from weftlyflow.credentials.types.gitlab_token import GitLabTokenCredential
 from weftlyflow.credentials.types.gmail_oauth2 import GmailOAuth2Credential
 from weftlyflow.credentials.types.google_drive_oauth2 import GoogleDriveOAuth2Credential
 from weftlyflow.credentials.types.google_sheets_oauth2 import GoogleSheetsOAuth2Credential
+from weftlyflow.credentials.types.harvest_api import HarvestApiCredential
 from weftlyflow.credentials.types.hasura_api import HasuraApiCredential
 from weftlyflow.credentials.types.hubspot_private_app import HubSpotPrivateAppCredential
 from weftlyflow.credentials.types.intercom_api import IntercomApiCredential
 from weftlyflow.credentials.types.jira_cloud import JiraCloudCredential
+from weftlyflow.credentials.types.klaviyo_api import KlaviyoApiCredential
 from weftlyflow.credentials.types.linear_api import LinearApiCredential
 from weftlyflow.credentials.types.mailchimp_api import MailchimpApiCredential
 from weftlyflow.credentials.types.mapbox_api import MapboxApiCredential
@@ -118,6 +123,7 @@ from weftlyflow.credentials.types.pagerduty_api import PagerDutyApiCredential
 from weftlyflow.credentials.types.paypal_api import PayPalApiCredential
 from weftlyflow.credentials.types.pinecone_api import PineconeApiCredential
 from weftlyflow.credentials.types.pipedrive_api import PipedriveApiCredential
+from weftlyflow.credentials.types.plaid_api import PlaidApiCredential
 from weftlyflow.credentials.types.posthog_api import PostHogApiCredential
 from weftlyflow.credentials.types.pushover_api import PushoverApiCredential
 from weftlyflow.credentials.types.quickbooks_oauth2 import QuickBooksOAuth2Credential
@@ -166,10 +172,12 @@ __all__ = [
     "GmailOAuth2Credential",
     "GoogleDriveOAuth2Credential",
     "GoogleSheetsOAuth2Credential",
+    "HarvestApiCredential",
     "HasuraApiCredential",
     "HubSpotPrivateAppCredential",
     "IntercomApiCredential",
     "JiraCloudCredential",
+    "KlaviyoApiCredential",
     "LinearApiCredential",
     "MailchimpApiCredential",
     "MapboxApiCredential",
@@ -186,6 +194,7 @@ __all__ = [
     "PayPalApiCredential",
     "PineconeApiCredential",
     "PipedriveApiCredential",
+    "PlaidApiCredential",
     "PostHogApiCredential",
     "PushoverApiCredential",
     "QuickBooksOAuth2Credential",
