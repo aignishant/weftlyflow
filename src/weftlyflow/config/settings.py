@@ -210,6 +210,29 @@ class WeftlyflowSettings(BaseSettings):
         description="Per-request HTTP timeout when reading from Vault.",
     )
 
+    # --- external secret providers (1Password Connect) ---
+    onepassword_enabled: bool = Field(
+        default=False,
+        description=(
+            "Register the ``OnePasswordSecretProvider`` so credentials can "
+            "reference ``op:vaults/<uuid>/items/<uuid>#<field>`` paths. "
+            "Requires ``onepassword_connect_url`` and ``onepassword_connect_token``."
+        ),
+    )
+    onepassword_connect_url: str = Field(
+        default="",
+        description="Base URL of the 1Password Connect server — e.g. ``http://connect:8080``.",
+    )
+    onepassword_connect_token: SecretStr = Field(
+        default=SecretStr(""),
+        description="1Password Connect bearer token.",
+    )
+    onepassword_timeout_seconds: float = Field(
+        default=5.0,
+        gt=0,
+        description="Per-request HTTP timeout when reading from 1Password Connect.",
+    )
+
     # --- audit ---
     audit_retention_days: int = Field(
         default=90,

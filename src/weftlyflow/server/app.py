@@ -35,6 +35,7 @@ from weftlyflow.config.logging import configure_logging
 from weftlyflow.credentials.cipher import CredentialCipher, generate_key
 from weftlyflow.credentials.external import (
     EnvSecretProvider,
+    OnePasswordSecretProvider,
     SecretProviderRegistry,
     VaultSecretProvider,
 )
@@ -132,24 +133,20 @@ def _build_secret_provider_registry(
     required settings fails fast at boot.
 
     Raises:
-        RuntimeError: when ``vault_enabled`` is true but ``vault_address`` or
-            ``vault_token`` is blank.
+        RuntimeError: when a ``*_enabled`` flag is true but one of the
+            required settings for that provider is blank.
     """
     secret_registry = SecretProviderRegistry()
     secret_registry.register(EnvSecretProvider())
 
     if settings.vault_enabled:
-        missing = [
-            name
-            for name, value in (
+        _require_settings(
+            "vault",
+            (
                 ("WEFTLYFLOW_VAULT_ADDRESS", settings.vault_address),
                 ("WEFTLYFLOW_VAULT_TOKEN", settings.vault_token.get_secret_value()),
-            )
-            if not value
-        ]
-        if missing:
-            msg = f"vault_enabled=true but missing required settings: {', '.join(missing)}"
-            raise RuntimeError(msg)
+            ),
+        )
         secret_registry.register(
             VaultSecretProvider(
                 address=settings.vault_address,
@@ -159,7 +156,41 @@ def _build_secret_provider_registry(
             ),
         )
 
+    if settings.onepassword_enabled:
+        _require_settings(
+            "onepassword",
+            (
+                ("WEFTLYFLOW_ONEPASSWORD_CONNECT_URL", settings.onepassword_connect_url),
+                (
+                    "WEFTLYFLOW_ONEPASSWORD_CONNECT_TOKEN",
+                    settings.onepassword_connect_token.get_secret_value(),
+                ),
+            ),
+        )
+        secret_registry.register(
+            OnePasswordSecretProvider(
+                connect_url=settings.onepassword_connect_url,
+                token=settings.onepassword_connect_token.get_secret_value(),
+                timeout_seconds=settings.onepassword_timeout_seconds,
+            ),
+        )
+
     return secret_registry
+
+
+def _require_settings(provider: str, pairs: tuple[tuple[str, str], ...]) -> None:
+    """Raise ``RuntimeError`` listing every blank env-var in ``pairs``.
+
+    Args:
+        provider: Short provider identifier used in the error message
+            (e.g. ``"vault"``).
+        pairs: Sequence of ``(env_var_name, current_value)``. Any pair
+            whose value is falsy is reported as missing.
+    """
+    missing = [name for name, value in pairs if not value]
+    if missing:
+        msg = f"{provider}_enabled=true but missing required settings: {', '.join(missing)}"
+        raise RuntimeError(msg)
 
 
 @asynccontextmanager
