@@ -52,6 +52,9 @@
     quickbooks_oauth2.py      : QuickBooks OAuth2 Bearer + realmId in URL path.
     square_api.py             : Square Bearer + mandatory ``Square-Version`` header.
     facebook_graph.py         : Facebook Graph Bearer + optional HMAC ``appsecret_proof`` query.
+    anthropic_api.py          : Anthropic ``x-api-key`` + ``anthropic-version`` header pair.
+    bitbucket_api.py          : Bitbucket Cloud Basic auth + workspace-scoped URL paths.
+    paypal_api.py             : PayPal OAuth2 Client Credentials — runtime token fetch.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -60,12 +63,14 @@ from __future__ import annotations
 
 from weftlyflow.credentials.types.activecampaign_api import ActiveCampaignApiCredential
 from weftlyflow.credentials.types.algolia_api import AlgoliaApiCredential
+from weftlyflow.credentials.types.anthropic_api import AnthropicApiCredential
 from weftlyflow.credentials.types.api_key_header import ApiKeyHeaderCredential
 from weftlyflow.credentials.types.api_key_query import ApiKeyQueryCredential
 from weftlyflow.credentials.types.asana_api import AsanaApiCredential
 from weftlyflow.credentials.types.aws_s3 import AwsS3Credential
 from weftlyflow.credentials.types.basic_auth import BasicAuthCredential
 from weftlyflow.credentials.types.bearer_token import BearerTokenCredential
+from weftlyflow.credentials.types.bitbucket_api import BitbucketApiCredential
 from weftlyflow.credentials.types.box_api import BoxApiCredential
 from weftlyflow.credentials.types.brevo_api import BrevoApiCredential
 from weftlyflow.credentials.types.clickup_api import ClickUpApiCredential
@@ -92,6 +97,7 @@ from weftlyflow.credentials.types.oauth2_generic import OAuth2GenericCredential
 from weftlyflow.credentials.types.okta_api import OktaApiCredential
 from weftlyflow.credentials.types.openai_api import OpenAIApiCredential
 from weftlyflow.credentials.types.pagerduty_api import PagerDutyApiCredential
+from weftlyflow.credentials.types.paypal_api import PayPalApiCredential
 from weftlyflow.credentials.types.pipedrive_api import PipedriveApiCredential
 from weftlyflow.credentials.types.pushover_api import PushoverApiCredential
 from weftlyflow.credentials.types.quickbooks_oauth2 import QuickBooksOAuth2Credential
@@ -114,12 +120,14 @@ from weftlyflow.credentials.types.zoom_api import ZoomApiCredential
 __all__ = [
     "ActiveCampaignApiCredential",
     "AlgoliaApiCredential",
+    "AnthropicApiCredential",
     "ApiKeyHeaderCredential",
     "ApiKeyQueryCredential",
     "AsanaApiCredential",
     "AwsS3Credential",
     "BasicAuthCredential",
     "BearerTokenCredential",
+    "BitbucketApiCredential",
     "BoxApiCredential",
     "BrevoApiCredential",
     "ClickUpApiCredential",
@@ -146,6 +154,7 @@ __all__ = [
     "OktaApiCredential",
     "OpenAIApiCredential",
     "PagerDutyApiCredential",
+    "PayPalApiCredential",
     "PipedriveApiCredential",
     "PushoverApiCredential",
     "QuickBooksOAuth2Credential",

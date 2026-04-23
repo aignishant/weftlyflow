@@ -71,6 +71,9 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.quickbooks_oauth2",
     "weftlyflow.credentials.types.square_api",
     "weftlyflow.credentials.types.facebook_graph",
+    "weftlyflow.credentials.types.anthropic_api",
+    "weftlyflow.credentials.types.bitbucket_api",
+    "weftlyflow.credentials.types.paypal_api",
 )
 
 
