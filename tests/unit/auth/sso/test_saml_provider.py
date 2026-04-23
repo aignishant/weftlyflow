@@ -207,6 +207,49 @@ async def test_complete_rejects_unusable_subject(config: SAMLConfig) -> None:
         await provider.complete({"SAMLResponse": "ignored"})
 
 
+async def test_complete_rejects_crlf_injected_nameid(config: SAMLConfig) -> None:
+    """NameID with a CR/LF payload must not become the user's email.
+
+    Regression test for the Phase 8b audit finding on loose NameID-as-email
+    coercion — a hostile IdP stuffing a second address behind a newline
+    could previously slip past the ``"@" in nameid`` heuristic.
+    """
+    provider = SAMLProvider(config)
+    await provider.prime()
+
+    fake_auth = MagicMock()
+    fake_auth.process_response = MagicMock()
+    fake_auth.get_errors.return_value = []
+    fake_auth.is_authenticated.return_value = True
+    fake_auth.get_attributes.return_value = {}
+    fake_auth.get_nameid.return_value = "victim@corp.example\nattacker@evil.example"
+    fake_auth.get_nameid_format.return_value = (
+        "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+    )
+
+    with _patch_auth(provider, fake_auth), pytest.raises(SSOError, match="lacks an email"):
+        await provider.complete({"SAMLResponse": "ignored"})
+
+
+async def test_complete_rejects_malformed_email_attribute(config: SAMLConfig) -> None:
+    """An ``email`` attribute without a TLD is not treated as an email."""
+    provider = SAMLProvider(config)
+    await provider.prime()
+
+    fake_auth = MagicMock()
+    fake_auth.process_response = MagicMock()
+    fake_auth.get_errors.return_value = []
+    fake_auth.is_authenticated.return_value = True
+    fake_auth.get_attributes.return_value = {"email": ["alice@localhost"]}
+    fake_auth.get_nameid.return_value = "opaque-sub"
+    fake_auth.get_nameid_format.return_value = (
+        "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+    )
+
+    with _patch_auth(provider, fake_auth), pytest.raises(SSOError, match="lacks an email"):
+        await provider.complete({"SAMLResponse": "ignored"})
+
+
 async def test_signed_requests_enabled_when_keypair_provided() -> None:
     config = SAMLConfig(
         sp_entity_id="https://sp.example.com/metadata",

@@ -42,6 +42,7 @@ Design notes:
 from __future__ import annotations
 
 import asyncio
+import re
 from dataclasses import dataclass
 from typing import Any
 
@@ -55,6 +56,36 @@ _POST_BINDING: str = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST"
 _REDIRECT_BINDING: str = "urn:oasis:names:tc:SAML:2.0:bindings:HTTP-Redirect"
 _NAMEID_EMAIL: str = "urn:oasis:names:tc:SAML:1.1:nameid-format:emailAddress"
 _NAMEID_UNSPECIFIED: str = "urn:oasis:names:tc:SAML:1.1:nameid-format:unspecified"
+
+# RFC 5322 lite. We deliberately exclude quoted-local-part and domain-literal
+# forms — they are vanishingly rare in IdP NameIDs and widening the grammar
+# makes the CR/LF-rejection guarantee harder to reason about.
+_EMAIL_RE: re.Pattern[str] = re.compile(
+    r"^[A-Za-z0-9!#$%&'*+/=?^_`{|}~.-]+@[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?"
+    r"(\.[A-Za-z0-9]([A-Za-z0-9-]*[A-Za-z0-9])?)+$",
+)
+
+# RFC 5321 §4.5.3.1.3 — upper bound on a forward path (<local@domain>) is
+# 254 octets once the angle brackets are stripped. Anything beyond that is
+# non-conforming and a red flag.
+_MAX_EMAIL_LENGTH: int = 254
+
+
+def _looks_like_email(candidate: str) -> bool:
+    r"""Return True only for strings that are a safe ``local@domain.tld`` email.
+
+    Specifically rejects:
+
+    * Embedded CR/LF or other control characters (header-injection vector).
+    * Multi-address payloads (``alice@a.com,bob@b.com``, ``\n``-separated).
+    * Addresses without a TLD label.
+    """
+    if not candidate or len(candidate) > _MAX_EMAIL_LENGTH:
+        return False
+    if any(ch in candidate for ch in "\r\n\t\x00 "):
+        return False
+    return _EMAIL_RE.match(candidate) is not None
+
 
 _EMAIL_ATTR_KEYS: tuple[str, ...] = (
     "email",
@@ -279,13 +310,22 @@ class SAMLProvider:
 
 
 def _pick_email(attributes: dict[str, Any], nameid: str, nameid_format: str) -> str:
+    r"""Return a safe email for :class:`SSOUserInfo`, or ``""`` if none is trustworthy.
+
+    Every candidate — whether it came from an attribute or from the NameID —
+    must satisfy :func:`_looks_like_email`. A hostile IdP stuffing control
+    characters into an ``unspecified`` NameID (``victim@corp\nattacker@evil``)
+    is therefore rejected before it can become the local user row's email.
+    """
     for key in _EMAIL_ATTR_KEYS:
         value = attributes.get(key)
         if value:
-            return str(value[0] if isinstance(value, list) else value)
-    if nameid and (nameid_format == _NAMEID_EMAIL or "@" in nameid):
-        return nameid
-    if nameid_format == _NAMEID_UNSPECIFIED and "@" in nameid:
+            candidate = str(value[0] if isinstance(value, list) else value)
+            if _looks_like_email(candidate):
+                return candidate
+    if nameid and nameid_format in (_NAMEID_EMAIL, _NAMEID_UNSPECIFIED) and _looks_like_email(
+        nameid,
+    ):
         return nameid
     return ""
 

@@ -31,6 +31,7 @@ from datetime import UTC, datetime
 from typing import TYPE_CHECKING
 from urllib.parse import urlencode
 
+import structlog
 from fastapi import APIRouter, Depends, HTTPException, Request, Response, status
 from fastapi.responses import RedirectResponse
 
@@ -61,6 +62,8 @@ if TYPE_CHECKING:
 
 router = APIRouter(prefix="/api/v1/auth/sso/oidc", tags=["auth", "sso"])
 saml_router = APIRouter(prefix="/api/v1/auth/sso/saml", tags=["auth", "sso"])
+
+log = structlog.get_logger(__name__)
 
 # SSO-only users never authenticate with a password; this sentinel fails
 # :func:`verify_password` fast because it is not a valid PHC hash string.
@@ -106,9 +109,10 @@ async def oidc_callback(
     try:
         user_info = await provider.complete(params)
     except SSOError as exc:
+        log.warning("sso_exchange_failed", provider="oidc", error=str(exc))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"SSO exchange failed: {exc}",
+            detail="SSO assertion rejected",
         ) from exc
 
     if not user_info.email_verified:
@@ -118,8 +122,6 @@ async def oidc_callback(
         )
 
     user_id, default_project_id = await _find_or_provision(session, user_info)
-    await session.commit()
-
     pair = issue_token_pair(
         user_id=user_id,
         default_project_id=default_project_id,
@@ -132,6 +134,10 @@ async def oidc_callback(
         issued_at=datetime.now(UTC),
         expires_at=pair.refresh_expires_at,
     )
+    # Single commit boundary — if anything between `_find_or_provision` and
+    # here raises, the user + project rows roll back with the refresh-token
+    # row, eliminating the partial-provisioning failure mode flagged in the
+    # Phase 8b security audit.
     await session.commit()
 
     redirect_url = _build_redirect(
@@ -243,22 +249,13 @@ async def saml_acs(
     try:
         user_info = await provider.complete(params)
     except SSOError as exc:
+        log.warning("sso_exchange_failed", provider="saml", error=str(exc))
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"SAML exchange failed: {exc}",
+            detail="SAML assertion rejected",
         ) from exc
 
-    if not settings.sso_saml_auto_provision:
-        existing = await UserRepository(session).get_entity_by_email(user_info.email)
-        if existing is None:
-            raise HTTPException(
-                status_code=status.HTTP_403_FORBIDDEN,
-                detail="user does not exist and SSO auto-provisioning is disabled",
-            )
-
     user_id, default_project_id = await _find_or_provision_saml(session, user_info)
-    await session.commit()
-
     pair = issue_token_pair(
         user_id=user_id,
         default_project_id=default_project_id,
@@ -271,6 +268,7 @@ async def saml_acs(
         issued_at=datetime.now(UTC),
         expires_at=pair.refresh_expires_at,
     )
+    # Single commit boundary — same reasoning as the OIDC callback.
     await session.commit()
 
     redirect_url = _build_redirect(
@@ -288,12 +286,21 @@ async def _find_or_provision_saml(
     """Return ``(user_id, default_project_id)`` for a SAML-authenticated user.
 
     Mirrors :func:`_find_or_provision` but honours ``sso_saml_auto_provision``
-    instead of the OIDC equivalent.
+    instead of the OIDC equivalent. The auto-provision flag check lives here
+    — not in the caller — so the look-up and the provisioning branch read
+    from a single session snapshot and cannot disagree under a TOCTOU race.
     """
     user_repo = UserRepository(session)
     existing_entity = await user_repo.get_entity_by_email(user_info.email)
     if existing_entity is not None:
         return existing_entity.id, existing_entity.default_project_id
+
+    settings = get_settings()
+    if not settings.sso_saml_auto_provision:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="user does not exist and SSO auto-provisioning is disabled",
+        )
 
     project_id = new_project_id()
     user_id = new_user_id()

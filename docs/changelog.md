@@ -103,3 +103,10 @@ All notable user-facing changes. Format follows [Keep a Changelog](https://keepa
 - **SAML SLO** (single log-out) and encrypted assertions — both supported by
   `python3-saml` but intentionally not exposed yet; Weftlyflow sessions are
   stateless JWTs and IdP-initiated logout is a separate design question.
+- **SSO callback replay window** — state/RelayState tokens carry a 10-minute
+  TTL but no consumed-nonce store. A multi-instance deployment that
+  captures a successful callback URL (browser history, reverse-proxy log)
+  can replay it within the TTL. Plans to add a Redis-backed consumed-nonce
+  set in a follow-up tranche; single-instance self-hosted installs are
+  unaffected in practice because callbacks are not long-lived in that
+  threat model.

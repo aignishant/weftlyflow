@@ -128,10 +128,15 @@ def test_acs_rejects_forged_relaystate() -> None:
     assert "invalid RelayState" in resp.text
 
 
-def test_acs_surfaces_provider_errors() -> None:
+def test_acs_hides_provider_error_details() -> None:
+    """The 400 detail must be generic — provider errors leak internals.
+
+    See the Phase 8b security audit: echoing ``get_last_error_reason()``
+    back to the client is a fingerprinting oracle for assertion probing.
+    """
     provider = MagicMock()
     provider.prime = AsyncMock()
-    provider.complete = AsyncMock(side_effect=SSOError("signature mismatch"))
+    provider.complete = AsyncMock(side_effect=SSOError("signature mismatch at /Assertion/x"))
 
     settings = get_settings()
     good_state = make_state_token(secret_key=settings.secret_key.get_secret_value())
@@ -146,4 +151,7 @@ def test_acs_surfaces_provider_errors() -> None:
         client.__exit__(None, None, None)
 
     assert resp.status_code == 400
-    assert "signature mismatch" in resp.text
+    # Generic copy, no internal state leaked.
+    assert "SAML assertion rejected" in resp.text
+    assert "signature mismatch" not in resp.text
+    assert "/Assertion/" not in resp.text
