@@ -49,6 +49,9 @@
     openai_api.py             : OpenAI Bearer + ``OpenAI-Organization`` + ``OpenAI-Project``.
     xero_api.py               : Xero OAuth2 Bearer + mandatory ``xero-tenant-id`` header.
     netsuite_api.py           : NetSuite OAuth 1.0a HMAC-SHA256 Token-Based Auth.
+    quickbooks_oauth2.py      : QuickBooks OAuth2 Bearer + realmId in URL path.
+    square_api.py             : Square Bearer + mandatory ``Square-Version`` header.
+    facebook_graph.py         : Facebook Graph Bearer + optional HMAC ``appsecret_proof`` query.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -71,6 +74,7 @@ from weftlyflow.credentials.types.datadog_api import DatadogApiCredential
 from weftlyflow.credentials.types.discord_bot import DiscordBotCredential
 from weftlyflow.credentials.types.dropbox_api import DropboxApiCredential
 from weftlyflow.credentials.types.elasticsearch_api import ElasticsearchApiCredential
+from weftlyflow.credentials.types.facebook_graph import FacebookGraphCredential
 from weftlyflow.credentials.types.freshdesk_api import FreshdeskApiCredential
 from weftlyflow.credentials.types.gitlab_token import GitLabTokenCredential
 from weftlyflow.credentials.types.google_sheets_oauth2 import GoogleSheetsOAuth2Credential
@@ -90,11 +94,13 @@ from weftlyflow.credentials.types.openai_api import OpenAIApiCredential
 from weftlyflow.credentials.types.pagerduty_api import PagerDutyApiCredential
 from weftlyflow.credentials.types.pipedrive_api import PipedriveApiCredential
 from weftlyflow.credentials.types.pushover_api import PushoverApiCredential
+from weftlyflow.credentials.types.quickbooks_oauth2 import QuickBooksOAuth2Credential
 from weftlyflow.credentials.types.salesforce_api import SalesforceApiCredential
 from weftlyflow.credentials.types.shopify_admin import ShopifyAdminCredential
 from weftlyflow.credentials.types.slack_api import SlackApiCredential
 from weftlyflow.credentials.types.slack_oauth2 import SlackOAuth2Credential
 from weftlyflow.credentials.types.snowflake_api import SnowflakeApiCredential
+from weftlyflow.credentials.types.square_api import SquareApiCredential
 from weftlyflow.credentials.types.supabase_api import SupabaseApiCredential
 from weftlyflow.credentials.types.telegram_bot import TelegramBotCredential
 from weftlyflow.credentials.types.trello_api import TrelloApiCredential
@@ -122,6 +128,7 @@ __all__ = [
     "DiscordBotCredential",
     "DropboxApiCredential",
     "ElasticsearchApiCredential",
+    "FacebookGraphCredential",
     "FreshdeskApiCredential",
     "GitLabTokenCredential",
     "GoogleSheetsOAuth2Credential",
@@ -141,11 +148,13 @@ __all__ = [
     "PagerDutyApiCredential",
     "PipedriveApiCredential",
     "PushoverApiCredential",
+    "QuickBooksOAuth2Credential",
     "SalesforceApiCredential",
     "ShopifyAdminCredential",
     "SlackApiCredential",
     "SlackOAuth2Credential",
     "SnowflakeApiCredential",
+    "SquareApiCredential",
     "SupabaseApiCredential",
     "TelegramBotCredential",
     "TrelloApiCredential",

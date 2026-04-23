@@ -68,6 +68,9 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.openai_api",
     "weftlyflow.credentials.types.xero_api",
     "weftlyflow.credentials.types.netsuite_api",
+    "weftlyflow.credentials.types.quickbooks_oauth2",
+    "weftlyflow.credentials.types.square_api",
+    "weftlyflow.credentials.types.facebook_graph",
 )
 
 
