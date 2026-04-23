@@ -245,6 +245,24 @@ class WeftlyflowSettings(BaseSettings):
             "personal project. Disable to require pre-provisioning."
         ),
     )
+    sso_nonce_store_backend: str = Field(
+        default="memory",
+        description=(
+            "Backend for the SSO replay-protection nonce store. ``memory`` "
+            "is process-local and correct for single-instance deployments. "
+            "``redis`` uses ``SET NX EX`` against the configured Redis URL "
+            "so horizontally scaled API pods share a single consumed-nonce "
+            "set and stay replay-safe across instances."
+        ),
+    )
+    sso_nonce_store_redis_url: str = Field(
+        default="",
+        description=(
+            "Override Redis URL for the nonce store. When blank and "
+            "``sso_nonce_store_backend='redis'``, the shared "
+            "``redis_url`` setting is used."
+        ),
+    )
 
     # --- external secret providers (Vault) ---
     vault_enabled: bool = Field(

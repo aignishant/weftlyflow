@@ -4,7 +4,10 @@ from __future__ import annotations
 
 import asyncio
 
-from weftlyflow.auth.sso.nonce_store import InMemoryNonceStore
+import fakeredis.aioredis
+import pytest
+
+from weftlyflow.auth.sso.nonce_store import InMemoryNonceStore, RedisNonceStore
 
 
 async def test_first_consume_returns_true() -> None:
@@ -51,3 +54,48 @@ async def test_concurrent_consumes_resolve_to_single_winner() -> None:
 
     assert results.count(True) == 1
     assert results.count(False) == 2
+
+
+@pytest.fixture
+async def redis_store() -> RedisNonceStore:
+    """Return a fakeredis-backed :class:`RedisNonceStore`."""
+    client = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    return RedisNonceStore(client, key_prefix="test:nonce:")
+
+
+async def test_redis_first_consume_returns_true(redis_store: RedisNonceStore) -> None:
+    assert await redis_store.consume("alpha", ttl_seconds=60) is True
+
+
+async def test_redis_second_consume_returns_false(redis_store: RedisNonceStore) -> None:
+    assert await redis_store.consume("alpha", ttl_seconds=60) is True
+    assert await redis_store.consume("alpha", ttl_seconds=60) is False
+
+
+async def test_redis_distinct_nonces_do_not_collide(redis_store: RedisNonceStore) -> None:
+    assert await redis_store.consume("alpha", ttl_seconds=60) is True
+    assert await redis_store.consume("beta", ttl_seconds=60) is True
+
+
+async def test_redis_key_respects_prefix() -> None:
+    """The store must not collide with unrelated keys on the same Redis DB."""
+    client = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    store = RedisNonceStore(client, key_prefix="weftlyflow:sso:nonce:")
+
+    await store.consume("alpha", ttl_seconds=60)
+
+    # The key should be under the configured prefix, not the bare nonce.
+    assert await client.exists("weftlyflow:sso:nonce:alpha") == 1
+    assert await client.exists("alpha") == 0
+
+
+async def test_redis_consume_sets_ttl() -> None:
+    """The nonce key must carry the configured TTL — no pinned entries."""
+    client = fakeredis.aioredis.FakeRedis(decode_responses=True)
+    store = RedisNonceStore(client, key_prefix="test:nonce:")
+
+    await store.consume("alpha", ttl_seconds=600)
+
+    # fakeredis honours TTL; 0 < ttl <= 600 proves EX was attached.
+    ttl = await client.ttl("test:nonce:alpha")
+    assert 0 < ttl <= 600

@@ -68,12 +68,16 @@ All notable user-facing changes. Format follows [Keep a Changelog](https://keepa
   Celery Beat retention sweep. Setting: `audit_retention_days` (default 90).
 
 **SSO replay protection**
-- `NonceStore` protocol and in-process `InMemoryNonceStore` under
-  `weftlyflow.auth.sso.nonce_store`. Both the OIDC callback and the SAML
-  ACS endpoint now consume the signed state-token nonce through the store,
-  so a captured callback URL cannot be replayed within the 10-minute TTL
-  window. Single-instance deployments are covered out of the box; the
-  multi-instance follow-up lands in a Redis-backed implementation.
+- `NonceStore` protocol with two backends under
+  `weftlyflow.auth.sso.nonce_store` — `InMemoryNonceStore` (default;
+  process-local, asyncio-safe) and `RedisNonceStore` (uses `SET NX EX`
+  so horizontally scaled API pods share a single consumed-nonce set).
+  Both the OIDC callback and the SAML ACS endpoint now consume the
+  signed state-token nonce through the store, so a captured callback URL
+  cannot be replayed within the 10-minute TTL window. Backend is chosen
+  via `sso_nonce_store_backend` (`memory` or `redis`); `redis` reuses
+  the existing `redis_url` unless `sso_nonce_store_redis_url` overrides
+  it.
 
 **Deployment**
 - Helm chart under `deploy/helm/weftlyflow/` — API / worker / beat deployments,
@@ -111,9 +115,3 @@ All notable user-facing changes. Format follows [Keep a Changelog](https://keepa
 - **SAML SLO** (single log-out) and encrypted assertions — both supported by
   `python3-saml` but intentionally not exposed yet; Weftlyflow sessions are
   stateless JWTs and IdP-initiated logout is a separate design question.
-- **Multi-instance SSO replay protection** — the `InMemoryNonceStore`
-  shipped in this tranche is process-local, so a horizontally scaled
-  deployment where a callback can land on a different worker than the
-  original login would not benefit from the nonce check. A Redis-backed
-  `NonceStore` (using `SET NX EX`) is planned as the next follow-up.
-  Single-instance self-hosted installs are fully covered today.

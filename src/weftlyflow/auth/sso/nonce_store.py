@@ -11,22 +11,25 @@ single-use ``(nonce, expiry)`` entry. A second arrival with the same nonce
 is refused.
 
 The :class:`NonceStore` protocol deliberately has one method, ``consume``,
-because the only question the SSO layer ever asks is *"is this the first
-time I've seen this nonce?"* Keeping the surface that small lets a future
-Redis-backed implementation drop in without rewrites.
+so alternate backends (in-process, Redis, future SQL) all slot into the
+same seam. Two backends ship in-tree:
 
-The shipped implementation, :class:`InMemoryNonceStore`, is a dict guarded
-by an :class:`asyncio.Lock` with lazy eviction on write. It closes the
-replay window for single-instance self-hosted installs — the default
-deployment shape. Multi-instance deployments need a shared store (Redis
-``SET NX EX``); that will arrive as a follow-on tranche.
+* :class:`InMemoryNonceStore` — correct and lock-free for single-instance
+  deployments; survives only as long as the process does.
+* :class:`RedisNonceStore` — shared across API replicas so horizontally
+  scaled deployments stay replay-safe no matter which pod terminates the
+  callback. Uses ``SET NX EX`` so the first-writer-wins decision is made
+  atomically on the Redis side.
 """
 
 from __future__ import annotations
 
 import asyncio
 import time
-from typing import Protocol
+from typing import TYPE_CHECKING, Protocol
+
+if TYPE_CHECKING:
+    from redis.asyncio import Redis
 
 
 class NonceStore(Protocol):
@@ -86,3 +89,51 @@ class InMemoryNonceStore:
                 return False
             self._seen[nonce] = now + ttl_seconds
             return True
+
+
+class RedisNonceStore:
+    """Redis-backed :class:`NonceStore` for multi-instance deployments.
+
+    Every key is namespaced under ``weftlyflow:sso:nonce:<nonce>`` so the
+    store cohabits cleanly with Celery brokering and whatever else shares
+    the Redis instance. The set is written with ``SET NX EX ttl``, which
+    performs the first-writer-wins decision atomically on the server —
+    there is no read-then-write race window.
+
+    Example:
+        >>> from redis.asyncio import Redis
+        >>> client = Redis.from_url("redis://localhost:6379/0")
+        >>> store = RedisNonceStore(client)
+        >>> await store.consume("abc", ttl_seconds=600)
+        True
+        >>> await store.consume("abc", ttl_seconds=600)
+        False
+    """
+
+    __slots__ = ("_client", "_key_prefix")
+
+    def __init__(self, client: Redis, *, key_prefix: str = "weftlyflow:sso:nonce:") -> None:
+        """Store the Redis client and the key prefix used for every entry.
+
+        Args:
+            client: An already-connected ``redis.asyncio.Redis`` instance.
+                Caller owns its lifecycle.
+            key_prefix: Namespace for nonce keys. Override in tests or when
+                sharing a Redis DB across environments.
+        """
+        self._client = client
+        self._key_prefix = key_prefix
+
+    async def consume(self, nonce: str, *, ttl_seconds: int) -> bool:
+        """See :meth:`NonceStore.consume`.
+
+        Implementation note: ``SET key value NX EX ttl`` returns the string
+        ``"OK"`` on a successful write and :data:`None` when the key already
+        exists — mapping directly onto the first-use / replay distinction.
+        """
+        key = f"{self._key_prefix}{nonce}"
+        # ``nx=True`` → only set when the key is absent. ``ex=ttl_seconds``
+        # → atomically attach an expiry so an abandoned login cannot
+        # pin memory forever. The sentinel value ``"1"`` is never read.
+        result = await self._client.set(key, "1", nx=True, ex=ttl_seconds)
+        return result is not None

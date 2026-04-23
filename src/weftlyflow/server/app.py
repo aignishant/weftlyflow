@@ -30,7 +30,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from weftlyflow import __version__
 from weftlyflow.auth.bootstrap import ensure_bootstrap_admin
-from weftlyflow.auth.sso import InMemoryNonceStore
+from weftlyflow.auth.sso import InMemoryNonceStore, NonceStore, RedisNonceStore
 from weftlyflow.config import get_settings
 from weftlyflow.config.logging import configure_logging
 from weftlyflow.credentials.cipher import CredentialCipher, generate_key
@@ -149,6 +149,33 @@ def _build_credential_stack(
         types=types,
     )
     return cipher, types, resolver
+
+
+def _build_nonce_store(settings: WeftlyflowSettings) -> NonceStore:
+    """Return the configured SSO nonce store.
+
+    Defaults to the in-process :class:`InMemoryNonceStore` — correct for
+    the single-instance deployment shape. Switches to
+    :class:`RedisNonceStore` when ``sso_nonce_store_backend='redis'`` so
+    horizontally scaled deployments share a single consumed-nonce set.
+
+    Raises:
+        RuntimeError: when ``sso_nonce_store_backend`` names an unknown
+            backend.
+    """
+    backend = settings.sso_nonce_store_backend.lower()
+    if backend == "memory":
+        return InMemoryNonceStore()
+    if backend == "redis":
+        from redis.asyncio import Redis  # noqa: PLC0415
+
+        url = settings.sso_nonce_store_redis_url or settings.redis_url
+        client = Redis.from_url(url, decode_responses=True)
+        return RedisNonceStore(client)
+    msg = (
+        f"unknown sso_nonce_store_backend={backend!r} — must be 'memory' or 'redis'"
+    )
+    raise RuntimeError(msg)
 
 
 def _build_saml_provider(settings: WeftlyflowSettings) -> SAMLProvider | None:
@@ -344,7 +371,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     app.state.sso_oidc_provider = _build_oidc_provider(settings)
     app.state.sso_saml_provider = _build_saml_provider(settings)
-    app.state.sso_nonce_store = InMemoryNonceStore()
+    app.state.sso_nonce_store = _build_nonce_store(settings)
 
     try:
         yield

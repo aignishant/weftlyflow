@@ -28,7 +28,11 @@ rare code paths that actually need SAML.
 from __future__ import annotations
 
 from weftlyflow.auth.sso.base import SSOError, SSOProvider, SSOUserInfo
-from weftlyflow.auth.sso.nonce_store import InMemoryNonceStore, NonceStore
+from weftlyflow.auth.sso.nonce_store import (
+    InMemoryNonceStore,
+    NonceStore,
+    RedisNonceStore,
+)
 from weftlyflow.auth.sso.oidc import OIDCProvider
 from weftlyflow.auth.sso.state_token import (
     SSOStateError,
@@ -40,6 +44,7 @@ __all__ = [
     "InMemoryNonceStore",
     "NonceStore",
     "OIDCProvider",
+    "RedisNonceStore",
     "SSOError",
     "SSOProvider",
     "SSOStateError",
