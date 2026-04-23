@@ -67,6 +67,14 @@ All notable user-facing changes. Format follows [Keep a Changelog](https://keepa
 - `audit_events` table + repository, Alembic migration `0004_phase8_audit_events`,
   Celery Beat retention sweep. Setting: `audit_retention_days` (default 90).
 
+**SSO replay protection**
+- `NonceStore` protocol and in-process `InMemoryNonceStore` under
+  `weftlyflow.auth.sso.nonce_store`. Both the OIDC callback and the SAML
+  ACS endpoint now consume the signed state-token nonce through the store,
+  so a captured callback URL cannot be replayed within the 10-minute TTL
+  window. Single-instance deployments are covered out of the box; the
+  multi-instance follow-up lands in a Redis-backed implementation.
+
 **Deployment**
 - Helm chart under `deploy/helm/weftlyflow/` — API / worker / beat deployments,
   migration job, ConfigMap/Secret, Service, Ingress, NetworkPolicy, PDB, HPA,
@@ -103,10 +111,9 @@ All notable user-facing changes. Format follows [Keep a Changelog](https://keepa
 - **SAML SLO** (single log-out) and encrypted assertions — both supported by
   `python3-saml` but intentionally not exposed yet; Weftlyflow sessions are
   stateless JWTs and IdP-initiated logout is a separate design question.
-- **SSO callback replay window** — state/RelayState tokens carry a 10-minute
-  TTL but no consumed-nonce store. A multi-instance deployment that
-  captures a successful callback URL (browser history, reverse-proxy log)
-  can replay it within the TTL. Plans to add a Redis-backed consumed-nonce
-  set in a follow-up tranche; single-instance self-hosted installs are
-  unaffected in practice because callbacks are not long-lived in that
-  threat model.
+- **Multi-instance SSO replay protection** — the `InMemoryNonceStore`
+  shipped in this tranche is process-local, so a horizontally scaled
+  deployment where a callback can land on a different worker than the
+  original login would not benefit from the nonce check. A Redis-backed
+  `NonceStore` (using `SET NX EX`) is planned as the next follow-up.
+  Single-instance self-hosted installs are fully covered today.

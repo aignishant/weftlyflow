@@ -128,6 +128,44 @@ def test_acs_rejects_forged_relaystate() -> None:
     assert "invalid RelayState" in resp.text
 
 
+def test_acs_rejects_replayed_relaystate() -> None:
+    """A RelayState already consumed once must not unlock a second callback.
+
+    Regression test for the Phase 8b security audit's replay-window
+    finding — captured callback URLs must not survive the state-token TTL
+    window because the nonce store marks them single-use.
+    """
+    provider = MagicMock()
+    provider.prime = AsyncMock()
+    # Fail the complete() call so the handler stops before the DB work —
+    # this lets us exercise the replay rejection without a real session.
+    provider.complete = AsyncMock(side_effect=SSOError("ignored"))
+
+    settings = get_settings()
+    good_state = make_state_token(secret_key=settings.secret_key.get_secret_value())
+
+    client = _client_with_provider(provider)
+    try:
+        first = client.post(
+            "/api/v1/auth/sso/saml/acs",
+            data={"SAMLResponse": "ignored", "RelayState": good_state},
+        )
+        second = client.post(
+            "/api/v1/auth/sso/saml/acs",
+            data={"SAMLResponse": "ignored", "RelayState": good_state},
+        )
+    finally:
+        client.__exit__(None, None, None)
+
+    # First request consumes the nonce, then 400s on the provider error.
+    assert first.status_code == 400
+    assert "SAML assertion rejected" in first.text
+    # Second request is rejected up-front by the nonce store — the
+    # provider is never asked to validate again.
+    assert second.status_code == 400
+    assert "RelayState token already used" in second.text
+
+
 def test_acs_hides_provider_error_details() -> None:
     """The 400 detail must be generic — provider errors leak internals.
 

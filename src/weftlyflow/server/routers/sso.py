@@ -54,9 +54,12 @@ from weftlyflow.domain.ids import new_project_id, new_user_id
 from weftlyflow.server.deps import get_db
 
 if TYPE_CHECKING:
+    from typing import Any
+
     from sqlalchemy.ext.asyncio import AsyncSession
 
     from weftlyflow.auth.sso.base import SSOUserInfo
+    from weftlyflow.auth.sso.nonce_store import NonceStore
     from weftlyflow.auth.sso.oidc import OIDCProvider
     from weftlyflow.auth.sso.saml import SAMLProvider
 
@@ -68,6 +71,57 @@ log = structlog.get_logger(__name__)
 # SSO-only users never authenticate with a password; this sentinel fails
 # :func:`verify_password` fast because it is not a valid PHC hash string.
 _SSO_PASSWORD_SENTINEL: str = "!sso-only!"
+
+# Upper bound on how long a nonce stays in the replay-protection store.
+# Matches the state token's TTL — any token older than this is already
+# rejected by :func:`verify_state_token` on expiry grounds, so keeping
+# nonces past that window wastes memory without adding security.
+_NONCE_TTL_SECONDS: int = 600
+
+
+async def _consume_or_reject(
+    *,
+    request: Request,
+    claims: dict[str, Any],
+    carrier: str,
+) -> None:
+    """Consume the state-token nonce through the app's nonce store.
+
+    The nonce is embedded in the signed state-token claims; by the time we
+    reach this function, :func:`verify_state_token` has already confirmed
+    the signature and expiry. Consumption ensures the same callback URL is
+    never honoured twice.
+
+    Args:
+        request: Incoming request — carries ``app.state.sso_nonce_store``.
+        claims: Claims returned by :func:`verify_state_token`.
+        carrier: Human-readable name of the CSRF carrier field
+            (``"state"`` for OIDC, ``"RelayState"`` for SAML), used only
+            to shape the 400 error message.
+
+    Raises:
+        HTTPException: 400 when the nonce is missing or has been seen
+            before.
+    """
+    nonce = claims.get("nonce")
+    if not isinstance(nonce, str) or not nonce:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"invalid {carrier} token",
+        )
+    store: NonceStore | None = getattr(request.app.state, "sso_nonce_store", None)
+    if store is None:
+        # Boot always installs one; a missing store is a wiring bug, not a
+        # user-facing fault. Fail closed.
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="SSO nonce store is not configured",
+        )
+    if not await store.consume(nonce, ttl_seconds=_NONCE_TTL_SECONDS):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail=f"{carrier} token already used",
+        )
 
 
 @router.get("/login", summary="Redirect to the configured OIDC IdP")
@@ -99,12 +153,13 @@ async def oidc_callback(
     if not raw_state:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="missing state")
     try:
-        verify_state_token(raw_state, secret_key=settings.secret_key.get_secret_value())
+        claims = verify_state_token(raw_state, secret_key=settings.secret_key.get_secret_value())
     except SSOStateError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="invalid state token",
         ) from exc
+    await _consume_or_reject(request=request, claims=claims, carrier="state")
 
     try:
         user_info = await provider.complete(params)
@@ -239,12 +294,13 @@ async def saml_acs(
     if not raw_state:
         raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail="missing RelayState")
     try:
-        verify_state_token(raw_state, secret_key=settings.secret_key.get_secret_value())
+        claims = verify_state_token(raw_state, secret_key=settings.secret_key.get_secret_value())
     except SSOStateError as exc:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail="invalid RelayState token",
         ) from exc
+    await _consume_or_reject(request=request, claims=claims, carrier="RelayState")
 
     try:
         user_info = await provider.complete(params)

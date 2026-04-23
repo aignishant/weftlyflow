@@ -30,6 +30,7 @@ from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from weftlyflow import __version__
 from weftlyflow.auth.bootstrap import ensure_bootstrap_admin
+from weftlyflow.auth.sso import InMemoryNonceStore
 from weftlyflow.config import get_settings
 from weftlyflow.config.logging import configure_logging
 from weftlyflow.credentials.cipher import CredentialCipher, generate_key
@@ -343,6 +344,7 @@ async def lifespan(app: FastAPI) -> AsyncIterator[None]:
 
     app.state.sso_oidc_provider = _build_oidc_provider(settings)
     app.state.sso_saml_provider = _build_saml_provider(settings)
+    app.state.sso_nonce_store = InMemoryNonceStore()
 
     try:
         yield
