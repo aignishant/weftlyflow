@@ -21,8 +21,8 @@ from weftlyflow.nodes.registry import NodeRegistry
 def loaded_registry() -> NodeRegistry:
     """Return a registry populated with every built-in node.
 
-    Ninety-seven built-ins as of the Tier-2 twenty-third-tranche ship:
-    the Phase-6-core set plus the seventy-two integration nodes
+    One hundred built-ins as of the Tier-2 twenty-fourth-tranche ship:
+    the Phase-6-core set plus the seventy-five integration nodes
     (``slack``, ``github``, ``sendgrid``, ``notion``, ``stripe``,
     ``google_sheets``, ``discord``, ``airtable``, ``mailgun``,
     ``telegram``, ``trello``, ``hubspot``, ``jira``, ``shopify``,
@@ -39,11 +39,11 @@ def loaded_registry() -> NodeRegistry:
     ``ghost``, ``pinecone``, ``gmail``, ``google_drive``,
     ``onedrive``, ``segment``, ``mixpanel``, ``posthog``,
     ``plaid``, ``klaviyo``, ``harvest``, ``mongodb_atlas``, ``ga4``,
-    ``reddit``).
+    ``reddit``, ``coinbase``, ``binance``, ``alpaca``).
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 97, f"expected 97 built-in nodes, got {count}"
+    assert count == 100, f"expected 100 built-in nodes, got {count}"
     return registry
 
 

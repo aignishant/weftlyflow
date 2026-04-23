@@ -91,6 +91,9 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.mongodb_atlas_api",
     "weftlyflow.credentials.types.ga4_measurement",
     "weftlyflow.credentials.types.reddit_oauth2",
+    "weftlyflow.credentials.types.coinbase_exchange",
+    "weftlyflow.credentials.types.binance_api",
+    "weftlyflow.credentials.types.alpaca_api",
 )
 
 

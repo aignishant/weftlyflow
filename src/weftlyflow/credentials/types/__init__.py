@@ -72,6 +72,9 @@
     mongodb_atlas_api.py      : MongoDB Atlas HTTP Digest via public_key + private_key.
     ga4_measurement.py        : GA4 Measurement Protocol dual-query-param auth.
     reddit_oauth2.py          : Reddit Bearer + platform-formatted User-Agent.
+    coinbase_exchange.py      : Coinbase Exchange HMAC-SHA256 quad-header signing.
+    binance_api.py            : Binance Spot HMAC-SHA256 query-param signature + API-key header.
+    alpaca_api.py             : Alpaca Markets dual ``APCA-API-*`` headers + paper/live routing.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -80,6 +83,7 @@ from __future__ import annotations
 
 from weftlyflow.credentials.types.activecampaign_api import ActiveCampaignApiCredential
 from weftlyflow.credentials.types.algolia_api import AlgoliaApiCredential
+from weftlyflow.credentials.types.alpaca_api import AlpacaApiCredential
 from weftlyflow.credentials.types.anthropic_api import AnthropicApiCredential
 from weftlyflow.credentials.types.api_key_header import ApiKeyHeaderCredential
 from weftlyflow.credentials.types.api_key_query import ApiKeyQueryCredential
@@ -87,11 +91,13 @@ from weftlyflow.credentials.types.asana_api import AsanaApiCredential
 from weftlyflow.credentials.types.aws_s3 import AwsS3Credential
 from weftlyflow.credentials.types.basic_auth import BasicAuthCredential
 from weftlyflow.credentials.types.bearer_token import BearerTokenCredential
+from weftlyflow.credentials.types.binance_api import BinanceApiCredential
 from weftlyflow.credentials.types.bitbucket_api import BitbucketApiCredential
 from weftlyflow.credentials.types.box_api import BoxApiCredential
 from weftlyflow.credentials.types.brevo_api import BrevoApiCredential
 from weftlyflow.credentials.types.clickup_api import ClickUpApiCredential
 from weftlyflow.credentials.types.cloudflare_api import CloudflareApiCredential
+from weftlyflow.credentials.types.coinbase_exchange import CoinbaseExchangeCredential
 from weftlyflow.credentials.types.contentful_api import ContentfulApiCredential
 from weftlyflow.credentials.types.datadog_api import DatadogApiCredential
 from weftlyflow.credentials.types.discord_bot import DiscordBotCredential
@@ -154,6 +160,7 @@ from weftlyflow.credentials.types.zoom_api import ZoomApiCredential
 __all__ = [
     "ActiveCampaignApiCredential",
     "AlgoliaApiCredential",
+    "AlpacaApiCredential",
     "AnthropicApiCredential",
     "ApiKeyHeaderCredential",
     "ApiKeyQueryCredential",
@@ -161,11 +168,13 @@ __all__ = [
     "AwsS3Credential",
     "BasicAuthCredential",
     "BearerTokenCredential",
+    "BinanceApiCredential",
     "BitbucketApiCredential",
     "BoxApiCredential",
     "BrevoApiCredential",
     "ClickUpApiCredential",
     "CloudflareApiCredential",
+    "CoinbaseExchangeCredential",
     "ContentfulApiCredential",
     "DatadogApiCredential",
     "DiscordBotCredential",
