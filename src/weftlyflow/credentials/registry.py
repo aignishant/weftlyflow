@@ -53,6 +53,9 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.okta_api",
     "weftlyflow.credentials.types.linear_api",
     "weftlyflow.credentials.types.pushover_api",
+    "weftlyflow.credentials.types.elasticsearch_api",
+    "weftlyflow.credentials.types.dropbox_api",
+    "weftlyflow.credentials.types.twitch_api",
 )
 
 

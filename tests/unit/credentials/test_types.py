@@ -100,7 +100,7 @@ def test_slack_oauth2_has_slack_default_endpoints() -> None:
 def test_registry_load_builtins_registers_all_builtins() -> None:
     reg = CredentialTypeRegistry()
     added = reg.load_builtins()
-    assert added == 34
+    assert added == 37
     slugs = {cls.slug for cls in reg.catalog()}
     assert slugs == {
         "weftlyflow.bearer_token",
@@ -137,6 +137,9 @@ def test_registry_load_builtins_registers_all_builtins() -> None:
         "weftlyflow.okta_api",
         "weftlyflow.linear_api",
         "weftlyflow.pushover_api",
+        "weftlyflow.elasticsearch_api",
+        "weftlyflow.dropbox_api",
+        "weftlyflow.twitch_api",
     }
 
 

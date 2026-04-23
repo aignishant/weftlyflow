@@ -34,6 +34,9 @@
     okta_api.py               : Okta ``Authorization: SSWS <token>`` + per-org URL.
     linear_api.py             : Linear raw ``Authorization`` for GraphQL endpoint.
     pushover_api.py           : Pushover form-body auth (``token`` + ``user``).
+    elasticsearch_api.py      : Elasticsearch ``ApiKey <b64(id:key)>`` prefix.
+    dropbox_api.py            : Dropbox Bearer + node-side ``Dropbox-API-Arg`` JSON header.
+    twitch_api.py             : Twitch Bearer + mandatory ``Client-Id`` header pair.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -49,6 +52,8 @@ from weftlyflow.credentials.types.brevo_api import BrevoApiCredential
 from weftlyflow.credentials.types.clickup_api import ClickUpApiCredential
 from weftlyflow.credentials.types.cloudflare_api import CloudflareApiCredential
 from weftlyflow.credentials.types.discord_bot import DiscordBotCredential
+from weftlyflow.credentials.types.dropbox_api import DropboxApiCredential
+from weftlyflow.credentials.types.elasticsearch_api import ElasticsearchApiCredential
 from weftlyflow.credentials.types.freshdesk_api import FreshdeskApiCredential
 from weftlyflow.credentials.types.gitlab_token import GitLabTokenCredential
 from weftlyflow.credentials.types.google_sheets_oauth2 import GoogleSheetsOAuth2Credential
@@ -72,6 +77,7 @@ from weftlyflow.credentials.types.supabase_api import SupabaseApiCredential
 from weftlyflow.credentials.types.telegram_bot import TelegramBotCredential
 from weftlyflow.credentials.types.trello_api import TrelloApiCredential
 from weftlyflow.credentials.types.twilio_api import TwilioApiCredential
+from weftlyflow.credentials.types.twitch_api import TwitchApiCredential
 from weftlyflow.credentials.types.zendesk_api import ZendeskApiCredential
 from weftlyflow.credentials.types.zoho_crm_oauth2 import ZohoCrmOAuth2Credential
 
@@ -85,6 +91,8 @@ __all__ = [
     "ClickUpApiCredential",
     "CloudflareApiCredential",
     "DiscordBotCredential",
+    "DropboxApiCredential",
+    "ElasticsearchApiCredential",
     "FreshdeskApiCredential",
     "GitLabTokenCredential",
     "GoogleSheetsOAuth2Credential",
@@ -108,6 +116,7 @@ __all__ = [
     "TelegramBotCredential",
     "TrelloApiCredential",
     "TwilioApiCredential",
+    "TwitchApiCredential",
     "ZendeskApiCredential",
     "ZohoCrmOAuth2Credential",
 ]

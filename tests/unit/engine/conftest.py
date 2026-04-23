@@ -21,19 +21,20 @@ from weftlyflow.nodes.registry import NodeRegistry
 def loaded_registry() -> NodeRegistry:
     """Return a registry populated with every built-in node.
 
-    Fifty-eight built-ins as of the Tier-2 tenth-tranche ship: the
-    Phase-6-core set plus the thirty-three integration nodes
+    Sixty-one built-ins as of the Tier-2 eleventh-tranche ship: the
+    Phase-6-core set plus the thirty-six integration nodes
     (``slack``, ``github``, ``sendgrid``, ``notion``, ``stripe``,
     ``google_sheets``, ``discord``, ``airtable``, ``mailgun``,
     ``telegram``, ``trello``, ``hubspot``, ``jira``, ``shopify``,
     ``clickup``, ``twilio``, ``gitlab``, ``intercom``, ``monday``,
     ``zendesk``, ``brevo``, ``pagerduty``, ``algolia``, ``mailchimp``,
     ``pipedrive``, ``zoho_crm``, ``mattermost``, ``cloudflare``,
-    ``freshdesk``, ``supabase``, ``okta``, ``linear``, ``pushover``).
+    ``freshdesk``, ``supabase``, ``okta``, ``linear``, ``pushover``,
+    ``elasticsearch``, ``dropbox``, ``twitch``).
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 58, f"expected 58 built-in nodes, got {count}"
+    assert count == 61, f"expected 61 built-in nodes, got {count}"
     return registry
 
 
