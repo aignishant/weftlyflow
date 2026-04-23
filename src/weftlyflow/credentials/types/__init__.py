@@ -46,6 +46,8 @@
     snowflake_api.py          : Snowflake Bearer + token-type declaration header.
     activecampaign_api.py     : ActiveCampaign raw ``Api-Token`` + per-tenant URL.
     aws_s3.py                 : AWS S3 access key + secret + region — SigV4 signing.
+    azure_storage_shared_key.py: Azure Storage SharedKey HMAC-SHA256 with canonical header/resource.
+    backblaze_b2.py           : Backblaze B2 Basic auth → session token + tenant apiUrl discovery.
     openai_api.py             : OpenAI Bearer + ``OpenAI-Organization`` + ``OpenAI-Project``.
     xero_api.py               : Xero OAuth2 Bearer + mandatory ``xero-tenant-id`` header.
     netsuite_api.py           : NetSuite OAuth 1.0a HMAC-SHA256 Token-Based Auth.
@@ -71,6 +73,7 @@
     harvest_api.py            : Harvest Bearer + mandatory ``Harvest-Account-ID`` header.
     mongodb_atlas_api.py      : MongoDB Atlas HTTP Digest via public_key + private_key.
     ga4_measurement.py        : GA4 Measurement Protocol dual-query-param auth.
+    gcp_service_account.py    : GCP service-account RS256 JWT Grant (scope inside JWT claim).
     reddit_oauth2.py          : Reddit Bearer + platform-formatted User-Agent.
     coinbase_exchange.py      : Coinbase Exchange HMAC-SHA256 quad-header signing.
     binance_api.py            : Binance Spot HMAC-SHA256 query-param signature + API-key header.
@@ -93,6 +96,10 @@ from weftlyflow.credentials.types.api_key_query import ApiKeyQueryCredential
 from weftlyflow.credentials.types.asana_api import AsanaApiCredential
 from weftlyflow.credentials.types.asc_api import AscApiCredential
 from weftlyflow.credentials.types.aws_s3 import AwsS3Credential
+from weftlyflow.credentials.types.azure_storage_shared_key import (
+    AzureStorageSharedKeyCredential,
+)
+from weftlyflow.credentials.types.backblaze_b2 import BackblazeB2Credential
 from weftlyflow.credentials.types.basic_auth import BasicAuthCredential
 from weftlyflow.credentials.types.bearer_token import BearerTokenCredential
 from weftlyflow.credentials.types.binance_api import BinanceApiCredential
@@ -112,6 +119,7 @@ from weftlyflow.credentials.types.elasticsearch_api import ElasticsearchApiCrede
 from weftlyflow.credentials.types.facebook_graph import FacebookGraphCredential
 from weftlyflow.credentials.types.freshdesk_api import FreshdeskApiCredential
 from weftlyflow.credentials.types.ga4_measurement import Ga4MeasurementCredential
+from weftlyflow.credentials.types.gcp_service_account import GcpServiceAccountCredential
 from weftlyflow.credentials.types.ghost_admin import GhostAdminCredential
 from weftlyflow.credentials.types.gitlab_token import GitLabTokenCredential
 from weftlyflow.credentials.types.gmail_oauth2 import GmailOAuth2Credential
@@ -173,6 +181,8 @@ __all__ = [
     "AsanaApiCredential",
     "AscApiCredential",
     "AwsS3Credential",
+    "AzureStorageSharedKeyCredential",
+    "BackblazeB2Credential",
     "BasicAuthCredential",
     "BearerTokenCredential",
     "BinanceApiCredential",
@@ -192,6 +202,7 @@ __all__ = [
     "FacebookGraphCredential",
     "FreshdeskApiCredential",
     "Ga4MeasurementCredential",
+    "GcpServiceAccountCredential",
     "GhostAdminCredential",
     "GitLabTokenCredential",
     "GmailOAuth2Credential",
