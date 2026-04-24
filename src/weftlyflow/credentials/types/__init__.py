@@ -56,6 +56,7 @@
     facebook_graph.py         : Facebook Graph Bearer + optional HMAC ``appsecret_proof`` query.
     anthropic_api.py          : Anthropic ``x-api-key`` + ``anthropic-version`` header pair.
     google_genai_api.py       : Google GenAI (Gemini) ``x-goog-api-key`` header.
+    mistral_api.py            : Mistral La Plateforme ``Authorization: Bearer`` key.
     bitbucket_api.py          : Bitbucket Cloud Basic auth + workspace-scoped URL paths.
     paypal_api.py             : PayPal OAuth2 Client Credentials — runtime token fetch.
     mapbox_api.py             : Mapbox ``?access_token=`` query-param auth.
@@ -139,6 +140,7 @@ from weftlyflow.credentials.types.mailchimp_api import MailchimpApiCredential
 from weftlyflow.credentials.types.mapbox_api import MapboxApiCredential
 from weftlyflow.credentials.types.mattermost_api import MattermostApiCredential
 from weftlyflow.credentials.types.microsoft_graph import MicrosoftGraphCredential
+from weftlyflow.credentials.types.mistral_api import MistralApiCredential
 from weftlyflow.credentials.types.mixpanel_api import MixpanelApiCredential
 from weftlyflow.credentials.types.monday_api import MondayApiCredential
 from weftlyflow.credentials.types.mongodb_atlas_api import MongoDbAtlasApiCredential
@@ -224,6 +226,7 @@ __all__ = [
     "MapboxApiCredential",
     "MattermostApiCredential",
     "MicrosoftGraphCredential",
+    "MistralApiCredential",
     "MixpanelApiCredential",
     "MondayApiCredential",
     "MongoDbAtlasApiCredential",
