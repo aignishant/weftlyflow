@@ -31,6 +31,7 @@ import Separator from "@/components/ui/Separator.vue";
 import Switch from "@/components/ui/Switch.vue";
 import Tooltip from "@/components/ui/Tooltip.vue";
 import { toast } from "@/lib/toast";
+import { EDITOR_TOUR, startTour } from "@/lib/tour";
 import { ArrowLeft, Keyboard, MousePointerClick } from "lucide-vue-next";
 import { useCredentialsStore } from "@/stores/credentials";
 import { useNodeTypesStore } from "@/stores/nodeTypes";
@@ -133,6 +134,8 @@ onMounted(async () => {
   await hydrateFromServer();
   loading.value = false;
   window.addEventListener("keydown", onGlobalKey);
+  // Kick the editor walk-through on first visit (waits for panels to mount).
+  setTimeout(() => startTour(EDITOR_TOUR), 500);
 });
 
 onBeforeUnmount(() => {

@@ -3,6 +3,7 @@ import { onMounted, ref } from "vue";
 
 import { extractErrorMessage } from "@/api/client";
 import CredentialEditor from "@/components/CredentialEditor.vue";
+import { CREDENTIALS_TOUR, startTour } from "@/lib/tour";
 import { useCredentialsStore } from "@/stores/credentials";
 
 interface EditingValue {
@@ -20,6 +21,7 @@ const testResults = ref<Record<string, { ok: boolean; message: string }>>({});
 
 onMounted(async () => {
   await store.fetchAll();
+  setTimeout(() => startTour(CREDENTIALS_TOUR), 400);
 });
 
 function openNew(): void {

@@ -32,8 +32,24 @@ function makeClient(): AxiosInstance {
   client.interceptors.response.use(
     (response) => response,
     (error: unknown) => {
-      // Surface the server's error envelope verbatim to callers when present;
-      // callers can inspect error.response.data.error.code / .message.
+      // A 401 on any authenticated request means the stored token is stale
+      // (expired, revoked, or from a wiped DB). Clear it and bounce to /login
+      // instead of letting every store explode silently. Skip when we're
+      // already on /login or the failing call *is* the login endpoint itself,
+      // to avoid a redirect loop.
+      if (axios.isAxiosError(error) && error.response?.status === 401) {
+        const url = error.config?.url ?? "";
+        const onLoginPage = window.location.pathname.startsWith("/login");
+        const isAuthCall = url.includes("/api/v1/auth/login");
+        if (!onLoginPage && !isAuthCall) {
+          window.localStorage.removeItem(TOKEN_STORAGE_KEY);
+          window.localStorage.removeItem(PROJECT_STORAGE_KEY);
+          const redirect = encodeURIComponent(
+            window.location.pathname + window.location.search,
+          );
+          window.location.replace(`/login?redirect=${redirect}`);
+        }
+      }
       return Promise.reject(error);
     },
   );

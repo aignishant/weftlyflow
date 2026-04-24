@@ -2,6 +2,7 @@
 import { RouterView } from "vue-router";
 
 import TopBar from "@/components/TopBar.vue";
+import TourOverlay from "@/components/TourOverlay.vue";
 import ToastContainer from "@/components/ui/ToastContainer.vue";
 import { useAuthStore } from "@/stores/auth";
 
@@ -16,6 +17,7 @@ auth.hydrate();
       <RouterView />
     </main>
     <ToastContainer />
+    <TourOverlay />
   </div>
 </template>
 

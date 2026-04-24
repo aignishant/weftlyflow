@@ -1,12 +1,14 @@
 <script setup lang="ts">
 import { onMounted } from "vue";
 
+import { EXECUTIONS_TOUR, startTour } from "@/lib/tour";
 import { useExecutionsStore } from "@/stores/executions";
 
 const store = useExecutionsStore();
 
 onMounted(async () => {
   await store.fetchList();
+  setTimeout(() => startTour(EXECUTIONS_TOUR), 400);
 });
 
 function formatTime(value: string | null): string {
