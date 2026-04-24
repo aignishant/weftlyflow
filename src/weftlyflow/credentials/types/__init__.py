@@ -59,6 +59,7 @@
     mistral_api.py            : Mistral La Plateforme ``Authorization: Bearer`` key.
     postgres_dsn.py           : Postgres DSN (``dsn`` only) — no HTTP injection.
     qdrant_api.py             : Qdrant ``api-key`` header — optional auth, used by vector_qdrant.
+    chroma_api.py             : Chroma base URL + optional Bearer token, used by vector_chroma.
     bitbucket_api.py          : Bitbucket Cloud Basic auth + workspace-scoped URL paths.
     paypal_api.py             : PayPal OAuth2 Client Credentials — runtime token fetch.
     mapbox_api.py             : Mapbox ``?access_token=`` query-param auth.
@@ -111,6 +112,7 @@ from weftlyflow.credentials.types.binance_api import BinanceApiCredential
 from weftlyflow.credentials.types.bitbucket_api import BitbucketApiCredential
 from weftlyflow.credentials.types.box_api import BoxApiCredential
 from weftlyflow.credentials.types.brevo_api import BrevoApiCredential
+from weftlyflow.credentials.types.chroma_api import ChromaCredential
 from weftlyflow.credentials.types.clickup_api import ClickUpApiCredential
 from weftlyflow.credentials.types.cloudflare_api import CloudflareApiCredential
 from weftlyflow.credentials.types.cloudinary_api import CloudinaryApiCredential
@@ -199,6 +201,7 @@ __all__ = [
     "BitbucketApiCredential",
     "BoxApiCredential",
     "BrevoApiCredential",
+    "ChromaCredential",
     "ClickUpApiCredential",
     "CloudflareApiCredential",
     "CloudinaryApiCredential",

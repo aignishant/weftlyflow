@@ -21,8 +21,8 @@ from weftlyflow.nodes.registry import NodeRegistry
 def loaded_registry() -> NodeRegistry:
     """Return a registry populated with every built-in node.
 
-    One hundred and twenty-six built-ins as of the Phase-7
-    ``vector_pinecone`` slice: every Phase-6-core node, eighty-one
+    One hundred and twenty-seven built-ins as of the Phase-7
+    ``vector_chroma`` slice: every Phase-6-core node, eighty-one
     Tier-2 integrations, the self-hosted Ollama LLM node plus the
     Gemini/Google GenAI and Mistral La Plateforme providers, the
     memory trio (``memory_buffer`` / ``memory_window`` /
@@ -31,21 +31,22 @@ def loaded_registry() -> NodeRegistry:
     ``text_splitter`` RAG chunker, the in-process ``vector_memory``
     store, the persistent ``vector_pgvector`` pgvector-backed store,
     the REST-backed ``vector_qdrant`` store, the managed
-    ``vector_pinecone`` store, the dependency-free ``embed_local``
-    hashing embedder, the batched ``embed_openai`` embedder, the
-    ``chat_respond`` envelope shaper, the ``agent_tool_dispatch``
-    LLM-to-tool fan-out, the ``agent_tool_result`` encoder that closes
-    the ReAct loop, the composed ``agent_react`` single-turn
-    orchestrator, and the ``trigger_chat`` inbound-chat seed-item
-    unwrapper. The Code node (``weftlyflow.code``) is deliberately
-    excluded from the default count — it is now gated behind
-    ``settings.enable_code_node`` until the subprocess sandbox runner
-    lands (see IMPLEMENTATION_BIBLE.md §26 risk #2). Tests that need
-    the Code node should register it directly.
+    ``vector_pinecone`` store, the self-hosted ``vector_chroma``
+    store, the dependency-free ``embed_local`` hashing embedder, the
+    batched ``embed_openai`` embedder, the ``chat_respond`` envelope
+    shaper, the ``agent_tool_dispatch`` LLM-to-tool fan-out, the
+    ``agent_tool_result`` encoder that closes the ReAct loop, the
+    composed ``agent_react`` single-turn orchestrator, and the
+    ``trigger_chat`` inbound-chat seed-item unwrapper. The Code node
+    (``weftlyflow.code``) is deliberately excluded from the default
+    count — it is now gated behind ``settings.enable_code_node``
+    until the subprocess sandbox runner lands (see
+    IMPLEMENTATION_BIBLE.md §26 risk #2). Tests that need the Code
+    node should register it directly.
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 126, f"expected 126 built-in nodes, got {count}"
+    assert count == 127, f"expected 127 built-in nodes, got {count}"
     return registry
 
 
