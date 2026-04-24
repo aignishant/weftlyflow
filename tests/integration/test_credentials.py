@@ -63,13 +63,15 @@ async def test_credential_types_catalog(
     resp = await client.get("/api/v1/credential-types", headers=auth_headers)
     assert resp.status_code == 200
     slugs = {row["slug"] for row in resp.json()}
-    assert slugs == {
+    # Core generic credential primitives must always be present; integration
+    # nodes register additional types on top.
+    assert {
         "weftlyflow.bearer_token",
         "weftlyflow.basic_auth",
         "weftlyflow.api_key_header",
         "weftlyflow.api_key_query",
         "weftlyflow.oauth2_generic",
-    }
+    }.issubset(slugs)
 
 
 async def test_invalid_credential_type_rejected(

@@ -38,7 +38,7 @@ def _five_node_body() -> dict:
                 },
             },
             {"id": "node_adults", "name": "Adults", "type": "weftlyflow.no_op"},
-            {"id": "node_minors", "name": "Minors", "type": "weftlyflow.code"},
+            {"id": "node_minors", "name": "Minors", "type": "weftlyflow.no_op"},
         ],
         "connections": [
             {"source_node": "node_trigger", "target_node": "node_set"},

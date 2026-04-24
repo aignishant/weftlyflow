@@ -14,12 +14,13 @@ async def test_list_node_types_returns_builtins(
     resp = await client.get("/api/v1/node-types", headers=auth_headers)
     assert resp.status_code == 200
     types = {item["type"] for item in resp.json()}
+    # ``weftlyflow.code`` is gated behind ``WEFTLYFLOW_ENABLE_CODE_NODE`` and
+    # intentionally absent from the default discovery set (bible §26 risk #2).
     assert types >= {
         "weftlyflow.manual_trigger",
         "weftlyflow.no_op",
         "weftlyflow.set",
         "weftlyflow.if",
-        "weftlyflow.code",
     }
 
 
