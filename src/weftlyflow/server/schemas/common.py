@@ -6,7 +6,11 @@ only. Translation happens in the routers.
 
 from __future__ import annotations
 
+from typing import Generic, TypeVar
+
 from pydantic import BaseModel, ConfigDict, Field
+
+T = TypeVar("T")
 
 
 class WeftlyflowModel(BaseModel):
@@ -26,8 +30,8 @@ class PageParams(WeftlyflowModel):
     offset: int = Field(default=0, ge=0)
 
 
-class Page[T](WeftlyflowModel):
-    """Typed list-response envelope (PEP 695 generic)."""
+class Page(WeftlyflowModel, Generic[T]):
+    """Typed list-response envelope."""
 
     items: list[T]
     limit: int
