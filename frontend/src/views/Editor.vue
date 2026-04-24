@@ -592,6 +592,8 @@ watch(
           :execution="execution"
           :running="executing"
           :error-message="executionError"
+          :nodes="nodes"
+          :node-types="nodeTypesStore.items"
           @run="onExecute"
         />
       </div>

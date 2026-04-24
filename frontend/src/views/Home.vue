@@ -1,8 +1,10 @@
 <script setup lang="ts">
 import {
   Activity,
+  AlertCircle,
   AlertOctagon,
   AlertTriangle,
+  ArrowRight,
   BarChart3,
   BookOpen,
   Bot,
@@ -289,6 +291,21 @@ function workflowName(id: string): string {
   return store.items.find((w) => w.id === id)?.name ?? id.slice(0, 10);
 }
 
+// Deterministic tone for a workflow — reuses the 6 template tones so user
+// workflows feel visually consistent with the template cards above.
+const WORKFLOW_TONES = ["blue", "green", "purple", "amber", "pink", "teal"] as const;
+function toneForWorkflow(id: string): (typeof WORKFLOW_TONES)[number] {
+  let h = 0;
+  for (let i = 0; i < id.length; i++) h = (h * 31 + id.charCodeAt(i)) >>> 0;
+  return WORKFLOW_TONES[h % WORKFLOW_TONES.length];
+}
+
+function workflowInitial(name: string): string {
+  const parts = name.trim().split(/\s+/).filter(Boolean);
+  if (parts.length >= 2) return (parts[0][0] + parts[1][0]).toUpperCase();
+  return (name.slice(0, 2) || "W").toUpperCase();
+}
+
 function statusTone(status: string): string {
   if (status === "success") return "ok";
   if (status === "error" || status === "failed") return "bad";
@@ -512,7 +529,27 @@ const quickActions = computed<QuickAction[]>(() => [
             <span>{{ creating ? "Creating…" : "Create workflow" }}</span>
           </button>
         </form>
-        <p v-if="createError" class="error">{{ createError }}</p>
+        <div
+          v-if="createError"
+          class="hero-alert"
+          role="alert"
+        >
+          <span class="hero-alert-icon">
+            <AlertCircle :size="15" />
+          </span>
+          <div class="hero-alert-body">
+            <span class="hero-alert-title">Could not create workflow</span>
+            <span class="hero-alert-msg">{{ createError }}</span>
+          </div>
+          <button
+            type="button"
+            class="hero-alert-close"
+            aria-label="Dismiss alert"
+            @click="createError = null"
+          >
+            ×
+          </button>
+        </div>
       </div>
     </section>
 
@@ -910,9 +947,13 @@ const quickActions = computed<QuickAction[]>(() => [
     <section class="wf-card workflows">
       <header class="panel-header">
         <div>
-          <h2>Workflows</h2>
-          <p class="muted">
-            {{ filteredWorkflows.length }} of {{ store.items.length }}
+          <h2>
+            <Layers :size="16" />
+            Your workflows
+            <span class="count-pill">{{ store.items.length }}</span>
+          </h2>
+          <p class="panel-sub">
+            Automations you own — edit the canvas, trigger runs, or toggle active to schedule them.
           </p>
         </div>
         <div class="search">
@@ -937,26 +978,20 @@ const quickActions = computed<QuickAction[]>(() => [
 
       <!-- Preserve the existing data-testid=workflow-table hook for tests
            by wrapping the grid in a table-ish semantics via a custom attr. -->
-      <div v-if="filteredWorkflows.length > 0" class="grid" data-testid="workflow-table">
+      <div v-if="filteredWorkflows.length > 0" class="wf-grid" data-testid="workflow-table">
         <article
           v-for="wf in filteredWorkflows"
           :key="wf.id"
           class="wf-tile"
           :data-workflow-id="wf.id"
+          :data-tone="toneForWorkflow(wf.id)"
         >
-          <header class="tile-head">
-            <span
-              class="tile-status"
-              :class="wf.active ? 'on' : 'off'"
-              :title="wf.active ? 'Active' : 'Inactive'"
-            />
-            <RouterLink
-              :to="{ name: 'editor', params: { id: wf.id } }"
-              class="tile-name"
-              :data-testid="`workflow-open-${wf.id}`"
-            >
-              {{ wf.name }}
-            </RouterLink>
+          <div class="tile-head">
+            <span class="tile-icon">{{ workflowInitial(wf.name) }}</span>
+            <span class="tile-cat" :class="wf.active ? 'on' : 'off'">
+              <span class="tile-dot" />
+              {{ wf.active ? "Active" : "Paused" }}
+            </span>
             <button
               class="tile-delete"
               :title="`Delete ${wf.name}`"
@@ -964,7 +999,15 @@ const quickActions = computed<QuickAction[]>(() => [
             >
               <Trash2 :size="14" />
             </button>
-          </header>
+          </div>
+
+          <RouterLink
+            :to="{ name: 'editor', params: { id: wf.id } }"
+            class="tile-name"
+            :data-testid="`workflow-open-${wf.id}`"
+          >
+            {{ wf.name }}
+          </RouterLink>
 
           <div class="tile-meta">
             <span class="chip">
@@ -984,17 +1027,13 @@ const quickActions = computed<QuickAction[]>(() => [
             </span>
           </div>
 
-          <footer class="tile-foot">
-            <span class="wf-badge" :class="wf.active ? 'success' : 'waiting'">
-              {{ wf.active ? "active" : "inactive" }}
-            </span>
-            <RouterLink
-              :to="{ name: 'editor', params: { id: wf.id } }"
-              class="tile-open"
-            >
-              Open →
-            </RouterLink>
-          </footer>
+          <RouterLink
+            :to="{ name: 'editor', params: { id: wf.id } }"
+            class="tile-cta"
+          >
+            <ArrowRight :size="14" />
+            <span>Open editor</span>
+          </RouterLink>
         </article>
       </div>
     </section>
@@ -1115,11 +1154,80 @@ const quickActions = computed<QuickAction[]>(() => [
   filter: brightness(1.06);
 }
 .create-form button.primary:disabled { opacity: 0.6; cursor: not-allowed; }
-.error {
-  color: var(--wf-danger);
-  font-size: 13px;
-  margin: 4px 2px 0 2px;
+.hero-alert {
+  display: flex;
+  align-items: flex-start;
+  gap: 10px;
+  padding: 10px 12px;
+  margin: 6px 2px 0 2px;
+  border-radius: 11px;
+  background:
+    radial-gradient(360px 110px at 0% 0%, rgba(247, 108, 108, 0.16), transparent 70%),
+    linear-gradient(180deg, rgba(60, 22, 28, 0.72), rgba(40, 18, 22, 0.76));
+  border: 1px solid rgba(247, 108, 108, 0.4);
+  position: relative;
+  overflow: hidden;
+  animation: hero-alert-in 0.2s ease-out;
 }
+.hero-alert::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(90deg, rgba(247, 108, 108, 0.18), transparent 40%);
+  pointer-events: none;
+}
+@keyframes hero-alert-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+.hero-alert-icon {
+  display: grid;
+  place-items: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 8px;
+  color: #0f1117;
+  background: linear-gradient(135deg, #f76c6c, #f0b455);
+  box-shadow: 0 8px 18px -10px rgba(247, 108, 108, 0.6),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.2);
+  flex: 0 0 auto;
+  position: relative;
+  z-index: 1;
+}
+.hero-alert-body {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  z-index: 1;
+}
+.hero-alert-title {
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffd4d4;
+  letter-spacing: 0.01em;
+}
+.hero-alert-msg {
+  font-size: 12.5px;
+  color: #f0b0b0;
+  line-height: 1.45;
+  word-break: break-word;
+}
+.hero-alert-close {
+  border: none;
+  background: transparent;
+  color: #f0b0b0;
+  font-size: 18px;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0 4px;
+  transition: color 0.15s ease;
+  position: relative;
+  z-index: 1;
+}
+.hero-alert-close:hover { color: #ffffff; }
 
 /* ---------- stats ---------- */
 .stats {
@@ -1338,7 +1446,7 @@ const quickActions = computed<QuickAction[]>(() => [
 }
 
 /* ---------- workflow grid ---------- */
-.workflows { padding: 18px 20px 22px; }
+.workflows { padding: 18px 20px 20px; }
 .search {
   display: inline-flex;
   align-items: center;
@@ -1357,56 +1465,102 @@ const quickActions = computed<QuickAction[]>(() => [
   font-size: 13px;
   width: 200px;
 }
-.grid {
+.wf-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 14px;
-  margin-top: 6px;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 12px;
+  margin-top: 10px;
 }
 .wf-tile {
   position: relative;
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  padding: 16px;
-  background: linear-gradient(180deg, rgba(22, 25, 36, 0.8), rgba(15, 17, 23, 0.8));
+  gap: 8px;
+  padding: 14px 14px 12px;
+  border-radius: 14px;
+  background: linear-gradient(180deg, rgba(28, 31, 44, 0.85), rgba(22, 25, 36, 0.9));
   border: 1px solid var(--wf-border);
-  border-radius: 12px;
-  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  overflow: hidden;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.2s ease;
+}
+.wf-tile::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 14px;
+  padding: 1px;
+  background: linear-gradient(135deg, var(--tpl-a, #5c8dff), transparent 55%, var(--tpl-b, #8b5cff));
+  -webkit-mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  mask: linear-gradient(#000 0 0) content-box, linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  pointer-events: none;
+  opacity: 0.5;
+  transition: opacity 0.2s ease;
 }
 .wf-tile:hover {
   transform: translateY(-2px);
-  border-color: rgba(92, 141, 255, 0.4);
-  box-shadow: 0 20px 40px -24px rgba(92, 141, 255, 0.5);
+  box-shadow: 0 18px 40px -20px rgba(92, 141, 255, 0.45);
 }
+.wf-tile:hover::before { opacity: 1; }
+.wf-tile[data-tone="blue"]   { --tpl-a: #5c8dff; --tpl-b: #8b5cff; }
+.wf-tile[data-tone="green"]  { --tpl-a: #3dd28d; --tpl-b: #5c8dff; }
+.wf-tile[data-tone="purple"] { --tpl-a: #8b5cff; --tpl-b: #f76cc6; }
+.wf-tile[data-tone="amber"]  { --tpl-a: #f0b455; --tpl-b: #f76c6c; }
+.wf-tile[data-tone="pink"]   { --tpl-a: #f76cc6; --tpl-b: #8b5cff; }
+.wf-tile[data-tone="teal"]   { --tpl-a: #3dd28d; --tpl-b: #55c8e6; }
+
 .tile-head {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 8px;
 }
-.tile-status {
-  width: 10px; height: 10px;
+.tile-icon {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 10px;
+  color: #0f1117;
+  font-weight: 700;
+  font-size: 13px;
+  letter-spacing: 0.02em;
+  background: linear-gradient(135deg, var(--tpl-a, #5c8dff), var(--tpl-b, #8b5cff));
+  box-shadow: 0 8px 20px -10px rgba(92, 141, 255, 0.6),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.18);
+}
+.tile-cat {
+  margin-left: auto;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  padding: 3px 9px;
+  border-radius: 999px;
+}
+.tile-cat.on {
+  color: #bff2d9;
+  background: rgba(61, 210, 141, 0.12);
+  border: 1px solid rgba(61, 210, 141, 0.3);
+}
+.tile-cat.off {
+  color: var(--wf-text-muted);
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--wf-border);
+}
+.tile-dot {
+  width: 6px;
+  height: 6px;
   border-radius: 50%;
-  flex: 0 0 auto;
+  background: currentColor;
 }
-.tile-status.on {
+.tile-cat.on .tile-dot {
   background: #3dd28d;
-  box-shadow: 0 0 0 3px rgba(61, 210, 141, 0.2);
+  box-shadow: 0 0 0 3px rgba(61, 210, 141, 0.18);
 }
-.tile-status.off {
-  background: var(--wf-border);
-}
-.tile-name {
-  flex: 1;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--wf-text);
-  text-decoration: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-.tile-name:hover { color: #b9c5ff; }
 .tile-delete {
   background: transparent;
   border: 1px solid transparent;
@@ -1421,10 +1575,24 @@ const quickActions = computed<QuickAction[]>(() => [
   background: rgba(247, 108, 108, 0.12);
   border-color: rgba(247, 108, 108, 0.3);
 }
+.tile-name {
+  margin: 2px 0 0 0;
+  font-size: 14.5px;
+  font-weight: 700;
+  letter-spacing: 0.01em;
+  color: var(--wf-text);
+  text-decoration: none;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  display: block;
+}
+.tile-name:hover { color: #b9c5ff; }
 .tile-meta {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  flex: 1;
 }
 .chip {
   display: inline-flex;
@@ -1442,19 +1610,30 @@ const quickActions = computed<QuickAction[]>(() => [
   background: rgba(92, 141, 255, 0.1);
   border-color: rgba(92, 141, 255, 0.25);
 }
-.tile-foot {
-  display: flex;
-  justify-content: space-between;
+.tile-cta {
+  display: inline-flex;
   align-items: center;
-  padding-top: 6px;
-  border-top: 1px dashed var(--wf-border);
-}
-.tile-open {
-  font-size: 12px;
-  color: #b9c5ff;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 6px;
+  padding: 8px 12px;
+  font-size: 12.5px;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  color: #0f1117;
+  background: linear-gradient(135deg, var(--tpl-a, #5c8dff), var(--tpl-b, #8b5cff));
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
   text-decoration: none;
+  transition: transform 0.12s ease, box-shadow 0.15s ease, filter 0.15s ease;
+  box-shadow: 0 10px 24px -12px rgba(92, 141, 255, 0.65),
+              inset 0 0 0 1px rgba(255, 255, 255, 0.08);
 }
-.tile-open:hover { color: #ffffff; }
+.tile-cta:hover {
+  transform: translateY(-1px);
+  filter: brightness(1.05);
+}
 
 /* ---------- trio: status / creds / nodes ---------- */
 .trio {

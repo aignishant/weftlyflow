@@ -103,6 +103,7 @@ nav:
       - getting-started/first-workflow.md
       - getting-started/concepts.md
   - Guide:
+      - guide/ui-walkthrough.md
       - guide/workflows.md
       - guide/triggers-and-schedules.md
       - guide/expressions.md
