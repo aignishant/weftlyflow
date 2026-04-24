@@ -85,7 +85,6 @@ const NAME_RULES: Rule[] = [
   {
     test: /password|passwd/i,
     placeholder: "••••••••",
-    example: null,
     suggestions: [],
     tip: "Masked. Prefer storing in a credential over pasting inline.",
   },
