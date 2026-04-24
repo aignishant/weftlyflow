@@ -21,8 +21,8 @@ from weftlyflow.nodes.registry import NodeRegistry
 def loaded_registry() -> NodeRegistry:
     """Return a registry populated with every built-in node.
 
-    One hundred and twenty-four built-ins as of the Phase-7
-    ``vector_pgvector`` slice: every Phase-6-core node, eighty-one
+    One hundred and twenty-five built-ins as of the Phase-7
+    ``vector_qdrant`` slice: every Phase-6-core node, eighty-one
     Tier-2 integrations, the self-hosted Ollama LLM node plus the
     Gemini/Google GenAI and Mistral La Plateforme providers, the
     memory trio (``memory_buffer`` / ``memory_window`` /
@@ -30,9 +30,10 @@ def loaded_registry() -> NodeRegistry:
     ``guard_jailbreak_detect``, ``guard_schema_enforce``), the
     ``text_splitter`` RAG chunker, the in-process ``vector_memory``
     store, the persistent ``vector_pgvector`` pgvector-backed store,
-    the dependency-free ``embed_local`` hashing embedder, the
-    batched ``embed_openai`` embedder, the ``chat_respond`` envelope
-    shaper, the ``agent_tool_dispatch`` LLM-to-tool fan-out, the
+    the REST-backed ``vector_qdrant`` store, the dependency-free
+    ``embed_local`` hashing embedder, the batched ``embed_openai``
+    embedder, the ``chat_respond`` envelope shaper, the
+    ``agent_tool_dispatch`` LLM-to-tool fan-out, the
     ``agent_tool_result`` encoder that closes the ReAct loop, the
     composed ``agent_react`` single-turn orchestrator, and the
     ``trigger_chat`` inbound-chat seed-item unwrapper. The Code node
@@ -44,7 +45,7 @@ def loaded_registry() -> NodeRegistry:
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 124, f"expected 124 built-in nodes, got {count}"
+    assert count == 125, f"expected 125 built-in nodes, got {count}"
     return registry
 
 

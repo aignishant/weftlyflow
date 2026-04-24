@@ -58,6 +58,7 @@
     google_genai_api.py       : Google GenAI (Gemini) ``x-goog-api-key`` header.
     mistral_api.py            : Mistral La Plateforme ``Authorization: Bearer`` key.
     postgres_dsn.py           : Postgres DSN (``dsn`` only) — no HTTP injection.
+    qdrant_api.py             : Qdrant ``api-key`` header — optional auth, used by vector_qdrant.
     bitbucket_api.py          : Bitbucket Cloud Basic auth + workspace-scoped URL paths.
     paypal_api.py             : PayPal OAuth2 Client Credentials — runtime token fetch.
     mapbox_api.py             : Mapbox ``?access_token=`` query-param auth.
@@ -159,6 +160,7 @@ from weftlyflow.credentials.types.plaid_api import PlaidApiCredential
 from weftlyflow.credentials.types.postgres_dsn import PostgresDsnCredential
 from weftlyflow.credentials.types.posthog_api import PostHogApiCredential
 from weftlyflow.credentials.types.pushover_api import PushoverApiCredential
+from weftlyflow.credentials.types.qdrant_api import QdrantApiCredential
 from weftlyflow.credentials.types.quickbooks_oauth2 import QuickBooksOAuth2Credential
 from weftlyflow.credentials.types.reddit_oauth2 import RedditOAuth2Credential
 from weftlyflow.credentials.types.rocket_chat_api import RocketChatApiCredential
@@ -246,6 +248,7 @@ __all__ = [
     "PostHogApiCredential",
     "PostgresDsnCredential",
     "PushoverApiCredential",
+    "QdrantApiCredential",
     "QuickBooksOAuth2Credential",
     "RedditOAuth2Credential",
     "RocketChatApiCredential",
