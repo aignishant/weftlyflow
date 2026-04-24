@@ -14,7 +14,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 from datetime import UTC, datetime
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any
 
 from weftlyflow.domain.execution import (
     Execution,
@@ -40,6 +40,11 @@ class RunState:
         run_data: Accumulator — one list per node across loop iterations.
         per_node_outputs: ``{node_id: [items_per_port]}`` — latest outputs
             exposed to downstream readiness checks.
+        static_data: One shared dict for every node in this run. Seeded in
+            ``__post_init__`` from ``workflow.static_data`` (a defensive
+            copy — mutation here never touches the caller's workflow
+            snapshot). Callers that want cross-run persistence pick this
+            up after ``run()`` returns and write it back to the repo.
         failed_node_id: Set when a node raises and the run aborts.
         final_error: Exception object preserved for ``__cause__`` on wrapping.
     """
@@ -50,8 +55,13 @@ class RunState:
     started_at: datetime = field(default_factory=lambda: datetime.now(UTC))
     run_data: RunData = field(default_factory=RunData)
     per_node_outputs: dict[str, list[list[Item]]] = field(default_factory=dict)
+    static_data: dict[str, Any] = field(init=False)
     failed_node_id: str | None = None
     final_error: BaseException | None = None
+
+    def __post_init__(self) -> None:
+        """Seed ``static_data`` from the workflow snapshot, defensively copied."""
+        self.static_data = dict(self.workflow.static_data)
 
     def record(self, node_id: str, run_data: NodeRunData) -> None:
         """Record a completed node run and cache its output for downstream reads."""

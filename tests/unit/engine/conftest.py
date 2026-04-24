@@ -21,16 +21,23 @@ from weftlyflow.nodes.registry import NodeRegistry
 def loaded_registry() -> NodeRegistry:
     """Return a registry populated with every built-in node.
 
-    One hundred and five built-ins as of the sandbox-hardening pass: every
-    Phase-6-core node plus eighty-one Tier-2 integrations. The Code node
-    (``weftlyflow.code``) is deliberately excluded from the default count
-    — it is now gated behind ``settings.enable_code_node`` until the
-    subprocess sandbox runner lands (see IMPLEMENTATION_BIBLE.md §26
-    risk #2). Tests that need the Code node should register it directly.
+    One hundred and sixteen built-ins as of the Phase-7 chat-respond
+    slice: every Phase-6-core node, eighty-one Tier-2 integrations, the
+    self-hosted Ollama LLM node, the memory trio (``memory_buffer`` /
+    ``memory_window`` / ``memory_summary``), the three guardrails
+    (``guard_pii_redact``, ``guard_jailbreak_detect``,
+    ``guard_schema_enforce``), the ``text_splitter`` RAG chunker, the
+    in-process ``vector_memory`` store, the dependency-free
+    ``embed_local`` hashing embedder, and the ``chat_respond``
+    envelope shaper. The Code node (``weftlyflow.code``) is
+    deliberately excluded from the default count — it is now gated
+    behind ``settings.enable_code_node`` until the subprocess sandbox
+    runner lands (see IMPLEMENTATION_BIBLE.md §26 risk #2). Tests that
+    need the Code node should register it directly.
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 105, f"expected 105 built-in nodes, got {count}"
+    assert count == 116, f"expected 116 built-in nodes, got {count}"
     return registry
 
 

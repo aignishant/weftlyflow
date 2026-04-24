@@ -81,6 +81,7 @@
     asc_api.py                : Apple App Store Connect ES256 JWT minted per request.
     docusign_jwt.py           : DocuSign RS256 JWT Grant — runtime Bearer exchange.
     cloudinary_api.py         : Cloudinary Basic auth + SHA-1 signed upload/destroy bodies.
+    ollama_api.py             : Ollama self-hosted base URL + optional Bearer auth.
 
 Per-service OAuth2 types ship alongside their integration node.
 """
@@ -143,6 +144,7 @@ from weftlyflow.credentials.types.netsuite_api import NetSuiteApiCredential
 from weftlyflow.credentials.types.notion_api import NotionApiCredential
 from weftlyflow.credentials.types.oauth2_generic import OAuth2GenericCredential
 from weftlyflow.credentials.types.okta_api import OktaApiCredential
+from weftlyflow.credentials.types.ollama_api import OllamaApiCredential
 from weftlyflow.credentials.types.openai_api import OpenAIApiCredential
 from weftlyflow.credentials.types.pagerduty_api import PagerDutyApiCredential
 from weftlyflow.credentials.types.paypal_api import PayPalApiCredential
@@ -226,6 +228,7 @@ __all__ = [
     "NotionApiCredential",
     "OAuth2GenericCredential",
     "OktaApiCredential",
+    "OllamaApiCredential",
     "OpenAIApiCredential",
     "PagerDutyApiCredential",
     "PayPalApiCredential",

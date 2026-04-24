@@ -99,7 +99,7 @@ def test_load_builtins_registers_every_core_node():
     # that accept the in-process RestrictedPython threat model.
     reg = NodeRegistry()
     added = reg.load_builtins()
-    assert added == 105
+    assert added == 116
     types = {spec.type for spec in reg.catalog()}
     assert types == {
         "weftlyflow.manual_trigger",
@@ -207,6 +207,17 @@ def test_load_builtins_registers_every_core_node():
         "weftlyflow.gcs",
         "weftlyflow.azure_blob",
         "weftlyflow.backblaze_b2",
+        "weftlyflow.ollama",
+        "weftlyflow.memory_buffer",
+        "weftlyflow.memory_window",
+        "weftlyflow.memory_summary",
+        "weftlyflow.guard_pii_redact",
+        "weftlyflow.guard_jailbreak_detect",
+        "weftlyflow.guard_schema_enforce",
+        "weftlyflow.text_splitter",
+        "weftlyflow.vector_memory",
+        "weftlyflow.embed_local",
+        "weftlyflow.chat_respond",
     }
 
 

@@ -128,6 +128,7 @@ class WorkflowExecutor:
                 execution_id=state.execution_id,
                 mode=state.mode,
                 node=workflow.nodes[0] if workflow.nodes else _synthetic_node(),
+                static_data=state.static_data,
                 hooks=self._hooks,
                 credential_resolver=self._credential_resolver,
                 sub_workflow_runner=self._sub_workflow_runner,
@@ -143,6 +144,7 @@ class WorkflowExecutor:
                 mode=state.mode,
                 node=node,
                 inputs=inputs_by_node.get(node_id, {}),
+                static_data=state.static_data,
                 hooks=self._hooks,
                 credential_resolver=self._credential_resolver,
                 sub_workflow_runner=self._sub_workflow_runner,
@@ -356,6 +358,7 @@ def _exit_context(
         execution_id=state.execution_id,
         mode=state.mode,
         node=anchor,
+        static_data=state.static_data,
         hooks=hooks,
     )
 
