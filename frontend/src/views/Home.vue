@@ -8,7 +8,6 @@ import {
   BarChart3,
   BookOpen,
   Bot,
-  Boxes,
   Brain,
   CalendarDays,
   CheckCircle2,
@@ -17,7 +16,6 @@ import {
   Clock,
   Database,
   DollarSign,
-  Download,
   FileText,
   Github,
   GitBranch,
@@ -430,8 +428,6 @@ const donutArcs = computed<DonutArc[]>(() => {
     });
 });
 
-const donutCircumference = 2 * Math.PI * 54;
-
 // ----- integrations -------------------------------------------------------
 
 const integrationNodes = computed(() =>
@@ -493,15 +489,24 @@ const quickActions = computed<QuickAction[]>(() => [
 <template>
   <div class="home">
     <!-- HERO ---------------------------------------------------------- -->
-    <section class="hero" data-testid="hero-card">
+    <section
+      class="hero"
+      data-testid="hero-card"
+    >
       <div class="hero-copy">
         <div class="hero-top">
           <p class="eyebrow">
             <Sparkles :size="14" />
             <span>{{ greeting }}, {{ userLabel }}</span>
           </p>
-          <span class="sys-badge" :data-tone="systemBadge.tone">
-            <span class="sys-dot" :style="{ background: systemBadge.color }" />
+          <span
+            class="sys-badge"
+            :data-tone="systemBadge.tone"
+          >
+            <span
+              class="sys-dot"
+              :style="{ background: systemBadge.color }"
+            />
             {{ systemBadge.label }}
           </span>
         </div>
@@ -512,7 +517,10 @@ const quickActions = computed<QuickAction[]>(() => [
         </p>
       </div>
       <div class="hero-cta">
-        <form class="create-form" @submit.prevent="createWorkflow">
+        <form
+          class="create-form"
+          @submit.prevent="createWorkflow"
+        >
           <input
             v-model="newName"
             data-testid="workflow-name"
@@ -554,7 +562,10 @@ const quickActions = computed<QuickAction[]>(() => [
     </section>
 
     <!-- QUICK ACTIONS ------------------------------------------------- -->
-    <section class="quick-actions" data-testid="quick-actions">
+    <section
+      class="quick-actions"
+      data-testid="quick-actions"
+    >
       <RouterLink
         v-for="action in quickActions"
         :key="action.label"
@@ -563,7 +574,10 @@ const quickActions = computed<QuickAction[]>(() => [
         :data-tone="action.tone"
       >
         <span class="qa-icon">
-          <component :is="action.icon" :size="18" />
+          <component
+            :is="action.icon"
+            :size="18"
+          />
         </span>
         <span class="qa-body">
           <span class="qa-label">{{ action.label }}</span>
@@ -573,39 +587,84 @@ const quickActions = computed<QuickAction[]>(() => [
     </section>
 
     <!-- STAT CARDS ---------------------------------------------------- -->
-    <section class="stats" data-testid="stats-row">
-      <article class="stat" data-tone="blue">
-        <div class="stat-icon"><Layers :size="18" /></div>
+    <section
+      class="stats"
+      data-testid="stats-row"
+    >
+      <article
+        class="stat"
+        data-tone="blue"
+      >
+        <div class="stat-icon">
+          <Layers :size="18" />
+        </div>
         <div class="stat-body">
-          <p class="stat-label">Workflows</p>
-          <p class="stat-value">{{ store.items.length }}</p>
-          <p class="stat-sub">{{ totalNodes }} nodes total</p>
+          <p class="stat-label">
+            Workflows
+          </p>
+          <p class="stat-value">
+            {{ store.items.length }}
+          </p>
+          <p class="stat-sub">
+            {{ totalNodes }} nodes total
+          </p>
         </div>
       </article>
-      <article class="stat" data-tone="green">
-        <div class="stat-icon"><Zap :size="18" /></div>
+      <article
+        class="stat"
+        data-tone="green"
+      >
+        <div class="stat-icon">
+          <Zap :size="18" />
+        </div>
         <div class="stat-body">
-          <p class="stat-label">Active</p>
-          <p class="stat-value">{{ activeCount }}</p>
-          <p class="stat-sub">running on triggers</p>
+          <p class="stat-label">
+            Active
+          </p>
+          <p class="stat-value">
+            {{ activeCount }}
+          </p>
+          <p class="stat-sub">
+            running on triggers
+          </p>
         </div>
       </article>
-      <article class="stat" data-tone="purple">
-        <div class="stat-icon"><Activity :size="18" /></div>
+      <article
+        class="stat"
+        data-tone="purple"
+      >
+        <div class="stat-icon">
+          <Activity :size="18" />
+        </div>
         <div class="stat-body">
-          <p class="stat-label">Runs (24h)</p>
-          <p class="stat-value">{{ recentExecutions.length }}</p>
-          <p class="stat-sub">{{ executions.items.length }} all-time</p>
+          <p class="stat-label">
+            Runs (24h)
+          </p>
+          <p class="stat-value">
+            {{ recentExecutions.length }}
+          </p>
+          <p class="stat-sub">
+            {{ executions.items.length }} all-time
+          </p>
         </div>
       </article>
-      <article class="stat" data-tone="amber">
-        <div class="stat-icon"><TrendingUp :size="18" /></div>
+      <article
+        class="stat"
+        data-tone="amber"
+      >
+        <div class="stat-icon">
+          <TrendingUp :size="18" />
+        </div>
         <div class="stat-body">
-          <p class="stat-label">Success rate</p>
+          <p class="stat-label">
+            Success rate
+          </p>
           <p class="stat-value">
             {{ successRate === null ? "—" : `${successRate}%` }}
           </p>
-          <p class="stat-sub">across finished runs</p>
+          <p class="stat-sub">
+            across finished runs
+          </p>
         </div>
       </article>
     </section>
@@ -638,12 +697,19 @@ const quickActions = computed<QuickAction[]>(() => [
         >
           <div class="tpl-head">
             <span class="tpl-icon">
-              <component :is="iconForTemplate(tpl.icon)" :size="18" />
+              <component
+                :is="iconForTemplate(tpl.icon)"
+                :size="18"
+              />
             </span>
             <span class="tpl-cat">{{ tpl.category }}</span>
           </div>
-          <h3 class="tpl-name">{{ tpl.name }}</h3>
-          <p class="tpl-desc">{{ tpl.description }}</p>
+          <h3 class="tpl-name">
+            {{ tpl.name }}
+          </h3>
+          <p class="tpl-desc">
+            {{ tpl.description }}
+          </p>
           <div class="tpl-stack">
             <span
               v-for="tag in tpl.stack"
@@ -665,7 +731,10 @@ const quickActions = computed<QuickAction[]>(() => [
     </section>
 
     <!-- INTEGRATIONS GALLERY ------------------------------------------ -->
-    <section class="wf-card integrations" data-testid="integrations-panel">
+    <section
+      class="wf-card integrations"
+      data-testid="integrations-panel"
+    >
       <header class="panel-header">
         <div>
           <h2>
@@ -700,7 +769,10 @@ const quickActions = computed<QuickAction[]>(() => [
         </span>
       </div>
 
-      <div v-if="filteredIntegrations.length > 0" class="int-grid">
+      <div
+        v-if="filteredIntegrations.length > 0"
+        class="int-grid"
+      >
         <article
           v-for="n in filteredIntegrations"
           :key="n.type"
@@ -714,7 +786,10 @@ const quickActions = computed<QuickAction[]>(() => [
               boxShadow: `0 10px 20px -12px ${nodePalette(n.type)[0]}`,
             }"
           >
-            <Brain v-if="n.category === 'ai'" :size="14" />
+            <Brain
+              v-if="n.category === 'ai'"
+              :size="14"
+            />
             <span v-else>{{ nodeInitial(n) }}</span>
           </span>
           <span class="int-meta">
@@ -725,7 +800,10 @@ const quickActions = computed<QuickAction[]>(() => [
           </span>
         </article>
       </div>
-      <p v-else class="muted empty">
+      <p
+        v-else
+        class="muted empty"
+      >
         No integrations match "{{ integrationSearch }}".
       </p>
     </section>
@@ -736,7 +814,9 @@ const quickActions = computed<QuickAction[]>(() => [
         <header class="panel-header">
           <div>
             <h2>Activity</h2>
-            <p class="muted">Executions by day · last 14 days</p>
+            <p class="muted">
+              Executions by day · last 14 days
+            </p>
           </div>
           <span class="legend">
             <span class="dot dot-ok" /> success
@@ -760,7 +840,10 @@ const quickActions = computed<QuickAction[]>(() => [
                 :style="{ height: `${(b.success / maxBucket) * 100}%` }"
               />
             </div>
-            <span v-if="i % 2 === 0" class="bar-label">{{ b.label }}</span>
+            <span
+              v-if="i % 2 === 0"
+              class="bar-label"
+            >{{ b.label }}</span>
           </div>
         </div>
       </article>
@@ -769,20 +852,45 @@ const quickActions = computed<QuickAction[]>(() => [
         <header class="panel-header">
           <div>
             <h2>Recent runs</h2>
-            <p class="muted">Latest 8 executions</p>
+            <p class="muted">
+              Latest 8 executions
+            </p>
           </div>
-          <RouterLink :to="{ name: 'executions' }" class="link">View all →</RouterLink>
+          <RouterLink
+            :to="{ name: 'executions' }"
+            class="link"
+          >
+            View all →
+          </RouterLink>
         </header>
-        <ul v-if="executions.items.length > 0" class="run-list">
-          <li v-for="e in executions.items.slice(0, 8)" :key="e.id">
+        <ul
+          v-if="executions.items.length > 0"
+          class="run-list"
+        >
+          <li
+            v-for="e in executions.items.slice(0, 8)"
+            :key="e.id"
+          >
             <RouterLink
               :to="{ name: 'execution-detail', params: { id: e.id } }"
               class="run-row"
             >
-              <span class="run-status" :data-tone="statusTone(e.status)">
-                <CheckCircle2 v-if="e.status === 'success'" :size="14" />
-                <Clock v-else-if="e.status === 'running'" :size="14" />
-                <Circle v-else :size="14" />
+              <span
+                class="run-status"
+                :data-tone="statusTone(e.status)"
+              >
+                <CheckCircle2
+                  v-if="e.status === 'success'"
+                  :size="14"
+                />
+                <Clock
+                  v-else-if="e.status === 'running'"
+                  :size="14"
+                />
+                <Circle
+                  v-else
+                  :size="14"
+                />
               </span>
               <span class="run-name">{{ workflowName(e.workflow_id) }}</span>
               <span class="run-mode">{{ e.mode }}</span>
@@ -790,7 +898,12 @@ const quickActions = computed<QuickAction[]>(() => [
             </RouterLink>
           </li>
         </ul>
-        <p v-else class="muted empty">No runs yet. Create a workflow and hit execute.</p>
+        <p
+          v-else
+          class="muted empty"
+        >
+          No runs yet. Create a workflow and hit execute.
+        </p>
       </article>
     </section>
 
@@ -801,7 +914,9 @@ const quickActions = computed<QuickAction[]>(() => [
         <header class="panel-header">
           <div>
             <h2>Status mix</h2>
-            <p class="muted">Distribution of execution outcomes</p>
+            <p class="muted">
+              Distribution of execution outcomes
+            </p>
           </div>
         </header>
         <div class="donut-wrap">
@@ -813,7 +928,9 @@ const quickActions = computed<QuickAction[]>(() => [
           >
             <circle
               class="donut-track"
-              cx="70" cy="70" r="54"
+              cx="70"
+              cy="70"
+              r="54"
               fill="none"
               stroke="rgba(255,255,255,0.05)"
               stroke-width="16"
@@ -821,7 +938,9 @@ const quickActions = computed<QuickAction[]>(() => [
             <circle
               v-for="(arc, i) in donutArcs"
               :key="i"
-              cx="70" cy="70" r="54"
+              cx="70"
+              cy="70"
+              r="54"
               fill="none"
               :stroke="arc.color"
               stroke-width="16"
@@ -832,19 +951,27 @@ const quickActions = computed<QuickAction[]>(() => [
               transform="rotate(-90 70 70)"
             />
             <text
-              x="70" y="66"
+              x="70"
+              y="66"
               text-anchor="middle"
               class="donut-total"
             >{{ statusTotal }}</text>
             <text
-              x="70" y="84"
+              x="70"
+              y="84"
               text-anchor="middle"
               class="donut-sub"
             >runs</text>
           </svg>
           <ul class="donut-legend">
-            <li v-for="s in statusSlices" :key="s.label">
-              <span class="sw" :style="{ background: s.color }" />
+            <li
+              v-for="s in statusSlices"
+              :key="s.label"
+            >
+              <span
+                class="sw"
+                :style="{ background: s.color }"
+              />
               <span class="sw-label">{{ s.label }}</span>
               <span class="sw-val">{{ s.count }}</span>
             </li>
@@ -861,12 +988,26 @@ const quickActions = computed<QuickAction[]>(() => [
               {{ credentials.items.length }} stored · {{ credentials.types.length }} types
             </p>
           </div>
-          <RouterLink :to="{ name: 'credentials' }" class="link">Manage →</RouterLink>
+          <RouterLink
+            :to="{ name: 'credentials' }"
+            class="link"
+          >
+            Manage →
+          </RouterLink>
         </header>
 
-        <ul v-if="recentCredentials.length > 0" class="cred-list">
-          <li v-for="c in recentCredentials" :key="c.id">
-            <RouterLink :to="{ name: 'credentials' }" class="cred-row">
+        <ul
+          v-if="recentCredentials.length > 0"
+          class="cred-list"
+        >
+          <li
+            v-for="c in recentCredentials"
+            :key="c.id"
+          >
+            <RouterLink
+              :to="{ name: 'credentials' }"
+              class="cred-row"
+            >
               <span
                 class="cred-icon"
                 :style="{
@@ -885,10 +1026,20 @@ const quickActions = computed<QuickAction[]>(() => [
             </RouterLink>
           </li>
         </ul>
-        <div v-else class="empty-state">
+        <div
+          v-else
+          class="empty-state"
+        >
           <KeyRound :size="22" />
-          <p class="muted">No credentials yet.</p>
-          <RouterLink :to="{ name: 'credentials' }" class="link">Add your first credential →</RouterLink>
+          <p class="muted">
+            No credentials yet.
+          </p>
+          <RouterLink
+            :to="{ name: 'credentials' }"
+            class="link"
+          >
+            Add your first credential →
+          </RouterLink>
         </div>
       </article>
 
@@ -930,7 +1081,10 @@ const quickActions = computed<QuickAction[]>(() => [
           </div>
         </div>
 
-        <footer v-if="topNodes.length > 0" class="node-chips">
+        <footer
+          v-if="topNodes.length > 0"
+          class="node-chips"
+        >
           <span
             v-for="n in topNodes"
             :key="n.type"
@@ -958,11 +1112,19 @@ const quickActions = computed<QuickAction[]>(() => [
         </div>
         <div class="search">
           <Search :size="14" />
-          <input v-model="search" placeholder="Search workflows…">
+          <input
+            v-model="search"
+            placeholder="Search workflows…"
+          >
         </div>
       </header>
 
-      <p v-if="store.loading" class="muted">Loading…</p>
+      <p
+        v-if="store.loading"
+        class="muted"
+      >
+        Loading…
+      </p>
       <p
         v-else-if="store.items.length === 0"
         class="muted empty"
@@ -978,7 +1140,11 @@ const quickActions = computed<QuickAction[]>(() => [
 
       <!-- Preserve the existing data-testid=workflow-table hook for tests
            by wrapping the grid in a table-ish semantics via a custom attr. -->
-      <div v-if="filteredWorkflows.length > 0" class="wf-grid" data-testid="workflow-table">
+      <div
+        v-if="filteredWorkflows.length > 0"
+        class="wf-grid"
+        data-testid="workflow-table"
+      >
         <article
           v-for="wf in filteredWorkflows"
           :key="wf.id"
@@ -988,7 +1154,10 @@ const quickActions = computed<QuickAction[]>(() => [
         >
           <div class="tile-head">
             <span class="tile-icon">{{ workflowInitial(wf.name) }}</span>
-            <span class="tile-cat" :class="wf.active ? 'on' : 'off'">
+            <span
+              class="tile-cat"
+              :class="wf.active ? 'on' : 'off'"
+            >
               <span class="tile-dot" />
               {{ wf.active ? "Active" : "Paused" }}
             </span>

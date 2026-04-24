@@ -149,7 +149,10 @@ defineExpose({ focusSearch });
           <span class="palette-count">{{ totalCount }}</span>
         </div>
       </div>
-      <div class="palette-search" data-testid="palette-search">
+      <div
+        class="palette-search"
+        data-testid="palette-search"
+      >
         <Input
           ref="searchInput"
           v-model="filter"

@@ -73,20 +73,32 @@ function resetAllTours(): void {
       :to="{ name: 'home' }"
       class="brand"
     >
-      <span class="brand-mark" aria-hidden="true" />
+      <span
+        class="brand-mark"
+        aria-hidden="true"
+      />
       <span class="brand-text">Weftlyflow</span>
     </RouterLink>
 
     <nav class="nav">
-      <RouterLink :to="{ name: 'home' }" class="nav-link">
+      <RouterLink
+        :to="{ name: 'home' }"
+        class="nav-link"
+      >
         <Workflow :size="16" />
         <span>Workflows</span>
       </RouterLink>
-      <RouterLink :to="{ name: 'executions' }" class="nav-link">
+      <RouterLink
+        :to="{ name: 'executions' }"
+        class="nav-link"
+      >
         <Play :size="16" />
         <span>Executions</span>
       </RouterLink>
-      <RouterLink :to="{ name: 'credentials' }" class="nav-link">
+      <RouterLink
+        :to="{ name: 'credentials' }"
+        class="nav-link"
+      >
         <Key :size="16" />
         <span>Credentials</span>
       </RouterLink>
@@ -94,8 +106,14 @@ function resetAllTours(): void {
 
     <div class="spacer" />
 
-    <div v-if="auth.email" class="user">
-      <span class="avatar" :title="auth.email">
+    <div
+      v-if="auth.email"
+      class="user"
+    >
+      <span
+        class="avatar"
+        :title="auth.email"
+      >
         {{ auth.email.slice(0, 1).toUpperCase() }}
       </span>
       <span class="email">{{ auth.email }}</span>
@@ -117,7 +135,11 @@ function resetAllTours(): void {
         role="menu"
         @click.self="helpOpen = false"
       >
-        <button class="hm-item" role="menuitem" @click="replayDashboardTour">
+        <button
+          class="hm-item"
+          role="menuitem"
+          @click="replayDashboardTour"
+        >
           <span class="hm-label">Replay dashboard tour</span>
           <span class="hm-hint">Walk through workflows, stats, integrations</span>
         </button>
@@ -131,16 +153,28 @@ function resetAllTours(): void {
           <span class="hm-label">Replay editor tour</span>
           <span class="hm-hint">Palette · canvas · inspector · examples · save</span>
         </button>
-        <button class="hm-item" role="menuitem" @click="replayCredentialsTour">
+        <button
+          class="hm-item"
+          role="menuitem"
+          @click="replayCredentialsTour"
+        >
           <span class="hm-label">Replay credentials tour</span>
           <span class="hm-hint">Vault · encrypted storage · test button</span>
         </button>
-        <button class="hm-item" role="menuitem" @click="replayExecutionsTour">
+        <button
+          class="hm-item"
+          role="menuitem"
+          @click="replayExecutionsTour"
+        >
           <span class="hm-label">Replay executions tour</span>
           <span class="hm-hint">Run history · status · drill-down</span>
         </button>
         <div class="hm-sep" />
-        <button class="hm-item" role="menuitem" @click="resetAllTours">
+        <button
+          class="hm-item"
+          role="menuitem"
+          @click="resetAllTours"
+        >
           <span class="hm-label">Reset all tours</span>
           <span class="hm-hint">They'll auto-play again on next visit</span>
         </button>

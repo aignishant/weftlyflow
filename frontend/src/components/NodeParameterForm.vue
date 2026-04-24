@@ -135,8 +135,16 @@ const filledCount = computed(() =>
     data-testid="node-form"
   >
     <!-- HEADER --------------------------------------------------------- -->
-    <div class="node-card" :data-tone="categoryTone()">
-      <div class="nc-badge" aria-hidden="true">{{ typeInitial }}</div>
+    <div
+      class="node-card"
+      :data-tone="categoryTone()"
+    >
+      <div
+        class="nc-badge"
+        aria-hidden="true"
+      >
+        {{ typeInitial }}
+      </div>
       <div class="nc-body">
         <div class="nc-row">
           <input
@@ -163,7 +171,9 @@ const filledCount = computed(() =>
         <p
           v-if="nodeType?.description"
           class="nc-desc"
-        >{{ nodeType.description }}</p>
+        >
+          {{ nodeType.description }}
+        </p>
         <div class="nc-stats">
           <span
             v-if="paramCount > 0"
@@ -213,7 +223,10 @@ const filledCount = computed(() =>
             class="field"
           >
             <label class="f-label">
-              <Plug :size="11" class="f-icon" />
+              <Plug
+                :size="11"
+                class="f-icon"
+              />
               {{ slot.name }}
               <span
                 v-if="slot.required"
@@ -234,12 +247,16 @@ const filledCount = computed(() =>
                   )
                 "
               >
-                <option value="">— none —</option>
+                <option value="">
+                  — none —
+                </option>
                 <option
                   v-for="cred in credentialsForSlot(slot.credential_types)"
                   :key="cred.id"
                   :value="cred.id"
-                >{{ cred.name }} ({{ cred.type }})</option>
+                >
+                  {{ cred.name }} ({{ cred.type }})
+                </option>
               </select>
             </div>
             <p
@@ -335,13 +352,17 @@ const filledCount = computed(() =>
                   <option
                     v-if="!prop.required"
                     value=""
-                  >— default —</option>
+                  >
+                    — default —
+                  </option>
                   <option
                     v-for="opt in prop.options || []"
                     :key="opt.value"
                     :value="opt.value"
                     :title="opt.description ?? ''"
-                  >{{ opt.label }}</option>
+                  >
+                    {{ opt.label }}
+                  </option>
                 </select>
               </template>
               <template v-else-if="prop.type === 'number'">

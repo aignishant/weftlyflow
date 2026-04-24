@@ -37,7 +37,10 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <div class="login">
-    <div class="bg-blobs" aria-hidden="true">
+    <div
+      class="bg-blobs"
+      aria-hidden="true"
+    >
       <span class="blob blob-a" />
       <span class="blob blob-b" />
       <span class="blob blob-c" />
@@ -49,10 +52,15 @@ async function onSubmit(): Promise<void> {
       @submit.prevent="onSubmit"
     >
       <div class="brand">
-        <span class="brand-mark" aria-hidden="true" />
+        <span
+          class="brand-mark"
+          aria-hidden="true"
+        />
         <h1>Weftlyflow</h1>
       </div>
-      <p class="subtitle">Sign in to your workspace</p>
+      <p class="subtitle">
+        Sign in to your workspace
+      </p>
 
       <label for="login-email">Email</label>
       <input
@@ -89,7 +97,11 @@ async function onSubmit(): Promise<void> {
         type="submit"
         :disabled="submitting"
       >
-        <span v-if="submitting" class="spinner" aria-hidden="true" />
+        <span
+          v-if="submitting"
+          class="spinner"
+          aria-hidden="true"
+        />
         <span>{{ submitting ? "Signing in…" : "Sign in" }}</span>
       </button>
 

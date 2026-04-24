@@ -271,12 +271,18 @@ watch(expanded, (next) => {
           {{ formatDuration(totalDurationMs) }}
         </span>
 
-        <span v-if="execution && !running" class="run-chip">
+        <span
+          v-if="execution && !running"
+          class="run-chip"
+        >
           <Hash :size="11" />
           {{ totalItems }} item{{ totalItems === 1 ? "" : "s" }}
         </span>
 
-        <span v-if="execution && !running" class="run-chip">
+        <span
+          v-if="execution && !running"
+          class="run-chip"
+        >
           <Info :size="11" />
           {{ nodeSummaries.length }} node{{ nodeSummaries.length === 1 ? "" : "s" }}
         </span>
@@ -340,7 +346,9 @@ watch(expanded, (next) => {
       class="run-empty"
     >
       <Play :size="20" />
-      <p class="run-empty-title">No runs yet.</p>
+      <p class="run-empty-title">
+        No runs yet.
+      </p>
       <p class="run-empty-sub">
         Click Execute to run the workflow with a single empty item.
       </p>
@@ -388,20 +396,32 @@ watch(expanded, (next) => {
           </span>
 
           <div class="run-meta">
-            <span class="run-name" :title="row.displayName">
+            <span
+              class="run-name"
+              :title="row.displayName"
+            >
               {{ row.displayName }}
             </span>
-            <span class="run-slug" :title="row.typeSlug || row.nodeId">
+            <span
+              class="run-slug"
+              :title="row.typeSlug || row.nodeId"
+            >
               {{ row.typeSlug || row.nodeId }}
             </span>
           </div>
 
           <div class="run-stats">
-            <span class="run-stat" :title="`${row.items} items across ${row.ports} port(s)`">
+            <span
+              class="run-stat"
+              :title="`${row.items} items across ${row.ports} port(s)`"
+            >
               <Hash :size="10" />
               {{ row.items }}
             </span>
-            <span class="run-stat" :title="`Duration: ${formatDuration(row.durationMs)}`">
+            <span
+              class="run-stat"
+              :title="`Duration: ${formatDuration(row.durationMs)}`"
+            >
               <Clock :size="10" />
               {{ formatDuration(row.durationMs) }}
             </span>
@@ -449,8 +469,14 @@ watch(expanded, (next) => {
               :title="copiedKey === row.nodeId ? 'Copied!' : 'Copy full response'"
               @click="copyJson(row.nodeId, row.samples)"
             >
-              <ClipboardCheck v-if="copiedKey === row.nodeId" :size="12" />
-              <Clipboard v-else :size="12" />
+              <ClipboardCheck
+                v-if="copiedKey === row.nodeId"
+                :size="12"
+              />
+              <Clipboard
+                v-else
+                :size="12"
+              />
             </button>
           </div>
 
@@ -472,12 +498,19 @@ watch(expanded, (next) => {
                 #{{ idx + 1 }}
               </button>
             </div>
+            <!-- eslint-disable vue/no-v-html -- highlightJson HTML-escapes input before adding fixed span tags -->
             <pre
               v-if="row.samples.length > 0"
               class="run-json"
               v-html="highlightJson(row.samples[activeItemIdx[row.nodeId] ?? 0])"
             />
-            <p v-else class="run-empty-body">No items returned by this node.</p>
+            <!-- eslint-enable vue/no-v-html -->
+            <p
+              v-else
+              class="run-empty-body"
+            >
+              No items returned by this node.
+            </p>
           </div>
 
           <div
@@ -493,13 +526,19 @@ watch(expanded, (next) => {
             class="run-kv"
           >
             <dl>
-              <dt>Node ID</dt><dd class="mono">{{ row.nodeId }}</dd>
-              <dt>Type</dt><dd class="mono">{{ row.typeSlug || "—" }}</dd>
+              <dt>Node ID</dt><dd class="mono">
+                {{ row.nodeId }}
+              </dd>
+              <dt>Type</dt><dd class="mono">
+                {{ row.typeSlug || "—" }}
+              </dd>
               <dt>Category</dt><dd>{{ row.category }}</dd>
               <dt>Status</dt><dd>{{ row.status }}</dd>
               <dt>Items</dt><dd>{{ row.items }} across {{ row.ports }} port(s)</dd>
               <dt>Duration</dt><dd>{{ formatDuration(row.durationMs) }}</dd>
-              <dt>Started</dt><dd class="mono">{{ row.startedAt ?? "—" }}</dd>
+              <dt>Started</dt><dd class="mono">
+                {{ row.startedAt ?? "—" }}
+              </dd>
             </dl>
           </div>
         </div>

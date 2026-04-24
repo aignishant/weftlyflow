@@ -247,17 +247,29 @@ const progressPct = computed(() =>
             <X :size="14" />
           </button>
         </header>
-        <h3 class="tp-title">{{ currentStep.title }}</h3>
-        <p class="tp-body">{{ currentStep.body }}</p>
-        <div class="tp-progress" aria-hidden="true">
-          <div class="tp-progress-bar" :style="{ width: `${progressPct}%` }" />
+        <h3 class="tp-title">
+          {{ currentStep.title }}
+        </h3>
+        <p class="tp-body">
+          {{ currentStep.body }}
+        </p>
+        <div
+          class="tp-progress"
+          aria-hidden="true"
+        >
+          <div
+            class="tp-progress-bar"
+            :style="{ width: `${progressPct}%` }"
+          />
         </div>
         <footer class="tp-foot">
           <button
             class="tp-ghost"
             data-testid="tour-skip-footer"
             @click="skipTour"
-          >Skip</button>
+          >
+            Skip
+          </button>
           <div class="tp-spacer" />
           <button
             v-if="!isFirstStep"

@@ -131,7 +131,9 @@ const subLabel = computed(() =>
           </span>
           <div class="m-head-text">
             <h2>{{ headingLabel }}</h2>
-            <p class="m-sub">{{ subLabel }}</p>
+            <p class="m-sub">
+              {{ subLabel }}
+            </p>
           </div>
         </div>
         <button
@@ -181,7 +183,10 @@ const subLabel = computed(() =>
         <div class="m-field">
           <label for="cred-type">Type</label>
           <div class="m-select-wrap">
-            <KeyRound :size="14" class="m-select-icon" />
+            <KeyRound
+              :size="14"
+              class="m-select-icon"
+            />
             <select
               id="cred-type"
               v-model="value.type"

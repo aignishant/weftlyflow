@@ -155,7 +155,10 @@ const hasItems = computed(() => store.items.length > 0);
         </button>
       </div>
 
-      <p v-if="store.loading" class="cred-muted">
+      <p
+        v-if="store.loading"
+        class="cred-muted"
+      >
         Loading…
       </p>
 
@@ -164,7 +167,9 @@ const hasItems = computed(() => store.items.length > 0);
         class="cred-empty"
       >
         <KeyRound :size="26" />
-        <p class="cred-empty-title">No credentials yet</p>
+        <p class="cred-empty-title">
+          No credentials yet
+        </p>
         <p class="cred-empty-sub">
           Click <strong>New credential</strong> to add an OAuth token or API key.
         </p>
@@ -182,7 +187,7 @@ const hasItems = computed(() => store.items.length > 0);
           :data-credential-id="row.id"
           :style="{
             '--cred-from': paletteFor(row.type)[0],
-            '--cred-to':   paletteFor(row.type)[1],
+            '--cred-to': paletteFor(row.type)[1],
           }"
         >
           <span class="cred-icon">
@@ -199,8 +204,14 @@ const hasItems = computed(() => store.items.length > 0);
               class="wf-badge"
               :class="testResults[row.id].ok ? 'success' : 'error'"
             >
-              <CheckCircle2 v-if="testResults[row.id].ok" :size="11" />
-              <AlertCircle v-else :size="11" />
+              <CheckCircle2
+                v-if="testResults[row.id].ok"
+                :size="11"
+              />
+              <AlertCircle
+                v-else
+                :size="11"
+              />
               {{ testResults[row.id].ok ? "ok" : testResults[row.id].message }}
             </span>
             <button
