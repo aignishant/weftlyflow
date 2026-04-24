@@ -99,7 +99,7 @@ def test_load_builtins_registers_every_core_node():
     # that accept the in-process RestrictedPython threat model.
     reg = NodeRegistry()
     added = reg.load_builtins()
-    assert added == 121
+    assert added == 122
     types = {spec.type for spec in reg.catalog()}
     assert types == {
         "weftlyflow.manual_trigger",
@@ -217,6 +217,7 @@ def test_load_builtins_registers_every_core_node():
         "weftlyflow.text_splitter",
         "weftlyflow.vector_memory",
         "weftlyflow.embed_local",
+        "weftlyflow.embed_openai",
         "weftlyflow.chat_respond",
         "weftlyflow.agent_tool_dispatch",
         "weftlyflow.agent_tool_result",
