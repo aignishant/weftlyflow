@@ -8,8 +8,8 @@ Two ways to express the predicate:
   engine. When both are set, the expression wins.
 
 Items that raise during predicate evaluation are dropped unless
-``keep_on_error`` is True — the same policy n8n-style users expect from a
-"filter" node.
+``keep_on_error`` is True — matching the conventional behaviour of a
+workflow "filter" step.
 """
 
 from __future__ import annotations
