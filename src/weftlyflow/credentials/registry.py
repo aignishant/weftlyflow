@@ -99,6 +99,7 @@ _BUILTIN_TYPES: tuple[str, ...] = (
     "weftlyflow.credentials.types.docusign_jwt",
     "weftlyflow.credentials.types.cloudinary_api",
     "weftlyflow.credentials.types.gcp_service_account",
+    "weftlyflow.credentials.types.google_genai_api",
     "weftlyflow.credentials.types.azure_storage_shared_key",
     "weftlyflow.credentials.types.backblaze_b2",
 )

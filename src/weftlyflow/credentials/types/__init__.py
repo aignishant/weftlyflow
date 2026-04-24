@@ -55,6 +55,7 @@
     square_api.py             : Square Bearer + mandatory ``Square-Version`` header.
     facebook_graph.py         : Facebook Graph Bearer + optional HMAC ``appsecret_proof`` query.
     anthropic_api.py          : Anthropic ``x-api-key`` + ``anthropic-version`` header pair.
+    google_genai_api.py       : Google GenAI (Gemini) ``x-goog-api-key`` header.
     bitbucket_api.py          : Bitbucket Cloud Basic auth + workspace-scoped URL paths.
     paypal_api.py             : PayPal OAuth2 Client Credentials — runtime token fetch.
     mapbox_api.py             : Mapbox ``?access_token=`` query-param auth.
@@ -125,6 +126,7 @@ from weftlyflow.credentials.types.ghost_admin import GhostAdminCredential
 from weftlyflow.credentials.types.gitlab_token import GitLabTokenCredential
 from weftlyflow.credentials.types.gmail_oauth2 import GmailOAuth2Credential
 from weftlyflow.credentials.types.google_drive_oauth2 import GoogleDriveOAuth2Credential
+from weftlyflow.credentials.types.google_genai_api import GoogleGenAIApiCredential
 from weftlyflow.credentials.types.google_sheets_oauth2 import GoogleSheetsOAuth2Credential
 from weftlyflow.credentials.types.harvest_api import HarvestApiCredential
 from weftlyflow.credentials.types.hasura_api import HasuraApiCredential
@@ -209,6 +211,7 @@ __all__ = [
     "GitLabTokenCredential",
     "GmailOAuth2Credential",
     "GoogleDriveOAuth2Credential",
+    "GoogleGenAIApiCredential",
     "GoogleSheetsOAuth2Credential",
     "HarvestApiCredential",
     "HasuraApiCredential",
