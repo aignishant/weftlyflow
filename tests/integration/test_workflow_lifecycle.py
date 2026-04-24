@@ -102,9 +102,9 @@ async def test_post_workflow_execute_read(
 
     adults_port = run_data["node_adults"][0]["items"][0]
     minors_port = run_data["node_minors"][0]["items"][0]
-    assert [item["age"] for item in adults_port] == [30, 21]
-    assert [item["age"] for item in minors_port] == [10]
-    assert all(item["tagged"] is True for item in adults_port + minors_port)
+    assert [item["json"]["age"] for item in adults_port] == [30, 21]
+    assert [item["json"]["age"] for item in minors_port] == [10]
+    assert all(item["json"]["tagged"] is True for item in adults_port + minors_port)
 
 
 async def test_get_workflow_404(

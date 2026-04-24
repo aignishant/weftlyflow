@@ -122,23 +122,23 @@ async def test_chain_filter_rename_evaluate_switch(
 
     # Filter drops the minor.
     filter_out = run_data["node_filter"][0]["items"][0]
-    assert {it["age"] for it in filter_out} == {30, 21, 42}
+    assert {it["json"]["age"] for it in filter_out} == {30, 21, 42}
 
     # Rename makes every kept item expose `first_name` not `firstName`.
     rename_out = run_data["node_rename"][0]["items"][0]
-    assert all("first_name" in it and "firstName" not in it for it in rename_out)
+    assert all("first_name" in it["json"] and "firstName" not in it["json"] for it in rename_out)
 
     # Evaluate writes display_name via the expression engine.
     eval_out = run_data["node_eval"][0]["items"][0]
-    assert {it["display_name"] for it in eval_out} == {"GRACE", "LINUS", "EDSGER"}
+    assert {it["json"]["display_name"] for it in eval_out} == {"GRACE", "LINUS", "EDSGER"}
 
     # Switch routes by country.
     us_out = run_data["node_us"][0]["items"][0]
     gb_out = run_data["node_gb"][0]["items"][0]
     other_out = run_data["node_other"][0]["items"][0]
-    assert [it["first_name"] for it in us_out] == ["Grace"]
+    assert [it["json"]["first_name"] for it in us_out] == ["Grace"]
     assert gb_out == []  # Ada was filtered before Switch
-    assert {it["first_name"] for it in other_out} == {"Linus", "Edsger"}
+    assert {it["json"]["first_name"] for it in other_out} == {"Linus", "Edsger"}
 
 
 async def test_stop_and_error_records_failed_execution(

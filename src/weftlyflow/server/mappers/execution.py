@@ -29,7 +29,7 @@ def execution_to_response(execution: Execution) -> ExecutionResponse:
 
 def _node_run_data_to_dto(nrd: NodeRunData) -> NodeRunDataDTO:
     return NodeRunDataDTO(
-        items=[[dict(item.json) for item in port] for port in nrd.items],
+        items=[[{"json": dict(item.json)} for item in port] for port in nrd.items],
         execution_time_ms=nrd.execution_time_ms,
         started_at=nrd.started_at,
         status=nrd.status,

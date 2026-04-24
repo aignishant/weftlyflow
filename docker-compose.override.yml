@@ -1,0 +1,12 @@
+services:
+  api:
+    networks: [default, shared_postgres]
+  worker:
+    networks: [default, shared_postgres]
+  beat:
+    networks: [default, shared_postgres]
+
+networks:
+  shared_postgres:
+    external: true
+    name: docker_default
