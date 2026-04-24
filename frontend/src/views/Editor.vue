@@ -310,14 +310,22 @@ watch(
 <template>
   <div class="editor">
     <header class="editor-header">
-      <button data-testid="editor-back" @click="onBack">← Back</button>
+      <button
+        data-testid="editor-back"
+        @click="onBack"
+      >
+        ← Back
+      </button>
       <input
         v-if="workflow"
         :value="workflow.name"
         data-testid="editor-name"
         @input="onRename(($event.target as HTMLInputElement).value)"
-      />
-      <span class="wf-badge" :class="workflow?.active ? 'success' : 'waiting'">
+      >
+      <span
+        class="wf-badge"
+        :class="workflow?.active ? 'success' : 'waiting'"
+      >
         {{ workflow?.active ? "active" : "inactive" }}
       </span>
       <div class="spacer" />
@@ -337,10 +345,21 @@ watch(
       </button>
     </header>
 
-    <div v-if="loading" class="loading">Loading workflow…</div>
+    <div
+      v-if="loading"
+      class="loading"
+    >
+      Loading workflow…
+    </div>
 
-    <div v-else class="workspace">
-      <NodePalette :types="nodeTypesStore.items" @select="handleAddNode" />
+    <div
+      v-else
+      class="workspace"
+    >
+      <NodePalette
+        :types="nodeTypesStore.items"
+        @select="handleAddNode"
+      />
 
       <div class="canvas-area">
         <VueFlow
@@ -377,7 +396,12 @@ watch(
           @update-credential="updateSelectedCredential"
           @delete="handleDeleteSelected"
         />
-        <p v-else class="empty">Select a node to edit it.</p>
+        <p
+          v-else
+          class="empty"
+        >
+          Select a node to edit it.
+        </p>
       </aside>
     </div>
   </div>

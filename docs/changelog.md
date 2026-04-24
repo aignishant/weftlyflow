@@ -4,6 +4,29 @@ All notable user-facing changes. Format follows [Keep a Changelog](https://keepa
 
 ## [Unreleased]
 
+### Added — Phase 9 (2026-04-24)
+
+**Execution-data storage backends**
+- `weftlyflow.db.execution_storage.ExecutionDataStore` protocol with
+  `DbExecutionDataStore` (default, inline) and `FilesystemExecutionDataStore`
+  (one JSON file per execution, sharded by year/month under a configured
+  base path). `ExecutionRepository` delegates payload IO to the store so
+  operators can keep Postgres lean and age payloads out of band.
+- Alembic migration `0005_phase9_execution_storage` adds
+  `execution_data.external_ref`. Settings: `execution_data_backend`
+  (`db` | `fs`), `execution_data_fs_path`.
+
+**Frontend lint debt cleared**
+- Frontend ESLint warnings (180 vue/* stylistic findings) cleared; CI now
+  enforces `npm run lint --max-warnings=0`.
+
+**Operator docs**
+- `docs/guide/external-secrets.md` — reference syntax, required settings,
+  IAM/RBAC notes, and troubleshooting table for the four built-in
+  providers.
+- `docs/guide/execution-data-storage.md` — backend comparison, switching
+  guidance, retention/backup runbook.
+
 ### Added — Phase 8b (2026-04-23)
 
 **Expression sandbox & Code node hardening**

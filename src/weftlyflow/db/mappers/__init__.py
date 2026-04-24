@@ -16,9 +16,9 @@ Rules of thumb:
 from __future__ import annotations
 
 from weftlyflow.db.mappers.execution import (
-    execution_to_data_payload,
     execution_to_domain,
     execution_to_entity_kwargs,
+    execution_to_payload,
 )
 from weftlyflow.db.mappers.project import project_to_domain
 from weftlyflow.db.mappers.user import user_to_domain
@@ -28,9 +28,9 @@ from weftlyflow.db.mappers.workflow import (
 )
 
 __all__ = [
-    "execution_to_data_payload",
     "execution_to_domain",
     "execution_to_entity_kwargs",
+    "execution_to_payload",
     "project_to_domain",
     "user_to_domain",
     "workflow_to_domain",

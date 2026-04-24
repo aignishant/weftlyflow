@@ -75,17 +75,29 @@ function currentCredentialFor(slotName: string): string {
 </script>
 
 <template>
-  <div class="form" data-testid="node-form">
+  <div
+    class="form"
+    data-testid="node-form"
+  >
     <div class="heading wf-row">
       <div class="stack-full">
         <label>Name</label>
-        <input v-model="nameModel" data-testid="node-name" />
+        <input
+          v-model="nameModel"
+          data-testid="node-name"
+        >
       </div>
-      <button class="danger" data-testid="node-delete" @click="emit('delete')">
+      <button
+        class="danger"
+        data-testid="node-delete"
+        @click="emit('delete')"
+      >
         Delete
       </button>
     </div>
-    <p class="meta">{{ node.type }}</p>
+    <p class="meta">
+      {{ node.type }}
+    </p>
 
     <template v-if="nodeType">
       <section
@@ -93,7 +105,11 @@ function currentCredentialFor(slotName: string): string {
         class="group"
       >
         <h4>Credentials</h4>
-        <div v-for="slot in nodeType.credentials" :key="slot.name" class="field">
+        <div
+          v-for="slot in nodeType.credentials"
+          :key="slot.name"
+          class="field"
+        >
           <label>{{ slot.name }}</label>
           <select
             :value="currentCredentialFor(slot.name)"
@@ -106,7 +122,9 @@ function currentCredentialFor(slotName: string): string {
               )
             "
           >
-            <option value="">— none —</option>
+            <option value="">
+              — none —
+            </option>
             <option
               v-for="cred in credentialsForSlot(slot.credential_types)"
               :key="cred.id"
@@ -118,12 +136,22 @@ function currentCredentialFor(slotName: string): string {
         </div>
       </section>
 
-      <section v-if="nodeType.properties.length > 0" class="group">
+      <section
+        v-if="nodeType.properties.length > 0"
+        class="group"
+      >
         <h4>Parameters</h4>
-        <div v-for="prop in nodeType.properties" :key="prop.name" class="field">
+        <div
+          v-for="prop in nodeType.properties"
+          :key="prop.name"
+          class="field"
+        >
           <label>
             {{ prop.display_name }}
-            <span v-if="prop.required" class="required">*</span>
+            <span
+              v-if="prop.required"
+              class="required"
+            >*</span>
           </label>
           <template v-if="prop.type === 'boolean'">
             <input
@@ -131,7 +159,7 @@ function currentCredentialFor(slotName: string): string {
               :checked="Boolean(paramValue(prop))"
               :data-testid="`node-param-${prop.name}`"
               @change="onInput(prop, ($event.target as HTMLInputElement).checked)"
-            />
+            >
           </template>
           <template v-else-if="prop.type === 'options'">
             <select
@@ -139,7 +167,12 @@ function currentCredentialFor(slotName: string): string {
               :data-testid="`node-param-${prop.name}`"
               @change="onInput(prop, ($event.target as HTMLSelectElement).value)"
             >
-              <option v-if="!prop.required" value="">— default —</option>
+              <option
+                v-if="!prop.required"
+                value=""
+              >
+                — default —
+              </option>
               <option
                 v-for="opt in prop.options || []"
                 :key="opt.value"
@@ -155,7 +188,7 @@ function currentCredentialFor(slotName: string): string {
               :value="paramValue(prop) ?? ''"
               :data-testid="`node-param-${prop.name}`"
               @input="onInput(prop, ($event.target as HTMLInputElement).value)"
-            />
+            >
           </template>
           <template v-else-if="prop.type === 'json'">
             <textarea
@@ -172,13 +205,23 @@ function currentCredentialFor(slotName: string): string {
               :placeholder="prop.placeholder ?? ''"
               :data-testid="`node-param-${prop.name}`"
               @input="onInput(prop, ($event.target as HTMLInputElement).value)"
-            />
+            >
           </template>
-          <p v-if="prop.description" class="hint">{{ prop.description }}</p>
+          <p
+            v-if="prop.description"
+            class="hint"
+          >
+            {{ prop.description }}
+          </p>
         </div>
       </section>
     </template>
-    <p v-else class="meta">Unknown node type — install the matching plugin.</p>
+    <p
+      v-else
+      class="meta"
+    >
+      Unknown node type — install the matching plugin.
+    </p>
   </div>
 </template>
 

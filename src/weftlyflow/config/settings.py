@@ -333,6 +333,29 @@ class WeftlyflowSettings(BaseSettings):
         ),
     )
 
+    # --- execution-data storage ---
+    execution_data_backend: str = Field(
+        default="db",
+        description=(
+            "Backend used for the bulky ``workflow_snapshot`` + ``run_data`` "
+            "pair attached to each execution. ``db`` inlines them in the "
+            "``execution_data`` row (simple, but grows the DB). ``fs`` writes "
+            "one JSON file per execution under ``execution_data_fs_path`` and "
+            "keeps only a pointer in the row — use this when you need to "
+            "expire or archive old payloads without touching Postgres."
+        ),
+    )
+    execution_data_fs_path: str = Field(
+        default="",
+        description=(
+            "Base directory for the filesystem execution-data backend. Required "
+            "when ``execution_data_backend='fs'``. Files are laid out as "
+            "``<path>/<yyyy>/<mm>/<execution_id>.json``; the directory is "
+            "created on first write. Point this at a volume with enough "
+            "headroom for your retention window."
+        ),
+    )
+
     # --- audit ---
     audit_retention_days: int = Field(
         default=90,

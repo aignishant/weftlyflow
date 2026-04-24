@@ -23,13 +23,26 @@ function formatTime(value: string | null): string {
       <header class="wf-row">
         <h2>Executions</h2>
         <div class="spacer" />
-        <button @click="store.fetchList()">Refresh</button>
+        <button @click="store.fetchList()">
+          Refresh
+        </button>
       </header>
-      <p v-if="store.loading" class="muted">Loading…</p>
-      <p v-else-if="store.items.length === 0" class="muted">
+      <p
+        v-if="store.loading"
+        class="muted"
+      >
+        Loading…
+      </p>
+      <p
+        v-else-if="store.items.length === 0"
+        class="muted"
+      >
         No executions yet — run a workflow to see its history here.
       </p>
-      <table v-else data-testid="executions-table">
+      <table
+        v-else
+        data-testid="executions-table"
+      >
         <thead>
           <tr>
             <th>Id</th>
@@ -41,18 +54,27 @@ function formatTime(value: string | null): string {
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in store.items" :key="row.id">
+          <tr
+            v-for="row in store.items"
+            :key="row.id"
+          >
             <td>
               <RouterLink
                 :to="{ name: 'execution-detail', params: { id: row.id } }"
                 class="id"
-                >{{ row.id }}</RouterLink
               >
+                {{ row.id }}
+              </RouterLink>
             </td>
-            <td class="mono">{{ row.workflow_id }}</td>
+            <td class="mono">
+              {{ row.workflow_id }}
+            </td>
             <td>{{ row.mode }}</td>
             <td>
-              <span class="wf-badge" :class="row.status">{{ row.status }}</span>
+              <span
+                class="wf-badge"
+                :class="row.status"
+              >{{ row.status }}</span>
             </td>
             <td>{{ formatTime(row.started_at) }}</td>
             <td>{{ formatTime(row.finished_at) }}</td>

@@ -74,30 +74,58 @@ async function onTest(id: string): Promise<void> {
       <header class="wf-row">
         <h2>Credentials</h2>
         <div class="spacer" />
-        <button class="primary" data-testid="new-credential" @click="openNew">
+        <button
+          class="primary"
+          data-testid="new-credential"
+          @click="openNew"
+        >
           New credential
         </button>
       </header>
-      <p v-if="actionError" class="error">{{ actionError }}</p>
-      <p v-if="store.loading" class="muted">Loading…</p>
-      <p v-else-if="store.items.length === 0" class="muted">
+      <p
+        v-if="actionError"
+        class="error"
+      >
+        {{ actionError }}
+      </p>
+      <p
+        v-if="store.loading"
+        class="muted"
+      >
+        Loading…
+      </p>
+      <p
+        v-else-if="store.items.length === 0"
+        class="muted"
+      >
         No credentials yet. Click “New credential” to add one.
       </p>
-      <table v-else data-testid="credentials-table">
+      <table
+        v-else
+        data-testid="credentials-table"
+      >
         <thead>
           <tr>
             <th>Name</th>
             <th>Type</th>
             <th>Test</th>
-            <th></th>
+            <th />
           </tr>
         </thead>
         <tbody>
-          <tr v-for="row in store.items" :key="row.id" :data-credential-id="row.id">
+          <tr
+            v-for="row in store.items"
+            :key="row.id"
+            :data-credential-id="row.id"
+          >
             <td>{{ row.name }}</td>
-            <td class="mono">{{ row.type }}</td>
+            <td class="mono">
+              {{ row.type }}
+            </td>
             <td>
-              <button @click="onTest(row.id)">Test</button>
+              <button @click="onTest(row.id)">
+                Test
+              </button>
               <span
                 v-if="testResults[row.id]"
                 class="wf-badge"
@@ -107,7 +135,10 @@ async function onTest(id: string): Promise<void> {
               </span>
             </td>
             <td class="actions">
-              <button class="danger" @click="onDelete(row.id, row.name)">
+              <button
+                class="danger"
+                @click="onDelete(row.id, row.name)"
+              >
                 Delete
               </button>
             </td>

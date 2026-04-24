@@ -1,11 +1,15 @@
 """Execution mapper — translate between Execution domain and (Execution, ExecutionData) rows.
 
-Two sides:
+Three shapes in play:
 
-* ``execution_to_domain(entity, data)`` reassembles a domain :class:`Execution`
-  from the metadata row + the run-data sidecar.
-* ``execution_to_entity_kwargs(execution)`` / ``execution_to_data_payload(execution)``
-  split a domain execution back into the two rows the database expects.
+* ``execution_to_domain(entity, payload)`` reassembles a domain :class:`Execution`
+  from the metadata row + a :class:`StoredExecutionPayload` pulled from the
+  configured :class:`ExecutionDataStore`.
+* ``execution_to_entity_kwargs(execution)`` splits the metadata fields off
+  for the ``executions`` row.
+* ``execution_to_payload(execution)`` extracts the bulky
+  ``workflow_snapshot`` + ``run_data`` pair as a pure JSON dict — the input
+  the store uses to decide whether to inline them or spill them externally.
 """
 
 from __future__ import annotations
@@ -13,6 +17,7 @@ from __future__ import annotations
 from datetime import datetime
 from typing import TYPE_CHECKING, Any, Literal, cast
 
+from weftlyflow.db.execution_storage import StoredExecutionPayload
 from weftlyflow.db.mappers.workflow import (
     _connection_from_json,
     _node_from_json,
@@ -21,6 +26,7 @@ from weftlyflow.db.mappers.workflow import (
     workflow_to_entity_kwargs,
 )
 from weftlyflow.domain.execution import (
+    DataStorage,
     Execution,
     ExecutionMode,
     ExecutionStatus,
@@ -33,17 +39,18 @@ from weftlyflow.domain.workflow import Workflow
 
 if TYPE_CHECKING:
     from weftlyflow.db.entities.execution import ExecutionEntity
-    from weftlyflow.db.entities.execution_data import ExecutionDataEntity
 
 _NodeStatus = Literal["success", "error", "disabled"]
 
 
 def execution_to_domain(
     entity: ExecutionEntity,
-    data: ExecutionDataEntity,
+    payload: StoredExecutionPayload,
+    *,
+    data_storage: str = "db",
 ) -> Execution:
-    """Reassemble an :class:`Execution` from metadata + data rows."""
-    snapshot = _workflow_from_snapshot(data.workflow_snapshot)
+    """Reassemble an :class:`Execution` from metadata + a loaded payload."""
+    snapshot = _workflow_from_snapshot(payload.workflow_snapshot)
     return Execution(
         id=entity.id,
         workflow_id=entity.workflow_id,
@@ -53,8 +60,8 @@ def execution_to_domain(
         started_at=entity.started_at,
         finished_at=entity.finished_at,
         wait_till=entity.wait_till,
-        run_data=_run_data_from_json(data.run_data),
-        data_storage="db",
+        run_data=_run_data_from_json(payload.run_data),
+        data_storage=cast(DataStorage, data_storage),
         triggered_by=entity.triggered_by,
     )
 
@@ -74,14 +81,12 @@ def execution_to_entity_kwargs(execution: Execution, *, project_id: str) -> dict
     }
 
 
-def execution_to_data_payload(execution: Execution) -> dict[str, Any]:
-    """Return kwargs for ``ExecutionDataEntity(**kwargs)`` — the bulky side."""
-    return {
-        "execution_id": execution.id,
-        "workflow_snapshot": _workflow_to_snapshot(execution.workflow_snapshot),
-        "run_data": _run_data_to_json(execution.run_data),
-        "storage_kind": "db",
-    }
+def execution_to_payload(execution: Execution) -> StoredExecutionPayload:
+    """Extract the bulky JSON pair a storage backend owns."""
+    return StoredExecutionPayload(
+        workflow_snapshot=_workflow_to_snapshot(execution.workflow_snapshot),
+        run_data=_run_data_to_json(execution.run_data),
+    )
 
 
 def _workflow_from_snapshot(raw: dict[str, Any]) -> Workflow:
@@ -194,8 +199,8 @@ def _error_to_json(error: NodeError) -> dict[str, Any]:
 # Silence unused-import warnings — these helpers re-expose workflow-mapper
 # internals for tests while preserving encapsulation.
 __all__ = [
-    "execution_to_data_payload",
     "execution_to_domain",
     "execution_to_entity_kwargs",
+    "execution_to_payload",
     "workflow_to_domain",
 ]

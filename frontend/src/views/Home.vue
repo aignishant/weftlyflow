@@ -61,13 +61,16 @@ async function onDelete(id: string, name: string): Promise<void> {
   <div class="home">
     <section class="wf-card create">
       <h2>Create a workflow</h2>
-      <form class="wf-row" @submit.prevent="createWorkflow">
+      <form
+        class="wf-row"
+        @submit.prevent="createWorkflow"
+      >
         <input
           v-model="newName"
           data-testid="workflow-name"
           placeholder="My new workflow"
           required
-        />
+        >
         <button
           type="submit"
           class="primary"
@@ -77,42 +80,69 @@ async function onDelete(id: string, name: string): Promise<void> {
           {{ creating ? "Creating…" : "Create" }}
         </button>
       </form>
-      <p v-if="createError" class="error">{{ createError }}</p>
+      <p
+        v-if="createError"
+        class="error"
+      >
+        {{ createError }}
+      </p>
     </section>
 
     <section class="wf-card list">
       <h2>Workflows</h2>
-      <p v-if="store.loading" class="muted">Loading…</p>
-      <p v-else-if="store.items.length === 0" class="muted">
+      <p
+        v-if="store.loading"
+        class="muted"
+      >
+        Loading…
+      </p>
+      <p
+        v-else-if="store.items.length === 0"
+        class="muted"
+      >
         No workflows yet. Create one above.
       </p>
-      <table v-else data-testid="workflow-table">
+      <table
+        v-else
+        data-testid="workflow-table"
+      >
         <thead>
           <tr>
             <th>Name</th>
             <th>Status</th>
             <th>Nodes</th>
-            <th></th>
+            <th />
           </tr>
         </thead>
         <tbody>
-          <tr v-for="wf in store.items" :key="wf.id" :data-workflow-id="wf.id">
+          <tr
+            v-for="wf in store.items"
+            :key="wf.id"
+            :data-workflow-id="wf.id"
+          >
             <td>
               <RouterLink
                 :to="{ name: 'editor', params: { id: wf.id } }"
                 class="wf-link"
                 :data-testid="`workflow-open-${wf.id}`"
-                >{{ wf.name }}</RouterLink
               >
+                {{ wf.name }}
+              </RouterLink>
             </td>
             <td>
-              <span class="wf-badge" :class="wf.active ? 'success' : 'waiting'">
+              <span
+                class="wf-badge"
+                :class="wf.active ? 'success' : 'waiting'"
+              >
                 {{ wf.active ? "active" : "inactive" }}
               </span>
             </td>
             <td>{{ wf.nodes.length }}</td>
             <td class="actions">
-              <button class="danger" @click="onDelete(wf.id, wf.name)">
+              <button
+                class="danger"
+                @click="onDelete(wf.id, wf.name)"
+              >
                 Delete
               </button>
             </td>

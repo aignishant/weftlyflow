@@ -14,15 +14,35 @@ async function onLogout(): Promise<void> {
 
 <template>
   <header class="topbar">
-    <RouterLink :to="{ name: 'home' }" class="brand">Weftlyflow</RouterLink>
+    <RouterLink
+      :to="{ name: 'home' }"
+      class="brand"
+    >
+      Weftlyflow
+    </RouterLink>
     <nav class="nav">
-      <RouterLink :to="{ name: 'home' }">Workflows</RouterLink>
-      <RouterLink :to="{ name: 'executions' }">Executions</RouterLink>
-      <RouterLink :to="{ name: 'credentials' }">Credentials</RouterLink>
+      <RouterLink :to="{ name: 'home' }">
+        Workflows
+      </RouterLink>
+      <RouterLink :to="{ name: 'executions' }">
+        Executions
+      </RouterLink>
+      <RouterLink :to="{ name: 'credentials' }">
+        Credentials
+      </RouterLink>
     </nav>
     <div class="spacer" />
-    <span class="email" v-if="auth.email">{{ auth.email }}</span>
-    <button class="logout" data-testid="logout" @click="onLogout">Logout</button>
+    <span
+      v-if="auth.email"
+      class="email"
+    >{{ auth.email }}</span>
+    <button
+      class="logout"
+      data-testid="logout"
+      @click="onLogout"
+    >
+      Logout
+    </button>
   </header>
 </template>
 

@@ -27,16 +27,26 @@ function asJson(value: unknown): string {
 
 <template>
   <div class="detail">
-    <section class="wf-card" v-if="execution">
+    <section
+      v-if="execution"
+      class="wf-card"
+    >
       <header class="wf-row">
         <h2>{{ execution.id }}</h2>
-        <span class="wf-badge" :class="execution.status">{{ execution.status }}</span>
+        <span
+          class="wf-badge"
+          :class="execution.status"
+        >{{ execution.status }}</span>
         <div class="spacer" />
-        <RouterLink :to="{ name: 'executions' }">← Back to list</RouterLink>
+        <RouterLink :to="{ name: 'executions' }">
+          ← Back to list
+        </RouterLink>
       </header>
       <dl class="meta">
         <dt>Workflow</dt>
-        <dd class="mono">{{ execution.workflow_id }}</dd>
+        <dd class="mono">
+          {{ execution.workflow_id }}
+        </dd>
         <dt>Mode</dt>
         <dd>{{ execution.mode }}</dd>
         <dt>Started</dt>
@@ -44,13 +54,17 @@ function asJson(value: unknown): string {
         <dt>Finished</dt>
         <dd>
           {{ execution.finished_at
-              ? new Date(execution.finished_at).toLocaleString()
-              : "—" }}
+            ? new Date(execution.finished_at).toLocaleString()
+            : "—" }}
         </dd>
       </dl>
     </section>
 
-    <section v-if="execution" class="wf-card runs" data-testid="run-data-detail">
+    <section
+      v-if="execution"
+      class="wf-card runs"
+      data-testid="run-data-detail"
+    >
       <h3>Run data</h3>
       <details
         v-for="[nodeId, runs] in Object.entries(execution.run_data)"
@@ -59,11 +73,18 @@ function asJson(value: unknown): string {
       >
         <summary>
           <strong>{{ nodeId }}</strong>
-          <span class="wf-badge" :class="runs[runs.length - 1]?.status ?? 'waiting'">
+          <span
+            class="wf-badge"
+            :class="runs[runs.length - 1]?.status ?? 'waiting'"
+          >
             {{ runs[runs.length - 1]?.status ?? "pending" }}
           </span>
         </summary>
-        <div v-for="(run, idx) in runs" :key="idx" class="run">
+        <div
+          v-for="(run, idx) in runs"
+          :key="idx"
+          class="run"
+        >
           <p class="muted">
             Run #{{ idx + 1 }} — {{ run.execution_time_ms }} ms
           </p>
@@ -72,8 +93,18 @@ function asJson(value: unknown): string {
       </details>
     </section>
 
-    <p v-if="!execution && store.loading" class="muted">Loading…</p>
-    <p v-if="store.error" class="error">{{ store.error }}</p>
+    <p
+      v-if="!execution && store.loading"
+      class="muted"
+    >
+      Loading…
+    </p>
+    <p
+      v-if="store.error"
+      class="error"
+    >
+      {{ store.error }}
+    </p>
   </div>
 </template>
 

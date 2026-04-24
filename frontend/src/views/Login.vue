@@ -37,9 +37,14 @@ async function onSubmit(): Promise<void> {
 
 <template>
   <div class="login">
-    <form class="panel" @submit.prevent="onSubmit">
+    <form
+      class="panel"
+      @submit.prevent="onSubmit"
+    >
       <h1>Weftlyflow</h1>
-      <p class="subtitle">Sign in to your workspace</p>
+      <p class="subtitle">
+        Sign in to your workspace
+      </p>
       <label for="login-email">Email</label>
       <input
         id="login-email"
@@ -48,7 +53,7 @@ async function onSubmit(): Promise<void> {
         type="email"
         autocomplete="email"
         required
-      />
+      >
       <label for="login-password">Password</label>
       <input
         id="login-password"
@@ -57,8 +62,14 @@ async function onSubmit(): Promise<void> {
         type="password"
         autocomplete="current-password"
         required
-      />
-      <p v-if="errorMessage" class="error" data-testid="login-error">{{ errorMessage }}</p>
+      >
+      <p
+        v-if="errorMessage"
+        class="error"
+        data-testid="login-error"
+      >
+        {{ errorMessage }}
+      </p>
       <button
         class="primary"
         data-testid="login-submit"

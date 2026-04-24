@@ -5,8 +5,11 @@ JSON blob produced by the engine. ``workflow_snapshot`` captures the
 immutable graph that was run, so reruns are deterministic even if the live
 workflow has been edited since.
 
-``storage_kind`` is a forward-looking enum (``db`` / ``fs`` / ``s3``) for the
-Phase 8 binary-data offload. Phase 2 only writes ``db``.
+``storage_kind`` selects the backend that actually holds the payload
+(``db`` / ``fs`` / ``s3``). For ``db`` the two JSON columns are authoritative;
+for anything else those columns are empty ``{}`` and ``external_ref`` points
+at the blob in whatever storage the
+:class:`~weftlyflow.db.execution_storage.ExecutionDataStore` owns.
 """
 
 from __future__ import annotations
@@ -32,3 +35,4 @@ class ExecutionDataEntity(Base):
     workflow_snapshot: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     run_data: Mapped[dict[str, Any]] = mapped_column(JSON, nullable=False)
     storage_kind: Mapped[str] = mapped_column(String(8), nullable=False, default="db")
+    external_ref: Mapped[str | None] = mapped_column(String(512), nullable=True)

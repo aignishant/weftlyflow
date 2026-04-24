@@ -35,7 +35,10 @@ const nodeSummaries = computed(() => {
 </script>
 
 <template>
-  <section class="panel" data-testid="execution-panel">
+  <section
+    class="panel"
+    data-testid="execution-panel"
+  >
     <header>
       <h3>Last execution</h3>
       <button
@@ -47,23 +50,50 @@ const nodeSummaries = computed(() => {
         {{ running ? "Running…" : "Execute" }}
       </button>
     </header>
-    <p v-if="errorMessage" class="error">{{ errorMessage }}</p>
-    <p v-if="!execution && !running && !errorMessage" class="muted">
+    <p
+      v-if="errorMessage"
+      class="error"
+    >
+      {{ errorMessage }}
+    </p>
+    <p
+      v-if="!execution && !running && !errorMessage"
+      class="muted"
+    >
       Click Execute to run the workflow with a single empty item.
     </p>
-    <div v-if="execution" class="summary">
-      <span class="wf-badge" :class="execution.status">
+    <div
+      v-if="execution"
+      class="summary"
+    >
+      <span
+        class="wf-badge"
+        :class="execution.status"
+      >
         {{ execution.status }}
       </span>
       <span class="id">{{ execution.id }}</span>
     </div>
-    <div v-if="execution" class="grid" data-testid="run-data">
-      <div v-for="row in nodeSummaries" :key="row.nodeId" class="wf-card node">
+    <div
+      v-if="execution"
+      class="grid"
+      data-testid="run-data"
+    >
+      <div
+        v-for="row in nodeSummaries"
+        :key="row.nodeId"
+        class="wf-card node"
+      >
         <header>
           <strong>{{ row.nodeId }}</strong>
-          <span class="wf-badge" :class="row.status">{{ row.status }}</span>
+          <span
+            class="wf-badge"
+            :class="row.status"
+          >{{ row.status }}</span>
         </header>
-        <p class="muted">{{ row.items }} item(s)</p>
+        <p class="muted">
+          {{ row.items }} item(s)
+        </p>
         <pre class="wf-json">{{ row.sampleJson }}</pre>
       </div>
     </div>

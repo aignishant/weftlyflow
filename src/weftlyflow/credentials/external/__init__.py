@@ -17,13 +17,21 @@ Why this layer exists:
 
 See IMPLEMENTATION_BIBLE.md §11.4. This subpackage contains the provider
 abstractions, the built-in :class:`EnvSecretProvider`, the
-:class:`VaultSecretProvider` (HashiCorp Vault KV v2), and the
-:class:`OnePasswordSecretProvider` (1Password Connect). An AWS Secrets
-Manager adapter will arrive later and must conform to
-:class:`SecretProvider`.
+:class:`VaultSecretProvider` (HashiCorp Vault KV v2), the
+:class:`OnePasswordSecretProvider` (1Password Connect), and the
+:class:`AWSSecretsManagerProvider` (behind the ``aws-secrets`` optional
+extra). Any additional backend must conform to :class:`SecretProvider`.
+
+``AWSSecretsManagerProvider`` is imported lazily because the module itself
+imports ``boto3`` at top level; pulling it in unconditionally would make
+boto3 a hard dependency of the ``credentials`` subpackage. Call
+:func:`load_aws_provider` (or import it directly from the submodule) once
+the ``aws-secrets`` extra is installed.
 """
 
 from __future__ import annotations
+
+from typing import TYPE_CHECKING
 
 from weftlyflow.credentials.external.base import (
     SecretNotFoundError,
@@ -46,6 +54,33 @@ from weftlyflow.credentials.external.vault_provider import (
     VaultSecretProvider,
 )
 
+if TYPE_CHECKING:
+    from weftlyflow.credentials.external.aws_provider import (
+        AWSSecretsManagerProvider,
+    )
+
+
+def load_aws_provider() -> type[AWSSecretsManagerProvider]:
+    """Import and return :class:`AWSSecretsManagerProvider`.
+
+    Kept lazy so the ``credentials`` subpackage doesn't force ``boto3`` on
+    installations that don't enable AWS Secrets Manager. Raises
+    :class:`ImportError` with an actionable message when the ``aws-secrets``
+    extra is missing.
+    """
+    try:
+        from weftlyflow.credentials.external.aws_provider import (  # noqa: PLC0415
+            AWSSecretsManagerProvider,
+        )
+    except ImportError as exc:
+        msg = (
+            "AWSSecretsManagerProvider requires the 'aws-secrets' extra — "
+            "install with ``pip install 'weftlyflow[aws-secrets]'``."
+        )
+        raise ImportError(msg) from exc
+    return AWSSecretsManagerProvider
+
+
 __all__ = [
     "EnvSecretProvider",
     "OnePasswordAuthError",
@@ -58,5 +93,6 @@ __all__ = [
     "UnknownSecretSchemeError",
     "VaultAuthError",
     "VaultSecretProvider",
+    "load_aws_provider",
     "parse_reference",
 ]

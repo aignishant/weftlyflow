@@ -108,10 +108,12 @@ nav:
       - guide/expressions.md
       - guide/code-node.md
       - guide/credentials.md
+      - guide/external-secrets.md
       - guide/single-sign-on.md
       - guide/ai-and-agents.md
       - guide/multi-tenancy.md
       - guide/webhooks.md
+      - guide/execution-data-storage.md
       - guide/self-hosting.md
   - Built-in nodes:
       - nodes/index.md

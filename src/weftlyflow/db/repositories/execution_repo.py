@@ -1,7 +1,10 @@
 """Async repository for :class:`ExecutionEntity` + :class:`ExecutionDataEntity`.
 
 The two tables are written together — there is no valid execution row without
-run-data, so :meth:`save` always upserts both.
+run-data, so :meth:`save` always upserts both. The bulky payload is routed
+through an :class:`~weftlyflow.db.execution_storage.ExecutionDataStore`; the
+default is DB inlining but operators can opt into filesystem/object-store
+backends without the repository caring where bytes actually land.
 """
 
 from __future__ import annotations
@@ -12,10 +15,15 @@ from sqlalchemy import select
 
 from weftlyflow.db.entities.execution import ExecutionEntity
 from weftlyflow.db.entities.execution_data import ExecutionDataEntity
+from weftlyflow.db.execution_storage import (
+    ExecutionDataStore,
+    StoredDataRow,
+    get_default_store,
+)
 from weftlyflow.db.mappers.execution import (
-    execution_to_data_payload,
     execution_to_domain,
     execution_to_entity_kwargs,
+    execution_to_payload,
 )
 
 if TYPE_CHECKING:
@@ -27,11 +35,24 @@ if TYPE_CHECKING:
 class ExecutionRepository:
     """Reads + writes the execution pair, project-scoped on reads."""
 
-    __slots__ = ("_session",)
+    __slots__ = ("_data_store", "_session")
 
-    def __init__(self, session: AsyncSession) -> None:
-        """Bind to an :class:`AsyncSession`."""
+    def __init__(
+        self,
+        session: AsyncSession,
+        *,
+        data_store: ExecutionDataStore | None = None,
+    ) -> None:
+        """Bind to an :class:`AsyncSession` and a data store.
+
+        Args:
+            session: The live async session.
+            data_store: The store used for the bulky
+                ``workflow_snapshot`` + ``run_data`` pair. ``None`` uses the
+                process-wide default built from settings.
+        """
         self._session = session
+        self._data_store = data_store if data_store is not None else get_default_store()
 
     async def save(self, execution: Execution, *, project_id: str) -> Execution:
         """Upsert both rows for ``execution`` and return it unchanged."""
@@ -43,13 +64,25 @@ class ExecutionRepository:
             for key, value in meta_kwargs.items():
                 setattr(entity, key, value)
 
+        payload = execution_to_payload(execution)
+        stored = await self._data_store.write(execution.id, payload)
+
         data = await self._session.get(ExecutionDataEntity, execution.id)
-        data_payload = execution_to_data_payload(execution)
         if data is None:
-            self._session.add(ExecutionDataEntity(**data_payload))
+            self._session.add(
+                ExecutionDataEntity(
+                    execution_id=execution.id,
+                    workflow_snapshot=stored.workflow_snapshot,
+                    run_data=stored.run_data,
+                    storage_kind=stored.storage_kind,
+                    external_ref=stored.external_ref,
+                ),
+            )
         else:
-            for key, value in data_payload.items():
-                setattr(data, key, value)
+            data.workflow_snapshot = stored.workflow_snapshot
+            data.run_data = stored.run_data
+            data.storage_kind = stored.storage_kind
+            data.external_ref = stored.external_ref
 
         await self._session.flush()
         return execution
@@ -62,7 +95,14 @@ class ExecutionRepository:
         data = await self._session.get(ExecutionDataEntity, execution_id)
         if data is None:
             return None
-        return execution_to_domain(entity, data)
+        stored_row = StoredDataRow(
+            storage_kind=data.storage_kind,
+            external_ref=data.external_ref,
+            workflow_snapshot=data.workflow_snapshot,
+            run_data=data.run_data,
+        )
+        payload = await self._data_store.read(execution_id, stored_row)
+        return execution_to_domain(entity, payload, data_storage=data.storage_kind)
 
     async def list(
         self,

@@ -34,15 +34,22 @@ const grouped = computed(() => {
 </script>
 
 <template>
-  <aside class="palette" data-testid="node-palette">
+  <aside
+    class="palette"
+    data-testid="node-palette"
+  >
     <header>
       <input
         v-model="filter"
         placeholder="Search nodes…"
         data-testid="palette-search"
-      />
+      >
     </header>
-    <section v-for="[category, entries] in grouped" :key="category" class="group">
+    <section
+      v-for="[category, entries] in grouped"
+      :key="category"
+      class="group"
+    >
       <h3>{{ category }}</h3>
       <ul>
         <li
