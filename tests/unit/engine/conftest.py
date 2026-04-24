@@ -21,8 +21,8 @@ from weftlyflow.nodes.registry import NodeRegistry
 def loaded_registry() -> NodeRegistry:
     """Return a registry populated with every built-in node.
 
-    One hundred and twenty-two built-ins as of the Phase-7
-    ``embed_openai`` slice: every Phase-6-core node, eighty-one Tier-2
+    One hundred and twenty-three built-ins as of the Phase-7
+    ``agent_react`` slice: every Phase-6-core node, eighty-one Tier-2
     integrations, the self-hosted Ollama LLM node plus the
     Gemini/Google GenAI and Mistral La Plateforme providers, the
     memory trio (``memory_buffer`` / ``memory_window`` /
@@ -32,7 +32,8 @@ def loaded_registry() -> NodeRegistry:
     store, the dependency-free ``embed_local`` hashing embedder, the
     batched ``embed_openai`` embedder, the ``chat_respond`` envelope
     shaper, the ``agent_tool_dispatch`` LLM-to-tool fan-out, the
-    ``agent_tool_result`` encoder that closes the ReAct loop, and the
+    ``agent_tool_result`` encoder that closes the ReAct loop, the
+    composed ``agent_react`` single-turn orchestrator, and the
     ``trigger_chat`` inbound-chat seed-item unwrapper. The Code node
     (``weftlyflow.code``) is
     deliberately excluded from the default count — it is now gated
@@ -42,7 +43,7 @@ def loaded_registry() -> NodeRegistry:
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 122, f"expected 122 built-in nodes, got {count}"
+    assert count == 123, f"expected 123 built-in nodes, got {count}"
     return registry
 
 
