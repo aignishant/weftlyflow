@@ -14,7 +14,7 @@ Phase-1 line-up:
 Later phases will add switch_node, merge, filter, aggregate, wait, webhook,
 schedule, split_in_batches, and http_request.
 
-See IMPLEMENTATION_BIBLE.md §25 (Tier 1).
+See weftlyinfo.md §25 (Tier 1).
 """
 
 from __future__ import annotations

@@ -19,7 +19,7 @@ What this adapter does:
 What this adapter does **not** do:
 
 * SLO (Single Log-Out). Weftlyflow sessions are stateless JWTs — IdP-initiated
-  logout is a future feature tracked in IMPLEMENTATION_BIBLE.md §8b.
+  logout is a future feature tracked in weftlyinfo.md §8b.
 * Encrypted assertions. The library supports them but very few IdPs require
   encryption on top of TLS; we keep the default off to avoid the PKCS
   round-trip.

@@ -1,6 +1,6 @@
 # Architecture
 
-> This page is a condensed view of `IMPLEMENTATION_BIBLE.md §5`. The bible is the canonical source — edit it first, then mirror the changes here.
+> This page is a condensed view of `weftlyinfo.md §5`. The bible is the canonical source — edit it first, then mirror the changes here.
 
 ## Processes
 
@@ -52,7 +52,7 @@ Stateful services: **Postgres** (prod) / **SQLite** (dev) for persistence, **Red
 
 ## Further reading
 
-- `IMPLEMENTATION_BIBLE.md §7` — domain model.
-- `IMPLEMENTATION_BIBLE.md §8` — engine algorithm.
-- `IMPLEMENTATION_BIBLE.md §9` — node plugin system.
-- `IMPLEMENTATION_BIBLE.md §10` — expression engine.
+- `weftlyinfo.md §7` — domain model.
+- `weftlyinfo.md §8` — engine algorithm.
+- `weftlyinfo.md §9` — node plugin system.
+- `weftlyinfo.md §10` — expression engine.

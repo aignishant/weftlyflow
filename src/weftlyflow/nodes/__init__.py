@@ -16,7 +16,7 @@ Public surface:
     register_node     : decorator that registers on a given registry.
     NodeRegistryError : raised for duplicate / malformed registrations.
 
-See IMPLEMENTATION_BIBLE.md §9 and §25.
+See weftlyinfo.md §9 and §25.
 """
 
 from __future__ import annotations

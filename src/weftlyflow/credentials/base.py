@@ -7,7 +7,7 @@ Every credential type declares:
     * ``inject()``: attach the credential to an outgoing HTTP request.
     * ``test()`` (optional): validate the credential against the provider.
 
-See IMPLEMENTATION_BIBLE.md §11.1 and `docs/contributing/credential-plugins.md`.
+See weftlyinfo.md §11.1 and `docs/contributing/credential-plugins.md`.
 """
 
 from __future__ import annotations

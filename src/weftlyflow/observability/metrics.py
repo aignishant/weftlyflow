@@ -4,7 +4,7 @@ One module owns every metric in the codebase so label cardinality and
 naming stay consistent. Callers import a specific metric and emit against
 it; they never create new metrics inline.
 
-See IMPLEMENTATION_BIBLE.md §19.2 for the canonical list.
+See weftlyinfo.md §19.2 for the canonical list.
 
 The metrics are registered against the global default registry so
 ``prometheus_client.generate_latest()`` picks them up without extra

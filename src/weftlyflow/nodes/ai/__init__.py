@@ -12,7 +12,7 @@ Subpackages (added in Phase 7):
     embed_openai/, embed_local/
     trigger_chat/, chat_respond/
 
-See IMPLEMENTATION_BIBLE.md §18.
+See weftlyinfo.md §18.
 """
 
 from __future__ import annotations

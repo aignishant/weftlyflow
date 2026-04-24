@@ -12,7 +12,7 @@ Example:
     'sqlite'
 
 See Also:
-    - IMPLEMENTATION_BIBLE.md §4 for the rationale behind each choice.
+    - weftlyinfo.md §4 for the rationale behind each choice.
 """
 
 from __future__ import annotations
@@ -75,7 +75,7 @@ class WeftlyflowSettings(BaseSettings):
         description=(
             "Register the ``weftlyflow.code`` node. Off by default; turn on "
             "only after the operator has reviewed the code-node threat model "
-            "(IMPLEMENTATION_BIBLE.md §26 risk #2). When enabled, snippets "
+            "(weftlyinfo.md §26 risk #2). When enabled, snippets "
             "execute in a subprocess sandbox with the limits below applied."
         ),
     )

@@ -2,7 +2,7 @@
 hpa.yaml — Horizontal Pod Autoscalers for api and worker.
 
 Both are disabled by default. Beat must NEVER be autoscaled (singleton
-constraint, IMPLEMENTATION_BIBLE §13.3). When enabling, ensure
+constraint, weftlyinfo §13.3). When enabling, ensure
 metrics-server is installed in the cluster.
 */}}
 {{- if .Values.hpa.api.enabled }}

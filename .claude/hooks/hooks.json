@@ -36,7 +36,7 @@
       "matcher": "*",
       "hooks": [
         { "type": "prompt",
-          "prompt": "If the user's prompt mentions deploying, cutting a release, migrations, or pushing to main, remind them the /deploy-check skill should run first and that pushing to main requires explicit approval. If the prompt involves adding a new built-in node, remind them to scaffold via the /scaffold-node skill so the IP-compliance rules in IMPLEMENTATION_BIBLE.md §23 are honored." }
+          "prompt": "If the user's prompt mentions deploying, cutting a release, migrations, or pushing to main, remind them the /deploy-check skill should run first and that pushing to main requires explicit approval. If the prompt involves adding a new built-in node, remind them to scaffold via the /scaffold-node skill so the IP-compliance rules in weftlyinfo.md §23 are honored." }
       ]
     }
   ],

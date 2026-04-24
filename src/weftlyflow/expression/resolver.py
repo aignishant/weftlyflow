@@ -7,7 +7,7 @@ public entry points:
 * :func:`resolve_tree` — walk a nested ``dict``/``list`` parameter tree and
   replace any string value that contains ``{{`` with its evaluated form.
 
-Semantics — matching the spec in IMPLEMENTATION_BIBLE.md §10.3:
+Semantics — matching the spec in weftlyinfo.md §10.3:
 
 * A template that is exactly one ``{{ ... }}`` chunk returns the raw
   evaluated value (``int``, ``list``, ``None``, ...).

@@ -19,7 +19,7 @@ What this adapter does **not** do:
 
 * Nonce replay storage. We rely on the state token for CSRF protection and
   on the IdP's own anti-replay for nonces; a global replay cache is a
-  future improvement and is called out in IMPLEMENTATION_BIBLE.md §8b.
+  future improvement and is called out in weftlyinfo.md §8b.
 * User provisioning. The caller (router) decides whether to create, link,
   or reject the local user row.
 * Refresh-token management. Weftlyflow mints its own JWTs; the IdP's

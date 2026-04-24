@@ -8,4 +8,4 @@ Weftlyflow is an **independent, original Python implementation**. To stay clean:
 4. If a PR's provenance is uncertain, the author must state it in the PR description.
 5. Automated check: the `ip-checker` agent scans staged diffs for red flags; a pre-write hook blocks obviously forbidden content from being written.
 
-See `IMPLEMENTATION_BIBLE.md §23` for the authoritative rules.
+See `weftlyinfo.md §23` for the authoritative rules.

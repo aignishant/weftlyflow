@@ -13,7 +13,7 @@
 [![Redis](https://img.shields.io/badge/Redis-7+-DC382D?logo=redis&logoColor=white)](https://redis.io/)
 [![Docker](https://img.shields.io/badge/Docker-ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](./LICENSE)
-[![Version](https://img.shields.io/badge/version-1.0.0-success)](./IMPLEMENTATION_BIBLE.md)
+[![Version](https://img.shields.io/badge/version-1.0.0-success)](./weftlyinfo.md)
 
 [**Quickstart**](#-quickstart) ·
 [**Features**](#-whats-in-the-box) ·
@@ -27,7 +27,7 @@
 ---
 
 > Weftlyflow is an **independent, clean-room Python implementation** inspired by n8n's architecture.
-> The canonical project plan lives in [`IMPLEMENTATION_BIBLE.md`](./IMPLEMENTATION_BIBLE.md) — treat it as the source of truth for design and contribution rules.
+> The canonical project plan lives in [`weftlyinfo.md`](./weftlyinfo.md) — treat it as the source of truth for design and contribution rules.
 
 ## ✨ Highlights
 
@@ -321,7 +321,7 @@ alembic/               DB migrations (handled by `make db-upgrade`)
 .claude/               Claude Code config (agents, skills, MCP)
 ```
 
-Full tree + rationale lives in the [bible](./IMPLEMENTATION_BIBLE.md).
+Full tree + rationale lives in the [bible](./weftlyinfo.md).
 
 ---
 
@@ -329,7 +329,7 @@ Full tree + rationale lives in the [bible](./IMPLEMENTATION_BIBLE.md).
 
 | Resource | Where |
 |---|---|
-| Design & roadmap | [`IMPLEMENTATION_BIBLE.md`](./IMPLEMENTATION_BIBLE.md) |
+| Design & roadmap | [`weftlyinfo.md`](./weftlyinfo.md) |
 | Operator guide | `make docs-serve` then http://localhost:8000 |
 | UI walkthrough | [`docs/guide/ui-walkthrough.md`](./docs/guide/ui-walkthrough.md) |
 | Run script | [`RUN.md`](./RUN.md) |

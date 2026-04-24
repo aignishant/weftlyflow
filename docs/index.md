@@ -26,4 +26,4 @@ A workflow engine. You build a **workflow** — a directed graph of **nodes** co
 
 ## Provenance
 
-Weftlyflow is an **original, independent Python implementation**. It is not a fork. See [`IMPLEMENTATION_BIBLE.md §23`](https://example.com/weftlyflow/blob/main/IMPLEMENTATION_BIBLE.md) for the clean-room rules every contribution must follow.
+Weftlyflow is an **original, independent Python implementation**. It is not a fork. See [`weftlyinfo.md §23`](https://example.com/weftlyflow/blob/main/weftlyinfo.md) for the clean-room rules every contribution must follow.

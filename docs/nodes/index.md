@@ -2,7 +2,7 @@
 
 *Populated as nodes land. Phase-1 tier-1 nodes ship first.*
 
-See `IMPLEMENTATION_BIBLE.md §25` for the full tiering.
+See `weftlyinfo.md §25` for the full tiering.
 
 ## Tier 1 — MVP core (~24 nodes)
 

@@ -4,13 +4,13 @@ This file is the single source of truth for:
 
 1. **Bootstrapping** a fresh clone.
 2. **Running** each subsystem locally.
-3. **Validating** each phase delivered from `IMPLEMENTATION_BIBLE.md §24`.
+3. **Validating** each phase delivered from `weftlyinfo.md §24`.
 
 Every phase in the bible has a corresponding **validation block** below. When a
 phase is claimed complete, run its block and confirm every command in it exits
 with status `0`. If any step errors, the phase is **not** done.
 
-Canonical design doc: [`IMPLEMENTATION_BIBLE.md`](./IMPLEMENTATION_BIBLE.md).
+Canonical design doc: [`weftlyinfo.md`](./weftlyinfo.md).
 
 ---
 

@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # PreToolUse hook on Write/Edit — refuse to write content that looks copied from n8n.
-# This is the last line of defense for the clean-room rules in IMPLEMENTATION_BIBLE.md §23.
+# This is the last line of defense for the clean-room rules in weftlyinfo.md §23.
 # It is heuristic — a true IP review is performed by the `ip-checker` agent on staged diffs.
 set -euo pipefail
 
@@ -32,7 +32,7 @@ forbidden=(
 for f in "${forbidden[@]}"; do
   if echo "$content" | grep -Fq "$f"; then
     echo "Blocked: content contains n8n-specific identifier '$f'." >&2
-    echo "Use the Weftlyflow equivalent (see IMPLEMENTATION_BIBLE.md §23)." >&2
+    echo "Use the Weftlyflow equivalent (see weftlyinfo.md §23)." >&2
     exit 2
   fi
 done

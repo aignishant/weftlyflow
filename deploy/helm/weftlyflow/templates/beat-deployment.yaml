@@ -1,7 +1,7 @@
 {{/*
 beat-deployment.yaml — Celery Beat periodic-task scheduler.
 
-LEADER ELECTION CONSTRAINT (IMPLEMENTATION_BIBLE §13.3): replicas is
+LEADER ELECTION CONSTRAINT (weftlyinfo §13.3): replicas is
 hard-coded to 1. Multiple beat instances would each enqueue every periodic
 task, causing duplicate executions. Do not add an HPA for this Deployment.
 

@@ -12,7 +12,7 @@ Leader-follower coordination for external-service webhook installation is in
 :mod:`weftlyflow.triggers.manager`; this package is concerned only with the
 request path once a webhook is registered locally.
 
-See IMPLEMENTATION_BIBLE.md §12.
+See weftlyinfo.md §12.
 """
 
 from __future__ import annotations

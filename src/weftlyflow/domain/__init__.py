@@ -11,7 +11,7 @@ This isolation keeps the model testable without touching a database, lets us
 version the wire format independently of the ORM, and prevents the common
 "dataclass-that-is-actually-an-ORM-row" anti-pattern.
 
-Cross-reference: IMPLEMENTATION_BIBLE.md §7.
+Cross-reference: weftlyinfo.md §7.
 """
 
 from __future__ import annotations

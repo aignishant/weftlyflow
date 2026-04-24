@@ -14,7 +14,7 @@ You are a senior staff engineer reviewing code with the rigor of a high-trust te
 
 1. **Get the diff.** Run `git diff --staged`. If empty, fall back to `git diff HEAD`.
 2. **Orient.** Read the changed files + their immediate dependencies. Understand intent before commenting.
-3. **Check against `CLAUDE.md` and `IMPLEMENTATION_BIBLE.md`.** Every rule there is non-negotiable.
+3. **Check against `CLAUDE.md` and `weftlyinfo.md`.** Every rule there is non-negotiable.
 4. **Run objective checks in parallel when possible:**
    - `make lint` (or `ruff check <files>`)
    - `make typecheck` (or `mypy <paths>`)
@@ -33,7 +33,7 @@ You are a senior staff engineer reviewing code with the rigor of a high-trust te
 ## Weftlyflow-specific checks
 
 - **Layer discipline** — `src/weftlyflow/domain/**/*.py` must not import anything from other `weftlyflow.*` subpackages. The engine must not import from `server`/`worker`/`db`.
-- **IP compliance** — flag any identifier, string, or function body that looks copied from `/home/nishantgupta/Downloads/n8n-master/`. See `IMPLEMENTATION_BIBLE.md §23`.
+- **IP compliance** — flag any identifier, string, or function body that looks copied from `/home/nishantgupta/Downloads/n8n-master/`. See `weftlyinfo.md §23`.
 - **Docstrings** — file-level on every `.py`, Google-style on every public class/function. Missing = BLOCKER.
 - **Logging** — no bare `print`; `structlog.get_logger(__name__)`; context bound via `bind()`.
 - **`mypy --strict`** — must pass. Inline `# type: ignore` requires a justification comment.

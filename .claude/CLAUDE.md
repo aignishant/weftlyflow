@@ -1,7 +1,7 @@
 # CLAUDE.md — Weftlyflow project memory
 
 > Auto-loaded into every Claude Code session for this project. Keep under ~200 lines.
-> The canonical design document is `/IMPLEMENTATION_BIBLE.md`. This file is the TL;DR.
+> The canonical design document is `/weftlyinfo.md`. This file is the TL;DR.
 
 ## Project identity
 
@@ -42,7 +42,7 @@ Dependency direction (no back-edges):
 
 ## Non-negotiable rules
 
-1. **No code copied from n8n.** Read for architecture, then close the file and write from scratch. See `IMPLEMENTATION_BIBLE.md §23`.
+1. **No code copied from n8n.** Read for architecture, then close the file and write from scratch. See `weftlyinfo.md §23`.
 2. **Never copy identifiers.** Weftlyflow uses `weftlyflow.http_request`, not `n8n-nodes-base.httpRequest`.
 3. **Module docstring on every `.py` file.** File-level purpose, subsystem, cross-ref.
 4. **Google-style docstring on every public class/function.** `Example:` block required for non-trivial methods.
@@ -76,7 +76,7 @@ Dependency direction (no back-edges):
 
 ## Where to find things
 
-- Bible: `/IMPLEMENTATION_BIBLE.md`.
+- Bible: `/weftlyinfo.md`.
 - Memory + tech cheatsheets: `/home/nishantgupta/.claude/projects/-home-nishantgupta-Desktop-ng8/memory/`.
 - Reference n8n source (read-only): `/home/nishantgupta/Downloads/n8n-master/`.
 - `.claude` reference this was adapted from: `/home/nishantgupta/Desktop/Projects/low-spec-2/.claude/`.

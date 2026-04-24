@@ -19,5 +19,5 @@ limitations under the License.
 ---
 
 Weftlyflow is an original Python implementation inspired by n8n's architecture.
-It contains no code copied from n8n. See IMPLEMENTATION_BIBLE.md §23 for the
+It contains no code copied from n8n. See weftlyinfo.md §23 for the
 clean-room rules followed by every contributor.

@@ -4,7 +4,7 @@ Every built-in or community node exposes a :class:`NodeSpec` on its class. The
 spec powers the frontend parameter-form generator, the node catalog endpoint
 (``GET /api/v1/node-types``), and the engine's port-wiring logic.
 
-See IMPLEMENTATION_BIBLE.md §9 for the plugin architecture.
+See weftlyinfo.md §9 for the plugin architecture.
 """
 
 from __future__ import annotations

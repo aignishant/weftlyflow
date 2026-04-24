@@ -8,7 +8,7 @@ Public surface:
     * :class:`UserView`, :class:`ProjectView` — immutable projections used
       everywhere the server layer needs a user/project reference.
 
-See IMPLEMENTATION_BIBLE.md §16.
+See weftlyinfo.md §16.
 """
 
 from __future__ import annotations

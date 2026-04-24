@@ -8,7 +8,7 @@ read-only thereafter.
 The registry is not a singleton. Tests construct fresh registries freely; the
 server/worker each build one at boot and inject it into the executor.
 
-See IMPLEMENTATION_BIBLE.md §9.4.
+See weftlyinfo.md §9.4.
 """
 
 from __future__ import annotations

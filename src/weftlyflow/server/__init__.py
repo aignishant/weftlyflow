@@ -12,7 +12,7 @@ Layers:
     errors.py : map domain exceptions to HTTPException.
     lifespan.py : startup/shutdown (scheduler, leader election, migrations check).
 
-See IMPLEMENTATION_BIBLE.md §15 for the full endpoint list.
+See weftlyinfo.md §15 for the full endpoint list.
 """
 
 from __future__ import annotations

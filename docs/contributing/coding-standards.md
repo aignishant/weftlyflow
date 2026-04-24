@@ -1,6 +1,6 @@
 # Coding standards
 
-Quick reference. The authoritative copy lives at `IMPLEMENTATION_BIBLE.md §22`.
+Quick reference. The authoritative copy lives at `weftlyinfo.md §22`.
 
 ## Required
 

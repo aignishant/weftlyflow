@@ -18,7 +18,7 @@ The intended pattern is:
 
 The node does **not** call any LLM itself — the caller chooses the
 provider. This keeps the memory layer orthogonal to LLM nodes (§18.1
-of ``IMPLEMENTATION_BIBLE.md``) and avoids hard dependencies from
+of ``weftlyinfo.md``) and avoids hard dependencies from
 ``weftlyflow.nodes.ai.memory_*`` on ``weftlyflow.nodes.integrations``.
 
 Output item shape::

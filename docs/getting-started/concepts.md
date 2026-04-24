@@ -1,6 +1,6 @@
 # Concepts
 
-The shortest possible glossary. Full definitions live in `IMPLEMENTATION_BIBLE.md §3`.
+The shortest possible glossary. Full definitions live in `weftlyinfo.md §3`.
 
 | Term | One-liner |
 |---|---|

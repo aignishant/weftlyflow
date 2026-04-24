@@ -20,7 +20,7 @@ Subpackages:
     observability: structlog, Prometheus, OpenTelemetry.
     utils: Small, leaf-level helpers.
 
-The canonical design document is `/IMPLEMENTATION_BIBLE.md` at the repo root.
+The canonical design document is `/weftlyinfo.md` at the repo root.
 """
 
 from __future__ import annotations

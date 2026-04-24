@@ -16,7 +16,7 @@ Distance metrics map onto Qdrant's three supported kinds:
 
 The node speaks REST directly via ``httpx.AsyncClient``; Qdrant's
 Python SDK is deliberately avoided to keep the transitive dependency
-count down and to honor IMPLEMENTATION_BIBLE.md §23 (no vendor
+count down and to honor weftlyinfo.md §23 (no vendor
 clients for surfaces we already have first-party plumbing for).
 """
 

@@ -172,7 +172,7 @@
 
 ```
 ng8/                                 ← working directory
-├── IMPLEMENTATION_BIBLE.md          ← this document (source of truth)
+├── weftlyinfo.md          ← this document (source of truth)
 ├── README.md
 ├── LICENSE
 ├── pyproject.toml                   ← PEP 621, hatch backend
@@ -1227,7 +1227,7 @@ Invariants:
 
 See also:
     - `docs/architecture.md` for the high-level picture.
-    - `IMPLEMENTATION_BIBLE.md#8-execution-engine` for the full algorithm.
+    - `weftlyinfo.md#8-execution-engine` for the full algorithm.
 """
 ```
 
@@ -1340,7 +1340,7 @@ The `.claude/` agents include a **`ip-checker`** agent that scans new files for 
 Goal: a repo that lints, builds docs, and has a working CI loop with a "hello" workflow executing end-to-end through an in-memory stub engine.
 
 **Deliverables:**
-- [x] `IMPLEMENTATION_BIBLE.md` (this file)
+- [x] `weftlyinfo.md` (this file)
 - [x] `.claude/` adapted
 - [x] `pyproject.toml`, `Makefile`, `README.md`, `LICENSE`, `.gitignore`
 - [x] `docker-compose.yml` + `Dockerfile`s

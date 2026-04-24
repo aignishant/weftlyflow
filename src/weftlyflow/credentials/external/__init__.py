@@ -15,7 +15,7 @@ Why this layer exists:
 * **Dev ergonomics** — developers can point credentials at environment
   variables without running a real vault.
 
-See IMPLEMENTATION_BIBLE.md §11.4. This subpackage contains the provider
+See weftlyinfo.md §11.4. This subpackage contains the provider
 abstractions, the built-in :class:`EnvSecretProvider`, the
 :class:`VaultSecretProvider` (HashiCorp Vault KV v2), the
 :class:`OnePasswordSecretProvider` (1Password Connect), and the

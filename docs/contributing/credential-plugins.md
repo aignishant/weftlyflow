@@ -10,4 +10,4 @@ A credential type is a subclass of `BaseCredentialType` in `src/weftlyflow/crede
 
 Place the class under `src/weftlyflow/credentials/types/<slug>.py` (for generic types) or next to the integration node (for per-service credentials).
 
-See `IMPLEMENTATION_BIBLE.md §11`.
+See `weftlyinfo.md §11`.

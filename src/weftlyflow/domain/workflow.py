@@ -11,7 +11,7 @@ Construction happens from either:
 
 Neither path is visible from this module; keeping IO out is load-bearing.
 
-See IMPLEMENTATION_BIBLE.md §7.1 for the full shape.
+See weftlyinfo.md §7.1 for the full shape.
 """
 
 from __future__ import annotations

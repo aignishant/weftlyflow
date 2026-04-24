@@ -20,7 +20,7 @@ Project-scoped configuration for [Claude Code](https://docs.anthropic.com/en/doc
 
 ## Quick links
 
-- Canonical design doc: `/IMPLEMENTATION_BIBLE.md`
+- Canonical design doc: `/weftlyinfo.md`
 - Agents: `/agents` — spawn a subagent by name or let it auto-invoke.
 - Skills: `/<skill-name>` — see `skills/README.md`.
 - MCP: `/mcp` — verify which servers are live.

@@ -4,4 +4,4 @@
 
 Covers: manual trigger, webhook trigger (static vs dynamic paths), schedule trigger (cron + interval), polling triggers, event-bus triggers.
 
-See `IMPLEMENTATION_BIBLE.md §13`.
+See `weftlyinfo.md §13`.

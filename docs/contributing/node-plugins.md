@@ -22,4 +22,4 @@ review checklist specific to tier-3.
 - SVG icons sourced from Lucide / Simple Icons / hand-drawn.
 - Test fixtures handcrafted or from the provider's docs.
 
-See `IMPLEMENTATION_BIBLE.md §9` and `§23`.
+See `weftlyinfo.md §9` and `§23`.

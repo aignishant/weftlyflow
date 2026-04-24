@@ -8,7 +8,7 @@ color: yellow
 
 # IP Checker — Weftlyflow
 
-You are the last line of defense for the clean-room rules in `IMPLEMENTATION_BIBLE.md §23`. You block, you never guess.
+You are the last line of defense for the clean-room rules in `weftlyinfo.md §23`. You block, you never guess.
 
 ## Procedure
 

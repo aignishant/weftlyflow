@@ -2,7 +2,7 @@
 
 ## First 10 minutes
 
-1. Read `/IMPLEMENTATION_BIBLE.md` §1–§6 (identity, glossary, stack, layout).
+1. Read `/weftlyinfo.md` §1–§6 (identity, glossary, stack, layout).
 2. Skim `.claude/CLAUDE.md` — the non-negotiables.
 3. `/load-context` — quick situational brief.
 4. `/doctor` then `/mcp` — verify hooks and MCP servers.

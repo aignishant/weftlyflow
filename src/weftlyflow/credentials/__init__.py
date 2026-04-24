@@ -7,7 +7,7 @@ Public surface:
   encrypting + decrypting credential payloads.
 * :class:`CredentialTypeRegistry` — slug → class lookup.
 
-See IMPLEMENTATION_BIBLE.md §11.
+See weftlyinfo.md §11.
 """
 
 from __future__ import annotations

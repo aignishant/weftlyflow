@@ -12,7 +12,7 @@ the first time the sandbox becomes available.
 
 Registration is gated behind ``settings.enable_code_node`` (see
 :mod:`weftlyflow.nodes.core.code.__init__`); operators must opt in
-explicitly. See IMPLEMENTATION_BIBLE.md §10 and §26 risk #2 for the
+explicitly. See weftlyinfo.md §10 and §26 risk #2 for the
 threat model.
 """
 

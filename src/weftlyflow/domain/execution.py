@@ -5,7 +5,7 @@ An :class:`Execution` owns a :class:`RunData` tree: one list of
 Each node run contains a nested list of :class:`Item` values — the outer axis
 is output-port index, the inner axis is the iterated items.
 
-See IMPLEMENTATION_BIBLE.md §7.2.
+See weftlyinfo.md §7.2.
 """
 
 from __future__ import annotations

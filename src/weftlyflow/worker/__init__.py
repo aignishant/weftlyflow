@@ -8,7 +8,7 @@ Public surface:
 * :class:`CeleryExecutionQueue` / :class:`InlineExecutionQueue` — concrete
   implementations. The FastAPI app picks one at boot based on settings.
 
-See IMPLEMENTATION_BIBLE.md §14 and `memory/cheatsheet_celery.md`.
+See weftlyinfo.md §14 and `memory/cheatsheet_celery.md`.
 """
 
 from __future__ import annotations

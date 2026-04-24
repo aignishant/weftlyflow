@@ -14,7 +14,7 @@ from __future__ import annotations
 
 def main() -> None:
     """Placeholder — implemented in Phase 1 alongside the first node."""
-    raise SystemExit("Not yet implemented. See IMPLEMENTATION_BIBLE.md §21.3.")
+    raise SystemExit("Not yet implemented. See weftlyinfo.md §21.3.")
 
 
 if __name__ == "__main__":

@@ -1,6 +1,6 @@
 """Observability utilities — logging, metrics, tracing.
 
-See IMPLEMENTATION_BIBLE.md §19.
+See weftlyinfo.md §19.
 
 The ``configure_logging`` helper lives in :mod:`weftlyflow.config.logging` (not
 here) because it is a boot-time setup rather than a reusable runtime utility.

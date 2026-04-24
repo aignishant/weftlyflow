@@ -16,7 +16,7 @@ Public surface:
 Engine errors (``EngineError``, ``NodeTypeNotFoundError``, ...) live in
 :mod:`weftlyflow.engine.errors`.
 
-See IMPLEMENTATION_BIBLE.md §8.
+See weftlyinfo.md §8.
 """
 
 from __future__ import annotations

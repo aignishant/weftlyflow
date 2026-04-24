@@ -21,7 +21,7 @@ Before cutting a release, merging a release branch to `main`, or running `docker
 6. **Docs** — `make docs-build` with `--strict` (no broken links, no missing API pages).
 7. **Security** — `pip-audit` clean; `bandit -r src/weftlyflow` clean.
 8. **Migrations** — every pending migration applied on SQLite + Postgres test databases.
-9. **Bible check** — `IMPLEMENTATION_BIBLE.md §27` revision log has an entry for this release.
+9. **Bible check** — `weftlyinfo.md §27` revision log has an entry for this release.
 10. **Changelog** — `docs/changelog.md` updated.
 
 ## Output

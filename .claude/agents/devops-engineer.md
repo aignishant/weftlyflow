@@ -14,7 +14,7 @@ color: orange
 - **Separation**: three images (`api`, `worker`, `beat`) sharing a builder stage.
 - **Secrets**: env files never baked into images; use Docker secrets or a secret manager in prod.
 - **Health**: `GET /healthz` + `GET /readyz`; Celery worker `ping`; beat has no health endpoint — use liveness probes.
-- **Metrics**: `/metrics` scraped by Prometheus; key counters/histograms per IMPLEMENTATION_BIBLE §19.2.
+- **Metrics**: `/metrics` scraped by Prometheus; key counters/histograms per weftlyinfo §19.2.
 - **Logs**: JSON in prod (`WEFTLYFLOW_LOG_FORMAT=json`); attach `request_id`, `execution_id`, `node_id`.
 - **Database**: Postgres in prod; backups documented; migrations applied via one-shot init container.
 - **Redis**: append-only for broker durability; `maxmemory-policy=noeviction` on the result backend.

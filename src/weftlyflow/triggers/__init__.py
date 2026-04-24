@@ -9,7 +9,7 @@ Owns:
 
 The manager runs only on the elected leader instance (see §13.3 of the bible).
 
-See IMPLEMENTATION_BIBLE.md §13.
+See weftlyinfo.md §13.
 """
 
 from __future__ import annotations

@@ -94,7 +94,7 @@ def test_register_node_decorator_registers_class():
 def test_load_builtins_registers_every_core_node():
     # ``weftlyflow.code`` is intentionally absent from the default discovery
     # set: it is gated behind ``settings.enable_code_node`` until the
-    # subprocess sandbox runner lands (see IMPLEMENTATION_BIBLE.md §26
+    # subprocess sandbox runner lands (see weftlyinfo.md §26
     # risk #2). Flip ``WEFTLYFLOW_ENABLE_CODE_NODE=true`` in environments
     # that accept the in-process RestrictedPython threat model.
     reg = NodeRegistry()

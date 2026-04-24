@@ -41,7 +41,7 @@ def loaded_registry() -> NodeRegistry:
     (``weftlyflow.code``) is deliberately excluded from the default
     count — it is now gated behind ``settings.enable_code_node``
     until the subprocess sandbox runner lands (see
-    IMPLEMENTATION_BIBLE.md §26 risk #2). Tests that need the Code
+    weftlyinfo.md §26 risk #2). Tests that need the Code
     node should register it directly.
     """
     registry = NodeRegistry()

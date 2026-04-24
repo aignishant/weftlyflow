@@ -94,7 +94,7 @@ config:
   WEFTLYFLOW_METRICS_ENABLED: "true"
   WEFTLYFLOW_TRACING_ENABLED: "false"
   WEFTLYFLOW_AUDIT_RETENTION_DAYS: "90"
-  # Code node is off by default — review IMPLEMENTATION_BIBLE §26 first.
+  # Code node is off by default — review weftlyinfo §26 first.
   WEFTLYFLOW_ENABLE_CODE_NODE: "false"
 
 # Extra env vars injected verbatim into all Deployments (list of {name, value}).
@@ -241,7 +241,7 @@ worker:
 # -----------------------------------------------------------------------------
 # Beat Deployment (Celery Beat scheduler)
 # IMPORTANT: replicas is hard-coded to 1 in the template (leader election
-# constraint per IMPLEMENTATION_BIBLE §13.3). Do not override via HPA.
+# constraint per weftlyinfo §13.3). Do not override via HPA.
 # There is intentionally no readiness probe — liveness uses process check.
 # -----------------------------------------------------------------------------
 beat:

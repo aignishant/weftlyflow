@@ -12,7 +12,7 @@ Modules:
     proxies    : the ``$``-prefixed objects exposed in expressions.
     errors     : re-exports of the expression-family exceptions.
 
-See IMPLEMENTATION_BIBLE.md §10.
+See weftlyinfo.md §10.
 """
 
 from __future__ import annotations
