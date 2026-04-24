@@ -11,6 +11,8 @@ If any of these break, the bootstrap is broken — do not ship.
 
 from __future__ import annotations
 
+import re
+
 import pytest
 from fastapi.testclient import TestClient
 
@@ -20,7 +22,7 @@ def test_package_imports() -> None:
     import weftlyflow
 
     assert isinstance(weftlyflow.__version__, str)
-    assert weftlyflow.__version__.startswith("0.")
+    assert re.match(r"^\d+\.\d+\.\d+", weftlyflow.__version__)
 
 
 def test_settings_load() -> None:
