@@ -57,6 +57,7 @@
     anthropic_api.py          : Anthropic ``x-api-key`` + ``anthropic-version`` header pair.
     google_genai_api.py       : Google GenAI (Gemini) ``x-goog-api-key`` header.
     mistral_api.py            : Mistral La Plateforme ``Authorization: Bearer`` key.
+    postgres_dsn.py           : Postgres DSN (``dsn`` only) — no HTTP injection.
     bitbucket_api.py          : Bitbucket Cloud Basic auth + workspace-scoped URL paths.
     paypal_api.py             : PayPal OAuth2 Client Credentials — runtime token fetch.
     mapbox_api.py             : Mapbox ``?access_token=`` query-param auth.
@@ -155,6 +156,7 @@ from weftlyflow.credentials.types.paypal_api import PayPalApiCredential
 from weftlyflow.credentials.types.pinecone_api import PineconeApiCredential
 from weftlyflow.credentials.types.pipedrive_api import PipedriveApiCredential
 from weftlyflow.credentials.types.plaid_api import PlaidApiCredential
+from weftlyflow.credentials.types.postgres_dsn import PostgresDsnCredential
 from weftlyflow.credentials.types.posthog_api import PostHogApiCredential
 from weftlyflow.credentials.types.pushover_api import PushoverApiCredential
 from weftlyflow.credentials.types.quickbooks_oauth2 import QuickBooksOAuth2Credential
@@ -242,6 +244,7 @@ __all__ = [
     "PipedriveApiCredential",
     "PlaidApiCredential",
     "PostHogApiCredential",
+    "PostgresDsnCredential",
     "PushoverApiCredential",
     "QuickBooksOAuth2Credential",
     "RedditOAuth2Credential",
