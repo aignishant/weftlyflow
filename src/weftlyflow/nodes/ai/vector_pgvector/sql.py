@@ -47,7 +47,7 @@ _METRIC_OPERATOR: Final[dict[str, str]] = {
     METRIC_EUCLIDEAN: "<->",
 }
 
-# Bible §23 — identifiers embedded in SQL text must be validated before
+# Spec §23 — identifiers embedded in SQL text must be validated before
 # formatting. We never parameterise table names because Postgres does
 # not allow that at the wire level; instead we require a conservative
 # identifier pattern and quote with double-quotes to preserve case.

@@ -6,9 +6,8 @@
 ## Project identity
 
 - **Name:** Weftlyflow
-- **Purpose:** Self-hosted workflow automation platform — original-code, clean-room Python re-imagination of n8n's architecture.
+- **Purpose:** Self-hosted workflow automation platform — original Python implementation, visual node-graph editor, triggers, AI agents.
 - **Working dir:** `/home/nishantgupta/Desktop/ng8`
-- **Reference source:** `/home/nishantgupta/Downloads/n8n-master/` — **read for understanding only**. Do not copy code, identifiers, node names, or credential slugs verbatim.
 - **Primary language:** Python 3.12 (3.11 supported)
 - **Build:** `pip` + `hatch` (PEP 621). Not `poetry`, not `uv`.
 - **Test runner:** `pytest` (+ `pytest-asyncio`, `pytest-cov`, `pytest-xdist`, `hypothesis`, `respx`)
@@ -42,8 +41,8 @@ Dependency direction (no back-edges):
 
 ## Non-negotiable rules
 
-1. **No code copied from n8n.** Read for architecture, then close the file and write from scratch. See `weftlyinfo.md §23`.
-2. **Never copy identifiers.** Weftlyflow uses `weftlyflow.http_request`, not `n8n-nodes-base.httpRequest`.
+1. **No code copied from third-party projects.** All Weftlyflow code is original. See `weftlyinfo.md §23`.
+2. **Use Weftlyflow-native identifiers.** Node types are `weftlyflow.<snake_case>` (e.g. `weftlyflow.http_request`).
 3. **Module docstring on every `.py` file.** File-level purpose, subsystem, cross-ref.
 4. **Google-style docstring on every public class/function.** `Example:` block required for non-trivial methods.
 5. **Never commit without explicit approval.** Never push directly to `main`/`master`.
@@ -76,9 +75,8 @@ Dependency direction (no back-edges):
 
 ## Where to find things
 
-- Bible: `/weftlyinfo.md`.
+- Spec: `/weftlyinfo.md`.
 - Memory + tech cheatsheets: `/home/nishantgupta/.claude/projects/-home-nishantgupta-Desktop-ng8/memory/`.
-- Reference n8n source (read-only): `/home/nishantgupta/Downloads/n8n-master/`.
 - `.claude` reference this was adapted from: `/home/nishantgupta/Desktop/Projects/low-spec-2/.claude/`.
 
 ## Karpathy Skills

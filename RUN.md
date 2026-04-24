@@ -6,7 +6,7 @@ This file is the single source of truth for:
 2. **Running** each subsystem locally.
 3. **Validating** each phase delivered from `weftlyinfo.md §24`.
 
-Every phase in the bible has a corresponding **validation block** below. When a
+Every phase in the spec has a corresponding **validation block** below. When a
 phase is claimed complete, run its block and confirm every command in it exits
 with status `0`. If any step errors, the phase is **not** done.
 
@@ -143,7 +143,7 @@ make lint && make typecheck && make test
 pytest -m integration              # 21 HTTP + DB integration tests
 ```
 
-Live smoke — the bible's acceptance walk (login → create workflow → execute → read back):
+Live smoke — the spec's acceptance walk (login → create workflow → execute → read back):
 
 ```bash
 # Terminal 1 — start the server. First boot auto-creates an admin; the
@@ -440,7 +440,7 @@ on `:5678`.
 
 ### Phase 6-core — Tier-1 node backfill
 
-Adds the remaining Tier-1 MVP nodes (bible §25): `switch`, `filter`,
+Adds the remaining Tier-1 MVP nodes (spec §25): `switch`, `filter`,
 `merge`, `rename_keys`, `datetime_ops`, `evaluate_expression`,
 `stop_and_error`, `execution_data`. The registry now ships **16
 built-ins**.
@@ -518,7 +518,7 @@ Expected: `status: success`, `us` contains `['GRACE']`, `other` contains
 
 ### Phase 6+ — Integration nodes (Tier-2)
 
-Tier-2 integrations still ship one PR at a time (see bible §25). Template:
+Tier-2 integrations still ship one PR at a time (see spec §25). Template:
 
 ```bash
 make lint && make typecheck

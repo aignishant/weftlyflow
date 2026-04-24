@@ -1,4 +1,4 @@
-// Bible-mandated golden path:
+// Spec-mandated golden path:
 //   1. Log in.
 //   2. Create a workflow (Manual Trigger → Set).
 //   3. Execute it, assert status = success.

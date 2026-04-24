@@ -1,6 +1,6 @@
 """Phase-2 acceptance — POST a workflow, execute it, read back the execution.
 
-Walks the bible's acceptance sentence literally:
+Walks the spec's acceptance sentence literally:
     "A user can POST a workflow, execute it via the API, and read back the
     execution."
 

@@ -33,7 +33,7 @@ You are a senior staff engineer reviewing code with the rigor of a high-trust te
 ## Weftlyflow-specific checks
 
 - **Layer discipline** — `src/weftlyflow/domain/**/*.py` must not import anything from other `weftlyflow.*` subpackages. The engine must not import from `server`/`worker`/`db`.
-- **IP compliance** — flag any identifier, string, or function body that looks copied from `/home/nishantgupta/Downloads/n8n-master/`. See `weftlyinfo.md §23`.
+- **IP compliance** — flag any identifier, string, or function body whose provenance is unclear or that looks lifted from external code without attribution. See `weftlyinfo.md §23`.
 - **Docstrings** — file-level on every `.py`, Google-style on every public class/function. Missing = BLOCKER.
 - **Logging** — no bare `print`; `structlog.get_logger(__name__)`; context bound via `bind()`.
 - **`mypy --strict`** — must pass. Inline `# type: ignore` requires a justification comment.

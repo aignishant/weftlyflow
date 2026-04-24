@@ -18,7 +18,7 @@ REFRESH_TOKEN_TTL: Final[timedelta] = timedelta(days=14)
 
 JWT_ALGORITHM: Final[str] = "HS256"
 
-# --- Global roles (bible §16.3) ---
+# --- Global roles (spec §16.3) ---
 ROLE_OWNER: Final[str] = "owner"
 ROLE_ADMIN: Final[str] = "admin"
 ROLE_MEMBER: Final[str] = "member"

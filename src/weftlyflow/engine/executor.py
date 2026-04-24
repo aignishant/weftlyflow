@@ -3,7 +3,7 @@
 The executor walks a validated :class:`WorkflowGraph` in readiness order: a
 node becomes eligible to run once every one of its unique parents has produced
 output (or was disabled / pinned). This differs from the simplified stack in
-the bible's §8.1 only in how it handles fan-in — a node with two parents waits
+the spec's §8.1 only in how it handles fan-in — a node with two parents waits
 for both before firing, instead of running once per parent.
 
 Responsibilities:

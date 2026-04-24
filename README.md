@@ -26,7 +26,7 @@
 
 ---
 
-> Weftlyflow is an **independent, clean-room Python implementation** inspired by n8n's architecture.
+> Weftlyflow is an **independent, original Python workflow automation platform**.
 > The canonical project plan lives in [`weftlyinfo.md`](./weftlyinfo.md) — treat it as the source of truth for design and contribution rules.
 
 ## ✨ Highlights
@@ -321,7 +321,7 @@ alembic/               DB migrations (handled by `make db-upgrade`)
 .claude/               Claude Code config (agents, skills, MCP)
 ```
 
-Full tree + rationale lives in the [bible](./weftlyinfo.md).
+Full tree + rationale lives in the [spec](./weftlyinfo.md).
 
 ---
 
@@ -355,22 +355,15 @@ pytest -m "live"           # live integrations (requires creds)
 
 ---
 
-## 🛡 Licensing & IP
+## 🛡 License
 
 Weftlyflow is **original code** released under the [Apache 2.0 License](./LICENSE).
-It is **not** a fork of n8n.
-See **§23 of the bible** for the clean-room rules every contribution must follow:
-
-- ❌ No copied code
-- ❌ No copied identifiers
-- ❌ No copied node names or credential slugs
-- ✅ Read for architecture, then close the file and write from scratch
 
 ---
 
 ## 🤝 Contributing
 
-Every new node, credential type, or architectural change must preserve the conventions in **§22 of the bible**:
+Every new node, credential type, or architectural change must preserve the conventions in **§22 of the spec**:
 
 - **Strict typing** — `mypy --strict` must pass; no bare `Any`.
 - **Google-style docstrings** on every public class/function.
@@ -389,7 +382,7 @@ make lint && make typecheck && make test
 
 <div align="center">
 
-**Weftlyflow** — built for self-hosters who want n8n-class workflow power, in Python, on their own metal.
+**Weftlyflow** — built for self-hosters who want enterprise-grade workflow automation, in Python, on their own metal.
 
 [⬆ Back to top](#weftlyflow)
 

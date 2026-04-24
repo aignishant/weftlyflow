@@ -1,7 +1,7 @@
-# Weftlyflow — Implementation Bible
+# Weftlyflow — Implementation Spec
 
 > The canonical plan. Every architectural decision, every phase, every coding standard.
-> Treat this file as load-bearing. If code diverges from it, either fix the code or update the bible and note the change in the revision log at the bottom.
+> Treat this file as load-bearing. If code diverges from it, either fix the code or update the spec and note the change in the revision log at the bottom.
 
 ---
 
@@ -41,11 +41,10 @@
 
 - **Name:** Weftlyflow
 - **One-line:** Self-hosted, open-architecture workflow automation platform — visual node graphs, triggers, polling, 100s of integrations, AI agents.
-- **Inspiration:** n8n (fair-code, TypeScript). Weftlyflow is an **independent, clean-room Python reimagination** — the architecture is borrowed at the *conceptual* level, no code/identifiers/data-shape is copied verbatim.
 - **Working directory:** `/home/nishantgupta/Desktop/ng8`
 - **Primary user:** Self-hoster who wants a fully understood, hackable Python codebase with strong docs.
 
-### Why Python (not TypeScript like n8n)
+### Why Python
 - Strong ecosystem for AI/LLM (LangChain-Python, llama-index, pydantic-ai).
 - SQLAlchemy + Alembic + FastAPI is a mature, typed, async-capable server stack.
 - User's primary language preference; existing tooling in `low-spec-2/.claude`.
@@ -60,11 +59,9 @@
 
 ## 2. Non-goals and scope boundaries
 
-- **Not** a drop-in replacement for n8n workflows (different node identifiers, different expression syntax, different credential slugs).
 - **Not** cloud-hosted SaaS in v1 — self-host first, multi-tenant is a feature of the core but there is no hosted offering.
-- **Not** re-implementing every one of n8n's 306 base + 135 AI nodes in v1. See [§25 Node porting priority](#25-node-porting-priority) for the tiering.
-- **Not** a code-for-code translation — where Python idioms (context managers, async generators, dataclasses, pydantic) are cleaner, we use them even if the original uses a different pattern.
-- **Not** compatible with n8n's JSON workflow export format — Weftlyflow has its own schema (intentional, for IP hygiene).
+- **Not** shipping every conceivable integration in v1. See [§25 Node porting priority](#25-node-porting-priority) for the tiering.
+- **Not** a code-for-code port of any prior tool — Python idioms (context managers, async generators, dataclasses, pydantic) are used wherever they're the right fit.
 
 ---
 
@@ -98,7 +95,7 @@
 | **HTTP framework** | FastAPI | Async-first, Pydantic integration, OpenAPI free, WebSocket support for live execution streams. |
 | **Async IO client** | httpx | Shared sync+async API, HTTP/2, used by all HTTP-based nodes. |
 | **ORM / DB** | SQLAlchemy 2.x + Alembic | Typed `Mapped[...]`, async engine, mature migrations. JSONB on Postgres, JSON on SQLite. |
-| **Databases** | SQLite (dev), Postgres (prod). MySQL deferred. | Same choice as n8n; single SQL dialect switch via env. |
+| **Databases** | SQLite (dev), Postgres (prod). MySQL deferred. | Single SQL dialect switch via env. |
 | **Validation** | Pydantic v2 | DTOs, settings, node-parameter schema. |
 | **Task queue** | Celery + Redis | Industry standard, reliable retries, priority queues, Beat for schedules. |
 | **In-process scheduler** | APScheduler | For lightweight polling orchestration that doesn't need full Celery. |
@@ -1167,7 +1164,7 @@ docs/
 │   ├── install.md                    ← Docker compose + pip install
 │   ├── first-workflow.md
 │   └── concepts.md                   ← workflow, node, trigger, credential, expression
-├── architecture.md                   ← same diagram as in this bible
+├── architecture.md                   ← same diagram as in this spec
 ├── guide/
 │   ├── workflows.md
 │   ├── triggers-and-schedules.md
@@ -1312,24 +1309,23 @@ Every module has an `errors.py` (or uses `domain/errors.py`) with named exceptio
 
 ## 23. Intellectual-property compliance rules
 
-Weftlyflow is an **independent implementation inspired by n8n's architecture**. To keep it clean:
+Weftlyflow is **original code** authored from scratch. To keep contributions clean:
 
-1. **Never copy source code** from `/home/nishantgupta/Downloads/n8n-master/`. Read it for understanding, then close the file and write Weftlyflow code from scratch.
-2. **Never copy identifiers** verbatim. Examples:
-   - n8n: `n8n-nodes-base.httpRequest` → Weftlyflow: `weftlyflow.http_request`.
-   - n8n: `IExecuteFunctions` → Weftlyflow: `ExecutionContext` / `NodeExecuteHelpers`.
-   - n8n: `IRunExecutionData` → Weftlyflow: `RunData`.
-   - n8n: `$json`, `$input.all()` — generic enough to keep, but our evaluator is our own.
-3. **Never copy credential slugs.** n8n: `slackOAuth2Api` → Weftlyflow: `weftlyflow.credential.slack_oauth2`.
-4. **Never copy node SVG icons.** Source our own from Lucide / Simple Icons (CC0 or MIT).
-5. **Never copy test fixtures** containing n8n's sample API responses. Re-record our own.
+1. **Never copy source code from any third-party project.** Read external projects for understanding only; close the file and write Weftlyflow code from scratch.
+2. **Use Weftlyflow-native identifiers.** Examples:
+   - Node types: `weftlyflow.http_request`, `weftlyflow.set`, `weftlyflow.if`.
+   - Execution helpers: `ExecutionContext` / `NodeExecuteHelpers`.
+   - Run-data type: `RunData`.
+3. **Use Weftlyflow-native credential slugs**, e.g. `weftlyflow.credential.slack_oauth2`.
+4. **Source our own SVG icons** from Lucide / Simple Icons (CC0 or MIT).
+5. **Record our own test fixtures.** Never paste sample API responses lifted from another project.
 6. **Never copy commit messages, PR descriptions, or changelog entries.**
-7. **Never copy the workflow JSON schema.** Ours intentionally differs (see §7).
-8. **Never fork any n8n file into this repo** — not even as a "starting point."
-9. **Re-read primary API docs** (not n8n's integrations code) when writing integration nodes. Cite the provider's official documentation in the node module docstring.
+7. **Use the Weftlyflow workflow JSON schema** (see §7). Don't import schemas from other tools.
+8. **Never fork third-party files into this repo** — not even as a "starting point."
+9. **Re-read primary API docs** when writing integration nodes. Cite the provider's official documentation in the node module docstring.
 10. **If in doubt, ask.** A PR that introduces content with uncertain provenance must state provenance in the description.
 
-The `.claude/` agents include a **`ip-checker`** agent that scans new files for suspicious similarity (identifiers, string literals) against the n8n source.
+The `.claude/` agents include a **`ip-checker`** agent that scans new files for suspicious provenance (identifiers, string literals copied from external sources).
 
 ---
 
@@ -1466,7 +1462,7 @@ Eighty-one integrations shipped through tranche-26 (see `docs/changelog.md`).
 
 ## 25. Node porting priority
 
-See `memory/project_weftlyflow.md` for context. These are the Weftlyflow-side names — do **not** copy n8n's slugs.
+See `memory/project_weftlyflow.md` for context. These are the Weftlyflow-native node names.
 
 ### Tier 1 — MVP core (must ship in Phase 1–4, ~24 nodes)
 
@@ -1515,7 +1511,7 @@ Chat: `trigger_chat`, `chat_respond`.
 | 1 | Scope overrun (441 nodes) | Miss v1 indefinitely | Strict Tier 1 scope; defer Tier 3 to community contributions. |
 | 2 | Code-node sandbox escape | RCE / data exfiltration | Layered defense: RestrictedPython + subprocess + rlimits + Docker container. Pentest before v1. |
 | 3 | IP / license dispute | Legal risk | §23 rules; automated IP-checker agent in `.claude/`; clean-room process. |
-| 4 | Execution perf vs n8n | Users perceive us as slow | Profile early; use asyncio throughout; batch DB writes; pg `COPY` for bulk run-data. |
+| 4 | Execution perf | Users perceive us as slow | Profile early; use asyncio throughout; batch DB writes; pg `COPY` for bulk run-data. |
 | 5 | Credential encryption key loss | All credentials unusable | `MultiFernet` rotation; documented backup procedure in `docs/self-hosting.md`. |
 | 6 | Leader election split-brain | Duplicate webhook registrations | TTL-based lock; deterministic recovery — every new leader reconciles against `webhooks` table. |
 | 7 | Expression sandbox bypass | RCE in a benign-looking field | RestrictedPython + attr guards; fuzz-test the sandbox in CI. |
@@ -1538,4 +1534,4 @@ Chat: `trigger_chat`, `chat_respond`.
 
 ---
 
-*End of bible. All subsequent design changes must update this file (and its revision log) in the same PR as the change.*
+*End of spec. All subsequent design changes must update this file (and its revision log) in the same PR as the change.*

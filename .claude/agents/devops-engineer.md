@@ -18,7 +18,7 @@ color: orange
 - **Logs**: JSON in prod (`WEFTLYFLOW_LOG_FORMAT=json`); attach `request_id`, `execution_id`, `node_id`.
 - **Database**: Postgres in prod; backups documented; migrations applied via one-shot init container.
 - **Redis**: append-only for broker durability; `maxmemory-policy=noeviction` on the result backend.
-- **Leader election**: §13.3 of the bible. Exactly one beat instance.
+- **Leader election**: §13.3 of the spec. Exactly one beat instance.
 
 ## CI (GitHub Actions) — minimum jobs
 

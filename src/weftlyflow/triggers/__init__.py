@@ -7,7 +7,7 @@ Owns:
     poller.py    : generic :class:`BasePollerNode.poll` runner.
     manager.py   : :class:`ActiveTriggerManager` — activation orchestrator.
 
-The manager runs only on the elected leader instance (see §13.3 of the bible).
+The manager runs only on the elected leader instance (see §13.3 of the spec).
 
 See weftlyinfo.md §13.
 """

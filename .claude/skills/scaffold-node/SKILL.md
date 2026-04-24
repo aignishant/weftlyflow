@@ -24,6 +24,6 @@ allowed-tools: Read, Grep, Glob, Bash(make lint), Bash(make typecheck), Bash(pyt
 
 ## Reminders surfaced to the user
 
-- SVG icon must be sourced from Lucide / Simple Icons / our own — never lifted from n8n.
-- Module docstring must cite the provider's **official** API docs (not n8n's integration page).
+- SVG icon must be sourced from Lucide / Simple Icons / our own — never lifted from third-party projects.
+- Module docstring must cite the provider's **official** API docs.
 - Test fixtures must be handcrafted or from the provider's docs, never copied.

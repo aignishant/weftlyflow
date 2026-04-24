@@ -1,4 +1,4 @@
-"""Phase-1 acceptance test — the 5-node workflow promised in the bible.
+"""Phase-1 acceptance test — the 5-node workflow promised in the spec.
 
 Shape::
 

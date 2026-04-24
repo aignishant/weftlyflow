@@ -3,7 +3,7 @@
 Intentionally a minimal projection of the domain dataclasses: exposing the
 raw JSON-friendly shape lets the frontend round-trip a workflow unchanged.
 Phase 2 does not add extra validation beyond Pydantic's structural checks;
-the bible's §8 validation (cycles, orphan connections) runs inside
+the spec's §8 validation (cycles, orphan connections) runs inside
 :class:`WorkflowGraph` before every execute.
 """
 

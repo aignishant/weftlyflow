@@ -60,9 +60,6 @@
     ],
     "deny": [
       "Bash(make db-reset)"
-    ],
-    "additionalDirectories": [
-      "/home/nishantgupta/Downloads/n8n-master"
     ]
   },
   "ignorePatterns": [
@@ -93,9 +90,8 @@
     "command": "echo 'Veloralm ready'"
   },
   "_comments": {
-    "model": "Valid: claude-opus-4-7, claude-sonnet-4-6, claude-haiku-4-5. Opus for bible edits, architecture, IP-review. Sonnet for routine work.",
+    "model": "Valid: claude-opus-4-7, claude-sonnet-4-6, claude-haiku-4-5. Opus for spec edits, architecture, IP-review. Sonnet for routine work.",
     "permissions.allow": "Read-only + tooling commands. Every `make dev-*` and pip/npm install is in 'ask'.",
-    "permissions.additionalDirectories": "The n8n reference source is added read-only for architecture reference. Never write there.",
     "permissions.deny": "Hard blocks: destructive fs/git, secret files, force-push to main/master, db-reset."
   }
 }

@@ -1,6 +1,6 @@
 """Phase-3 acceptance — a webhook POST triggers a workflow and writes an execution.
 
-Walks the bible's acceptance sentence literally:
+Walks the spec's acceptance sentence literally:
     "An HTTP POST to a webhook URL triggers a workflow, which executes in a
     worker and writes the execution."
 

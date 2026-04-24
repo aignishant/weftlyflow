@@ -6,7 +6,7 @@ description: Parallel deep research across docs, codebase, and prior art.
 
 Answer a hard "how do we do X" question with multiple parallel Explore agents:
 
-1. **Codebase agent** — search Weftlyflow + the n8n reference tree for existing patterns.
+1. **Codebase agent** — search Weftlyflow for existing patterns.
 2. **Upstream docs agent** — check `context7` MCP for live docs of the relevant library (FastAPI, SQLAlchemy, Vue Flow, Celery, RestrictedPython, LangChain, ...).
 3. **Web agent** (if enabled) — search for blog posts, RFCs, recent changelogs.
 

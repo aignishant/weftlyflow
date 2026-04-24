@@ -10,8 +10,7 @@
     {
       "matcher": "Write|Edit",
       "hooks": [
-        { "type": "command", "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/block-secret-writes.sh" },
-        { "type": "command", "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/block-n8n-copy.sh" }
+        { "type": "command", "command": "bash ${CLAUDE_PROJECT_DIR}/.claude/hooks/block-secret-writes.sh" }
       ]
     }
   ],

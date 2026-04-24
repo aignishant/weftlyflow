@@ -19,7 +19,7 @@ allowed-tools: Read, Grep, Glob, Bash(git diff:*), Bash(git log:*), Bash(git sta
 - `print(...)` instead of `structlog`.
 - Layer violation: `src/weftlyflow/domain/**` importing from another Weftlyflow subpackage.
 - File > 400 lines.
-- New public identifier matching an n8n-specific name (delegate to `ip-checker`).
+- New public identifier with unclear provenance (delegate to `ip-checker`).
 
 ## Output
 

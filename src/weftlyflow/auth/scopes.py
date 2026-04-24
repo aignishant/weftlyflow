@@ -4,7 +4,7 @@ Phase-2 rules: global role decides everything. Per-resource ACLs (workflow
 sharing, credential sharing) arrive in Phase 6 when the ``shared_workflows``
 and ``shared_credentials`` tables come online.
 
-Role → scope mapping (per bible §16.3):
+Role → scope mapping (per spec §16.3):
 
 * ``owner``  → ``*`` (everything)
 * ``admin``  → user + workflow + execution + credential read/write

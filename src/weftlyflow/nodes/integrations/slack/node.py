@@ -1,6 +1,6 @@
 """Slack node — post/update/delete messages and list channels.
 
-This is the first Tier-2 integration (bible §25). The node dispatches to
+This is the first Tier-2 integration (spec §25). The node dispatches to
 one of four operations, all of which call Slack's Web API at
 ``https://slack.com/api/<method>`` with ``Authorization: Bearer <token>``
 supplied by a :class:`~weftlyflow.credentials.types.slack_api.SlackApiCredential`.

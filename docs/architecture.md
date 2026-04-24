@@ -1,6 +1,6 @@
 # Architecture
 
-> This page is a condensed view of `weftlyinfo.md §5`. The bible is the canonical source — edit it first, then mirror the changes here.
+> This page is a condensed view of `weftlyinfo.md §5`. The spec is the canonical source — edit it first, then mirror the changes here.
 
 ## Processes
 
