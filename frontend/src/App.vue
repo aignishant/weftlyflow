@@ -2,6 +2,7 @@
 import { RouterView } from "vue-router";
 
 import TopBar from "@/components/TopBar.vue";
+import ToastContainer from "@/components/ui/ToastContainer.vue";
 import { useAuthStore } from "@/stores/auth";
 
 const auth = useAuthStore();
@@ -14,6 +15,7 @@ auth.hydrate();
     <main class="weftlyflow-main">
       <RouterView />
     </main>
+    <ToastContainer />
   </div>
 </template>
 

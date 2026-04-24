@@ -1,5 +1,6 @@
 // Entry point — mounts the Vue app with Pinia + Vue Router.
 
+import "@/styles/tailwind.css";
 import "@/styles/global.css";
 import "@vue-flow/core/dist/style.css";
 import "@vue-flow/core/dist/theme-default.css";

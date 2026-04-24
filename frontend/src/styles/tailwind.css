@@ -1,0 +1,54 @@
+/* Tailwind v4 entrypoint. Bridges the legacy `--wf-*` CSS custom
+   properties into Tailwind `@theme` tokens so utility classes (`bg-surface`,
+   `text-muted`, `border-subtle`) use the exact same palette as the pre-
+   existing `.wf-card`, `.wf-badge`, etc. defined in `global.css`.
+
+   Existing global.css classes remain valid. New UI should prefer the
+   Tailwind utilities or the shadcn-vue primitives in `@/components/ui/`.
+*/
+
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme {
+  /* Palette — mirrors `--wf-*` in global.css so the two stay in sync. */
+  --color-bg: #0f1117;
+  --color-surface: #161924;
+  --color-surface-2: #1c1f2c;
+  --color-border-subtle: #262a36;
+  --color-border-strong: #323746;
+  --color-foreground: #e7eaf3;
+  --color-foreground-muted: #9aa3b2;
+  --color-foreground-subtle: #6c7383;
+  --color-accent: #5c8dff;
+  --color-accent-hover: #7ca3ff;
+  --color-accent-contrast: #0f1117;
+  --color-success: #3dd28d;
+  --color-warning: #f0b455;
+  --color-danger: #f76c6c;
+
+  /* Typography */
+  --font-sans:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue",
+    Arial, sans-serif;
+  --font-mono: "SF Mono", Menlo, Consolas, "Liberation Mono", monospace;
+
+  /* Radii — the legacy `--wf-radius` lives here too. */
+  --radius-sm: 4px;
+  --radius-md: 6px;
+  --radius-lg: 10px;
+
+  /* Motion — shared easing across shadcn primitives. */
+  --ease-out-quad: cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+/* Subtle, consistent focus ring across every control. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--color-accent);
+    outline-offset: 2px;
+    border-radius: var(--radius-sm);
+  }
+}

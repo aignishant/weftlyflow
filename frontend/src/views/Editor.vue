@@ -9,19 +9,29 @@ import {
   type Connection as VueFlowConnection,
   type Edge,
   type Node as FlowNode,
+  type NodeTypesObject,
   VueFlow,
   useVueFlow,
 } from "@vue-flow/core";
 import { MiniMap } from "@vue-flow/minimap";
 import { ulid } from "ulidx";
-import { computed, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
+import { computed, markRaw, onBeforeUnmount, onMounted, reactive, ref, watch } from "vue";
 import { useRouter } from "vue-router";
 
 import { extractErrorMessage } from "@/api/client";
 import { workflows as workflowsApi } from "@/api/endpoints";
+import WorkflowNodeCard from "@/components/canvas/WorkflowNodeCard.vue";
 import ExecutionPanel from "@/components/ExecutionPanel.vue";
 import NodeParameterForm from "@/components/NodeParameterForm.vue";
 import NodePalette from "@/components/NodePalette.vue";
+import Button from "@/components/ui/Button.vue";
+import Dialog from "@/components/ui/Dialog.vue";
+import Kbd from "@/components/ui/Kbd.vue";
+import Separator from "@/components/ui/Separator.vue";
+import Switch from "@/components/ui/Switch.vue";
+import Tooltip from "@/components/ui/Tooltip.vue";
+import { toast } from "@/lib/toast";
+import { ArrowLeft, Keyboard, MousePointerClick } from "lucide-vue-next";
 import { useCredentialsStore } from "@/stores/credentials";
 import { useNodeTypesStore } from "@/stores/nodeTypes";
 import type {
@@ -53,15 +63,52 @@ const activating = ref(false);
 
 const flow = useVueFlow({ id: `editor-${props.id}` });
 
+const paletteRef = ref<InstanceType<typeof NodePalette> | null>(null);
+const shortcutsOpen = ref(false);
+
+const nodeStatuses = computed<Record<string, "idle" | "success" | "error" | "running">>(() => {
+  const out: Record<string, "idle" | "success" | "error" | "running"> = {};
+  if (executing.value) {
+    for (const n of nodes) {
+      out[n.id] = "running";
+    }
+    return out;
+  }
+  const runData = execution.value?.run_data ?? {};
+  for (const n of nodes) {
+    const runs = runData[n.id];
+    if (!runs || runs.length === 0) {
+      out[n.id] = "idle";
+      continue;
+    }
+    const last = runs[runs.length - 1];
+    out[n.id] = last?.status === "error" ? "error" : "success";
+  }
+  return out;
+});
+
 const flowNodes = computed<FlowNode[]>(() =>
-  nodes.map((n) => ({
-    id: n.id,
-    type: "default",
-    position: { x: n.position?.[0] ?? 0, y: n.position?.[1] ?? 0 },
-    data: { label: n.name, slug: n.type },
-    selected: n.id === selectedId.value,
-  })),
+  nodes.map((n) => {
+    const typeInfo = nodeTypesStore.lookup(n.type);
+    return {
+      id: n.id,
+      type: "workflow",
+      position: { x: n.position?.[0] ?? 0, y: n.position?.[1] ?? 0 },
+      data: {
+        label: n.name,
+        slug: n.type,
+        category: typeInfo?.category,
+        status: nodeStatuses.value[n.id] ?? "idle",
+        disabled: n.disabled,
+      },
+      selected: n.id === selectedId.value,
+    };
+  }),
 );
+
+const nodeTypes: NodeTypesObject = {
+  workflow: markRaw(WorkflowNodeCard) as unknown as NodeTypesObject["workflow"],
+};
 
 const flowEdges = computed<Edge[]>(() =>
   connections.map((c, idx) => ({
@@ -85,13 +132,67 @@ onMounted(async () => {
   await Promise.all([nodeTypesStore.loadOnce(), credentialsStore.fetchAll()]);
   await hydrateFromServer();
   loading.value = false;
+  window.addEventListener("keydown", onGlobalKey);
 });
 
 onBeforeUnmount(() => {
   // Drop any Vue Flow internal state so re-entering with the same id doesn't
   // leak the previous graph.
   flow.vueFlowRef.value = null;
+  window.removeEventListener("keydown", onGlobalKey);
 });
+
+function isEditableTarget(target: EventTarget | null): boolean {
+  if (!(target instanceof HTMLElement)) return false;
+  const tag = target.tagName;
+  return (
+    tag === "INPUT" ||
+    tag === "TEXTAREA" ||
+    tag === "SELECT" ||
+    target.isContentEditable
+  );
+}
+
+function onGlobalKey(event: KeyboardEvent): void {
+  const meta = event.metaKey || event.ctrlKey;
+  const editable = isEditableTarget(event.target);
+
+  // Cmd/Ctrl+S → save
+  if (meta && event.key.toLowerCase() === "s") {
+    event.preventDefault();
+    if (dirty.value && !saving.value) {
+      void onSave();
+    }
+    return;
+  }
+  // Cmd/Ctrl+Enter → execute
+  if (meta && event.key === "Enter") {
+    event.preventDefault();
+    if (!executing.value) {
+      void onExecute();
+    }
+    return;
+  }
+  // Cmd/Ctrl+K → focus palette search
+  if (meta && event.key.toLowerCase() === "k") {
+    event.preventDefault();
+    void paletteRef.value?.focusSearch();
+    return;
+  }
+  // ? → open shortcuts cheatsheet (ignore when typing)
+  if (!editable && event.key === "?") {
+    event.preventDefault();
+    shortcutsOpen.value = true;
+    return;
+  }
+  // Delete / Backspace → remove selected node (ignore when typing)
+  if (!editable && (event.key === "Delete" || event.key === "Backspace")) {
+    if (selectedNode.value) {
+      event.preventDefault();
+      handleDeleteSelected();
+    }
+  }
+}
 
 async function hydrateFromServer(): Promise<void> {
   const fetched = await workflowsApi.get(props.id);
@@ -243,8 +344,11 @@ async function save(): Promise<Workflow> {
 async function onSave(): Promise<void> {
   try {
     await save();
+    toast.success("Workflow saved");
   } catch (err) {
-    executionError.value = extractErrorMessage(err);
+    const message = extractErrorMessage(err);
+    executionError.value = message;
+    toast.error("Save failed", message);
   }
 }
 
@@ -267,8 +371,15 @@ async function onExecute(): Promise<void> {
       await save();
     }
     execution.value = await workflowsApi.execute(workflow.value.id, [{}]);
+    if (execution.value.status === "success") {
+      toast.success("Execution finished");
+    } else {
+      toast.error("Execution failed", `Status: ${execution.value.status}`);
+    }
   } catch (err) {
-    executionError.value = extractErrorMessage(err);
+    const message = extractErrorMessage(err);
+    executionError.value = message;
+    toast.error("Execution failed", message);
   } finally {
     executing.value = false;
   }
@@ -288,8 +399,11 @@ async function onToggleActive(): Promise<void> {
     workflow.value = next
       ? await workflowsApi.activate(workflow.value.id)
       : await workflowsApi.deactivate(workflow.value.id);
+    toast.success(next ? "Workflow activated" : "Workflow deactivated");
   } catch (err) {
-    executionError.value = extractErrorMessage(err);
+    const message = extractErrorMessage(err);
+    executionError.value = message;
+    toast.error("Activation failed", message);
   } finally {
     activating.value = false;
   }
@@ -309,47 +423,122 @@ watch(
 
 <template>
   <div class="editor">
-    <header class="editor-header">
-      <button
-        data-testid="editor-back"
-        @click="onBack"
-      >
-        ← Back
-      </button>
+    <header
+      class="flex items-center gap-3 px-4 h-12 bg-[var(--color-surface)] border-b border-[var(--color-border-subtle)] shrink-0"
+    >
+      <Tooltip content="Back to workflows">
+        <Button
+          variant="ghost"
+          size="icon"
+          data-testid="editor-back"
+          aria-label="Back to workflows"
+          @click="onBack"
+        >
+          <ArrowLeft class="h-4 w-4" />
+        </Button>
+      </Tooltip>
+
+      <Separator
+        vertical
+        inset
+      />
+
       <input
         v-if="workflow"
         :value="workflow.name"
         data-testid="editor-name"
+        placeholder="Untitled workflow"
+        class="flex-1 max-w-[360px] bg-transparent border border-transparent rounded-[var(--radius-md)] px-2 py-1 text-[15px] font-semibold text-[var(--color-foreground)] placeholder:text-[var(--color-foreground-subtle)] hover:border-[var(--color-border-subtle)] focus:border-[var(--color-accent)] focus:outline-none transition-colors"
         @input="onRename(($event.target as HTMLInputElement).value)"
       >
+
       <span
-        class="wf-badge"
-        :class="workflow?.active ? 'success' : 'waiting'"
+        v-if="dirty"
+        class="inline-flex items-center gap-1.5 text-[11px] text-[var(--color-warning)] italic"
       >
-        {{ workflow?.active ? "active" : "inactive" }}
+        <span class="h-1.5 w-1.5 rounded-full bg-[var(--color-warning)] animate-pulse" />
+        unsaved changes
       </span>
-      <div class="spacer" />
-      <button
-        data-testid="editor-save"
-        :disabled="saving || !dirty"
-        @click="onSave"
-      >
-        {{ saving ? "Saving…" : dirty ? "Save" : "Saved" }}
-      </button>
-      <button
-        data-testid="editor-toggle-active"
-        :disabled="activating"
-        @click="onToggleActive"
-      >
-        {{ workflow?.active ? "Deactivate" : "Activate" }}
-      </button>
+
+      <div class="flex-1" />
+
+      <Tooltip content="Save (⌘S)">
+        <Button
+          variant="default"
+          size="sm"
+          data-testid="editor-save"
+          :loading="saving"
+          :disabled="!dirty"
+          @click="onSave"
+        >
+          {{ saving ? "Saving" : dirty ? "Save" : "Saved" }}
+        </Button>
+      </Tooltip>
+
+      <Separator
+        vertical
+        inset
+      />
+
+      <div class="flex items-center gap-2">
+        <span class="text-[11px] font-semibold uppercase tracking-wider text-[var(--color-foreground-subtle)]">
+          {{ workflow?.active ? "Active" : "Inactive" }}
+        </span>
+        <Tooltip :content="workflow?.active ? 'Deactivate workflow' : 'Activate workflow'">
+          <Switch
+            data-testid="editor-toggle-active"
+            :model-value="workflow?.active ?? false"
+            :loading="activating"
+            :aria-label="workflow?.active ? 'Deactivate workflow' : 'Activate workflow'"
+            @update:model-value="() => onToggleActive()"
+          />
+        </Tooltip>
+      </div>
+
+      <Separator
+        vertical
+        inset
+      />
+
+      <Tooltip content="Keyboard shortcuts (?)">
+        <Button
+          variant="ghost"
+          size="icon"
+          aria-label="Keyboard shortcuts"
+          data-testid="editor-shortcuts"
+          @click="shortcutsOpen = true"
+        >
+          <Keyboard class="h-4 w-4" />
+        </Button>
+      </Tooltip>
     </header>
 
     <div
       v-if="loading"
-      class="loading"
+      class="flex-1 flex flex-col"
+      data-testid="editor-loading"
     >
-      Loading workflow…
+      <div class="grid grid-cols-[260px_1fr_320px] flex-1 min-h-0">
+        <div class="border-r border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-3 space-y-2">
+          <div class="h-8 w-full rounded-[var(--radius-md)] bg-[var(--color-surface-2)] animate-pulse" />
+          <div
+            v-for="i in 6"
+            :key="i"
+            class="h-10 w-full rounded-[var(--radius-md)] bg-[var(--color-surface-2)] animate-pulse"
+          />
+        </div>
+        <div class="bg-[var(--color-bg)] flex items-center justify-center">
+          <div class="flex flex-col items-center gap-3 text-[var(--color-foreground-subtle)]">
+            <div class="h-10 w-10 rounded-full border-2 border-[var(--color-border-subtle)] border-t-[var(--color-accent)] animate-spin" />
+            <span class="text-xs">Loading workflow…</span>
+          </div>
+        </div>
+        <div class="border-l border-[var(--color-border-subtle)] bg-[var(--color-surface)] p-3 space-y-2">
+          <div class="h-6 w-3/4 rounded-[var(--radius-sm)] bg-[var(--color-surface-2)] animate-pulse" />
+          <div class="h-16 w-full rounded-[var(--radius-md)] bg-[var(--color-surface-2)] animate-pulse" />
+          <div class="h-16 w-full rounded-[var(--radius-md)] bg-[var(--color-surface-2)] animate-pulse" />
+        </div>
+      </div>
     </div>
 
     <div
@@ -357,14 +546,16 @@ watch(
       class="workspace"
     >
       <NodePalette
+        ref="paletteRef"
         :types="nodeTypesStore.items"
         @select="handleAddNode"
       />
 
-      <div class="canvas-area">
+      <div class="canvas-area relative">
         <VueFlow
           :nodes="flowNodes"
           :edges="flowEdges"
+          :node-types="nodeTypes"
           :default-viewport="{ x: 0, y: 0, zoom: 1 }"
           fit-view-on-init
           @node-click="(e) => handleNodeSelect(e.node.id)"
@@ -376,6 +567,23 @@ watch(
           <MiniMap />
           <Controls />
         </VueFlow>
+
+        <div
+          v-if="nodes.length === 0"
+          class="pointer-events-none absolute inset-0 flex items-center justify-center"
+          data-testid="canvas-empty-state"
+        >
+          <div class="pointer-events-auto flex flex-col items-center gap-3 rounded-[var(--radius-lg)] border border-dashed border-[var(--color-border-strong)] bg-[var(--color-surface)]/80 backdrop-blur-sm px-8 py-6 text-center max-w-sm">
+            <MousePointerClick class="h-8 w-8 text-[var(--color-accent)]" />
+            <h3 class="text-sm font-semibold text-[var(--color-foreground)] m-0">
+              Start by adding a node
+            </h3>
+            <p class="text-xs text-[var(--color-foreground-muted)] m-0">
+              Pick a trigger from the palette on the left, or press
+              <Kbd>⌘</Kbd> <Kbd>K</Kbd> to focus search.
+            </p>
+          </div>
+        </div>
 
         <ExecutionPanel
           :execution="execution"
@@ -396,14 +604,50 @@ watch(
           @update-credential="updateSelectedCredential"
           @delete="handleDeleteSelected"
         />
-        <p
+        <div
           v-else
-          class="empty"
+          class="flex flex-col items-center justify-center h-full p-6 text-center text-[var(--color-foreground-subtle)]"
         >
-          Select a node to edit it.
-        </p>
+          <p class="text-sm m-0">
+            Select a node to edit it.
+          </p>
+          <p class="text-xs mt-1 m-0">
+            Click a node on the canvas or add one from the palette.
+          </p>
+        </div>
       </aside>
     </div>
+
+    <Dialog
+      v-model:open="shortcutsOpen"
+      title="Keyboard shortcuts"
+    >
+      <ul class="flex flex-col divide-y divide-[var(--color-border-subtle)] text-sm">
+        <li class="flex items-center justify-between py-2">
+          <span class="text-[var(--color-foreground-muted)]">Save workflow</span>
+          <span class="flex items-center gap-1"><Kbd>⌘</Kbd><Kbd>S</Kbd></span>
+        </li>
+        <li class="flex items-center justify-between py-2">
+          <span class="text-[var(--color-foreground-muted)]">Execute workflow</span>
+          <span class="flex items-center gap-1"><Kbd>⌘</Kbd><Kbd>Enter</Kbd></span>
+        </li>
+        <li class="flex items-center justify-between py-2">
+          <span class="text-[var(--color-foreground-muted)]">Focus node search</span>
+          <span class="flex items-center gap-1"><Kbd>⌘</Kbd><Kbd>K</Kbd></span>
+        </li>
+        <li class="flex items-center justify-between py-2">
+          <span class="text-[var(--color-foreground-muted)]">Delete selected node</span>
+          <span class="flex items-center gap-1"><Kbd>Delete</Kbd></span>
+        </li>
+        <li class="flex items-center justify-between py-2">
+          <span class="text-[var(--color-foreground-muted)]">Show this cheatsheet</span>
+          <span class="flex items-center gap-1"><Kbd>?</Kbd></span>
+        </li>
+      </ul>
+      <p class="text-[11px] text-[var(--color-foreground-subtle)] mt-3 mb-0">
+        On Windows / Linux, <Kbd>Ctrl</Kbd> replaces <Kbd>⌘</Kbd>.
+      </p>
+    </Dialog>
   </div>
 </template>
 
@@ -413,32 +657,6 @@ watch(
   flex-direction: column;
   height: 100%;
   min-height: 0;
-}
-.editor-header {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  padding: 8px 16px;
-  background: var(--wf-bg-elevated);
-  border-bottom: 1px solid var(--wf-border);
-  flex: 0 0 auto;
-}
-.editor-header input {
-  flex: 0 1 320px;
-  background: transparent;
-  border: 1px solid transparent;
-  font-weight: 600;
-  font-size: 15px;
-}
-.editor-header input:focus {
-  border-color: var(--wf-border);
-}
-.editor-header .spacer {
-  flex: 1;
-}
-.loading {
-  padding: 40px;
-  color: var(--wf-text-muted);
 }
 .workspace {
   flex: 1;
@@ -460,9 +678,5 @@ watch(
   border-left: 1px solid var(--wf-border);
   overflow-y: auto;
   min-width: 0;
-}
-.empty {
-  padding: 24px;
-  color: var(--wf-text-muted);
 }
 </style>
