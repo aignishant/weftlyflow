@@ -1044,10 +1044,22 @@ Debounced POST every 2 seconds when `dirty == true` to a "draft" endpoint. Expli
 **LLM providers** (one node each):
 - `llm_openai`, `llm_anthropic`, `llm_google`, `llm_ollama`, `llm_mistral`, `llm_groq`, `llm_azure_openai`, `llm_bedrock`.
 
-**Agents** (a node with `ai_tool` input ports):
+**Agents** — vendor-agnostic building blocks over `llm_*` nodes:
 - `agent_react` (tool-using ReAct loop).
-- `agent_openai_functions` / `agent_anthropic_tools` (function-calling style).
-- `agent_plan_execute` (plan-then-execute).
+- `agent_tool_dispatch` (fans an LLM response's tool-call list onto a
+  `calls` port; a `shape` parameter — `openai`, `anthropic`, `custom` —
+  handles vendor differences without duplicating logic). Pair with a
+  Switch / HTTP Request / Execute Workflow to run the tool.
+- `agent_tool_result` (encodes the tool's output back into a
+  vendor-shaped message so it can be appended to the conversation). The
+  same `shape` parameter round-trips through the LLM.
+- `agent_plan_execute` (plan-then-execute) — *planned*.
+
+Rationale for dropping the earlier `agent_openai_functions` /
+`agent_anthropic_tools` design: per-vendor agent nodes duplicate the
+control loop. Splitting the problem into `dispatch → run → result`
+building blocks lets one LLM node + one dispatcher + one result-encoder
+cover every vendor, with the workflow graph holding the loop state.
 
 **Memory**:
 - `memory_buffer` (full history), `memory_summary` (rolling summary), `memory_window` (last-N), `memory_vector`.
@@ -1486,7 +1498,7 @@ Per-integration ticket. Don't bulk-port.
 
 LLM: `llm_openai`, `llm_anthropic`, `llm_google`, `llm_ollama`, `llm_mistral`.
 
-Agents: `agent_react`, `agent_openai_functions`, `agent_anthropic_tools`.
+Agents: `agent_react`, `agent_tool_dispatch`, `agent_tool_result` (see §18.2 for the design rationale — vendor-agnostic dispatch/result pair over per-vendor agent nodes).
 
 Memory: `memory_buffer`, `memory_summary`, `memory_window`.
 

@@ -4,6 +4,30 @@ All notable user-facing changes. Format follows [Keep a Changelog](https://keepa
 
 ## [Unreleased]
 
+## [1.0.0] — 2026-04-24
+
+First production release. Cuts the line at ~85 built-in integration nodes
+(up from the 48 originally targeted), the core execution engine, credential
+system with external-secret providers, webhook/trigger infrastructure, SSO
+(OIDC + SAML), audit log, Prometheus metrics, execution-data storage backends,
+and a Helm chart. The Python package is pinned at `1.0.0` and the
+`Development Status` classifier is now `5 - Production/Stable`. See the
+`Known gaps` block below for what is *intentionally* deferred to 1.x.
+
+### Added — Release hardening (2026-04-24)
+
+**Security + load test scaffolding**
+- New `tests/security/` suite (auth, webhook, expression-injection
+  boundary probes) behind the `security` pytest marker and
+  `make test-security`.
+- New `tests/load/` scaffolding: in-process `load`-marked throughput
+  probe on the expression engine (`make test-load`) plus a Locust
+  scenario (`tests/load/locustfile.py`, run with `make loadgen`).
+- New `load` optional dep-extra (`pip install -e ".[load]"`) carrying
+  `locust`.
+- Operator-facing docs: `docs/contributing/security-testing.md` and
+  `docs/contributing/load-testing.md`.
+
 ### Added — Phase 9 (2026-04-24)
 
 **Execution-data storage backends**
@@ -138,3 +162,6 @@ All notable user-facing changes. Format follows [Keep a Changelog](https://keepa
 - **SAML SLO** (single log-out) and encrypted assertions — both supported by
   `python3-saml` but intentionally not exposed yet; Weftlyflow sessions are
   stateless JWTs and IdP-initiated logout is a separate design question.
+  See `docs/design/saml-slo-and-encryption.md` for the deferred-scope
+  design note, including the config / routes / tests a future
+  contributor would need to add.

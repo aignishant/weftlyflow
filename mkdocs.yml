@@ -120,8 +120,11 @@ nav:
   - API reference: reference/
   - Contributing:
       - contributing/node-plugins.md
+      - contributing/tier-3-integrations.md
       - contributing/credential-plugins.md
       - contributing/coding-standards.md
+      - contributing/security-testing.md
+      - contributing/load-testing.md
       - contributing/ip-compliance.md
   - Changelog: changelog.md
 

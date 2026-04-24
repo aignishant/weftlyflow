@@ -1,5 +1,6 @@
 .PHONY: help install dev-api dev-worker dev-beat dev-frontend \
-        lint format typecheck test test-unit test-integration test-node coverage \
+        lint format typecheck test test-unit test-integration test-node \
+        test-security test-load loadgen coverage \
         docs-serve docs-build docs-gen \
         db-upgrade db-downgrade db-revision db-reset \
         docker-build docker-up docker-down \
@@ -49,6 +50,15 @@ test-integration: ## Integration tests (needs Redis + SQLite)
 
 test-node: ## Per-node tests
 	pytest -m node
+
+test-security: ## Defensive-behaviour probes at the API boundary
+	pytest -m security tests/security
+
+test-load: ## In-process wall-clock probes on hot paths (loose budgets)
+	pytest -m load tests/load
+
+loadgen: ## Start Locust UI against a running stack on :5678
+	locust -f tests/load/locustfile.py --host http://localhost:5678
 
 test-all: ## Everything except live/load
 	pytest -m "not live and not load"

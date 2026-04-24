@@ -25,5 +25,5 @@ The canonical design document is `/IMPLEMENTATION_BIBLE.md` at the repo root.
 
 from __future__ import annotations
 
-__version__ = "0.1.0a0"
+__version__ = "1.0.0"
 __all__ = ["__version__"]

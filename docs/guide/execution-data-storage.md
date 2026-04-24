@@ -115,3 +115,53 @@ protocol (see `weftlyflow.db.execution_storage`) is stable — a custom
 backend implements three async methods and is injected into
 `ExecutionRepository(data_store=...)` or registered via
 `set_default_store()`. Community contributions welcome.
+
+### Implementation sketch
+
+The filesystem backend is the closest analogue. An S3 backend should:
+
+1. Take the same "shard by year/month" key layout — e.g.
+   `<prefix>/<yyyy>/<mm>/<execution_id>.json`. Year/month grouping
+   keeps lifecycle rules simple (`lifecycle.Expiration` on a prefix
+   with a `/2025/09/` filter).
+2. Use `aioboto3` or wrap `boto3` in `asyncio.to_thread` the same way
+   `AWSSecretsManagerProvider` already does. Do **not** spin the sync
+   client on every call — cache a session per provider instance.
+3. Write with `PutObject` and `ContentType: application/json`. Reads
+   go through `GetObject` + `.read()`. Deletes via `DeleteObject`;
+   swallow 404 the same way the FS store ignores
+   `FileNotFoundError`.
+4. Store `external_ref` as the full S3 URI
+   (`s3://<bucket>/<key>`), not just the key — the URI is
+   self-describing across bucket renames.
+5. Required settings (mirror the FS pattern):
+   - `execution_data_s3_bucket`
+   - `execution_data_s3_prefix` (default `weftlyflow/exec`)
+   - `execution_data_s3_region`
+   - `execution_data_s3_endpoint_url` — optional, for S3-compatible
+     object stores (MinIO, R2, Wasabi).
+   - Credentials follow the usual boto3 chain (env, instance
+     profile, `~/.aws/credentials`); no special handling needed.
+6. Ship behind a new `s3` optional extra:
+   ```toml
+   s3 = ["aioboto3>=12.0"]
+   ```
+   Import `aioboto3` lazily inside the store module so the default
+   install stays dependency-free.
+7. Tests belong under `tests/unit/db/test_execution_storage_s3.py`,
+   using [moto](https://github.com/getmoto/moto)
+   (`@mock_aws` decorator) to stub S3 — no live AWS calls in CI.
+
+### When to build it
+
+Trigger conditions:
+
+- A deployment crosses ~100 GB of execution payload and wants to
+  tier to a cheaper storage class than Postgres or local disk.
+- A multi-region deployment needs payload access from pods in a
+  different AZ than the FS volume lives in.
+
+Until one of those fires, `fs` backend with a shared volume (EFS,
+Longhorn, CephFS) is sufficient and simpler to operate. The `fs`
+backend has been load-tested up to ~500 GB with no operational
+issues.

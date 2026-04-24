@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "weftlyflow"
-version = "0.1.0a0"
+version = "1.0.0"
 description = "Self-hosted workflow automation platform — Python backend."
 readme = "README.md"
 requires-python = ">=3.11"
@@ -12,7 +12,7 @@ license = { file = "LICENSE" }
 authors = [{ name = "Weftlyflow contributors" }]
 keywords = ["workflow", "automation", "orchestration", "webhooks", "ai-agents"]
 classifiers = [
-    "Development Status :: 2 - Pre-Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
     "License :: OSI Approved :: Apache Software License",
     "Programming Language :: Python :: 3",
@@ -107,7 +107,10 @@ aws-secrets = [
     "boto3>=1.34",
     "botocore>=1.34",
 ]
-all = ["weftlyflow[dev,docs,ai,sso,aws-secrets]"]
+load = [
+    "locust>=2.25",
+]
+all = ["weftlyflow[dev,docs,ai,sso,aws-secrets,load]"]
 
 [project.scripts]
 weftlyflow = "weftlyflow.cli:app"
@@ -210,6 +213,7 @@ markers = [
     "node: per-node test",
     "live: hits real external services (opt-in)",
     "load: performance / load test",
+    "security: defensive-behaviour probes at the API boundary",
     "sandbox: spawns real subprocesses for the Code-node sandbox",
 ]
 
