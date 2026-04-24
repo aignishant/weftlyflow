@@ -21,17 +21,18 @@ from weftlyflow.nodes.registry import NodeRegistry
 def loaded_registry() -> NodeRegistry:
     """Return a registry populated with every built-in node.
 
-    One hundred and eighteen built-ins as of the Phase-7
-    agent-tool-result slice: every Phase-6-core node, eighty-one
-    Tier-2 integrations, the self-hosted Ollama LLM node, the memory
-    trio (``memory_buffer`` / ``memory_window`` / ``memory_summary``),
-    the three guardrails (``guard_pii_redact``,
-    ``guard_jailbreak_detect``, ``guard_schema_enforce``), the
-    ``text_splitter`` RAG chunker, the in-process ``vector_memory``
-    store, the dependency-free ``embed_local`` hashing embedder, the
-    ``chat_respond`` envelope shaper, the ``agent_tool_dispatch``
-    LLM-to-tool fan-out, and the ``agent_tool_result`` encoder that
-    closes the ReAct loop. The Code node (``weftlyflow.code``) is
+    One hundred and nineteen built-ins as of the Phase-7
+    trigger-chat slice: every Phase-6-core node, eighty-one Tier-2
+    integrations, the self-hosted Ollama LLM node, the memory trio
+    (``memory_buffer`` / ``memory_window`` / ``memory_summary``), the
+    three guardrails (``guard_pii_redact``, ``guard_jailbreak_detect``,
+    ``guard_schema_enforce``), the ``text_splitter`` RAG chunker, the
+    in-process ``vector_memory`` store, the dependency-free
+    ``embed_local`` hashing embedder, the ``chat_respond`` envelope
+    shaper, the ``agent_tool_dispatch`` LLM-to-tool fan-out, the
+    ``agent_tool_result`` encoder that closes the ReAct loop, and the
+    ``trigger_chat`` inbound-chat seed-item unwrapper. The Code node
+    (``weftlyflow.code``) is
     deliberately excluded from the default count — it is now gated
     behind ``settings.enable_code_node`` until the subprocess sandbox
     runner lands (see IMPLEMENTATION_BIBLE.md §26 risk #2). Tests that
@@ -39,7 +40,7 @@ def loaded_registry() -> NodeRegistry:
     """
     registry = NodeRegistry()
     count = registry.load_builtins()
-    assert count == 118, f"expected 118 built-in nodes, got {count}"
+    assert count == 119, f"expected 119 built-in nodes, got {count}"
     return registry
 
 

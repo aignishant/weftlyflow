@@ -89,10 +89,53 @@ def _workflow_with_schedule(*, interval: int = 60) -> Workflow:
     )
 
 
+def _workflow_with_chat_trigger(*, path: str = "chat/room-1") -> Workflow:
+    trigger = Node(
+        id=new_node_id(),
+        name="Chat",
+        type="weftlyflow.trigger_chat",
+        parameters={"path": path},
+    )
+    return Workflow(
+        id=new_workflow_id(),
+        project_id="pr_demo",
+        name="chat-test",
+        nodes=[trigger],
+        connections=[],
+    )
+
+
 def test_is_trigger_type_only_matches_known() -> None:
     assert is_trigger_type("weftlyflow.webhook_trigger")
     assert is_trigger_type("weftlyflow.schedule_trigger")
+    assert is_trigger_type("weftlyflow.trigger_chat")
     assert not is_trigger_type("weftlyflow.no_op")
+
+
+async def test_activate_registers_chat_trigger_on_webhook_registry(session_factory) -> None:  # type: ignore[no-untyped-def]
+    registry = WebhookRegistry()
+    scheduler = InMemoryScheduler()
+    queue = _RecordingQueue()
+    leader = InMemoryLeaderLock()
+    leader.acquire()
+    manager = ActiveTriggerManager(
+        session_factory=session_factory,
+        registry=registry,
+        scheduler=scheduler,
+        queue=queue,
+        leader=leader,
+    )
+
+    wf = _workflow_with_chat_trigger(path="chat/room-1")
+    result = await manager.activate(wf)
+
+    assert result.errors == []
+    assert result.webhooks_registered == ["chat/room-1"]
+    assert registry.match("chat/room-1", "POST") is not None
+
+    async with session_factory() as session:
+        rows = await WebhookRepository(session).list_for_workflow(wf.id)
+    assert len(rows) == 1
 
 
 async def test_activate_registers_webhook_entry_and_row(session_factory) -> None:  # type: ignore[no-untyped-def]

@@ -48,6 +48,10 @@ log = structlog.get_logger(__name__)
 
 WEBHOOK_TRIGGER_TYPE = "weftlyflow.webhook_trigger"
 SCHEDULE_TRIGGER_TYPE = "weftlyflow.schedule_trigger"
+CHAT_TRIGGER_TYPE = "weftlyflow.trigger_chat"
+_WEBHOOK_BACKED_TRIGGER_TYPES: frozenset[str] = frozenset(
+    {WEBHOOK_TRIGGER_TYPE, CHAT_TRIGGER_TYPE},
+)
 
 
 @dataclass(slots=True)
@@ -102,7 +106,7 @@ class ActiveTriggerManager:
                 if node.disabled:
                     continue
                 try:
-                    if node.type == WEBHOOK_TRIGGER_TYPE:
+                    if node.type in _WEBHOOK_BACKED_TRIGGER_TYPES:
                         path = await self._register_webhook(session, workflow, node)
                         result.webhooks_registered.append(path)
                     elif node.type == SCHEDULE_TRIGGER_TYPE:
@@ -296,7 +300,7 @@ def _optional_int(value: Any) -> int | None:
 
 def is_trigger_type(node_type: str) -> bool:
     """Return True when ``node_type`` is managed by the activation flow."""
-    return node_type in {WEBHOOK_TRIGGER_TYPE, SCHEDULE_TRIGGER_TYPE}
+    return node_type in _WEBHOOK_BACKED_TRIGGER_TYPES or node_type == SCHEDULE_TRIGGER_TYPE
 
 
 def _schedule_on_loop(loop: Any, coro: Any) -> None:
