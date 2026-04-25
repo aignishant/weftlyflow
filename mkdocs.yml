@@ -153,6 +153,20 @@ markdown_extensions:
 nav:
   - Home: index.md
   - Architecture: architecture.md
+  - Source walkthrough:
+      - walkthrough/index.md
+      - How to read this project: walkthrough/onboarding.md
+      - Repository tour: walkthrough/repo-tour.md
+      - Backend:
+          - walkthrough/backend/index.md
+          - Domain → Engine → Nodes: walkthrough/backend/domain-engine-nodes.md
+          - Server & Database: walkthrough/backend/server-db.md
+          - Triggers, Worker, Webhooks: walkthrough/backend/triggers-worker-webhooks.md
+          - Auth, Credentials, Expression: walkthrough/backend/auth-credentials-expression.md
+          - Cross-cutting modules: walkthrough/backend/cross-cutting.md
+      - Frontend (Vue 3): walkthrough/frontend.md
+      - Data-flow tracer: walkthrough/data-flow.md
+      - Source backtracking: walkthrough/source-backtrack.md
   - Getting started:
       - getting-started/install.md
       - getting-started/first-workflow.md
