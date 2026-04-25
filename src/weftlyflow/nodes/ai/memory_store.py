@@ -184,8 +184,8 @@ def append_summary_messages(
         * ``summary`` — current summary string (unchanged by this call).
         * ``messages`` — the retained tail (up to ``max_messages``).
         * ``overflow`` — the oldest messages that fell off, in chronological
-          order. Callers typically feed these to an LLM to produce an
-          updated summary, then call :func:`replace_summary`.
+            order. Callers typically feed these to an LLM to produce an
+            updated summary, then call :func:`replace_summary`.
 
     Raises:
         ValueError: when ``max_messages`` is non-positive.
