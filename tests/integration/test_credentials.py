@@ -146,6 +146,6 @@ async def test_http_request_node_uses_expression_and_credential(
     sent = route.calls.last.request
     assert sent.headers["authorization"] == "Bearer my-secret-token"
     # Run-data carries the parsed response.
-    http_out = body["run_data"]["node_http"][0]["items"][0][0]
+    http_out = body["run_data"]["node_http"][0]["items"][0][0]["json"]
     assert http_out["status_code"] == 200
     assert http_out["body"] == {"id": 123, "name": "widget"}

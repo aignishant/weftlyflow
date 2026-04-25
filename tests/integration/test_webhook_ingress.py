@@ -102,8 +102,8 @@ async def test_webhook_activate_ingress_executes_workflow(
 
     # 4. The Set node should see the flattened webhook body.
     tag_outputs = run["run_data"]["node_tag"][0]["items"][0]
-    assert tag_outputs[0]["tagged"] is True
-    assert tag_outputs[0]["body"] == {"name": "world"}
+    assert tag_outputs[0]["json"]["tagged"] is True
+    assert tag_outputs[0]["json"]["body"] == {"name": "world"}
 
 
 async def test_unregistered_webhook_returns_404(client: AsyncClient) -> None:

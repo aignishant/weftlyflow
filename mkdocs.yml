@@ -1,7 +1,8 @@
 site_name: Weftlyflow
 site_description: Self-hosted workflow automation platform (Python backend, Vue 3 frontend).
 site_author: Weftlyflow contributors
-repo_url: https://example.com/weftlyflow
+repo_url: https://github.com/aignishant/weftlyflow
+repo_name: aignishant/weftlyflow
 edit_uri: edit/main/docs/
 docs_dir: docs
 site_dir: site
