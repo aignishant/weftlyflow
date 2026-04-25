@@ -240,6 +240,23 @@
 
 /* ---- Sidebar / TOC ---------------------------------------- */
 
+/* Active top-level pages render TWO links in the left nav:
+   a <label> toggling the embedded TOC and the real <a>. The right
+   sidebar already shows the TOC on wide screens, so kill the label
+   to remove the visible duplicate "Architecture / Home / Changelog". */
+@media screen and (min-width: 76.25em) {
+  .md-nav--primary
+    .md-nav__item--active
+    > label.md-nav__link[for^="__toc"] {
+    display: none;
+  }
+  .md-nav--primary
+    .md-nav__item--active
+    > nav.md-nav--secondary {
+    display: none;
+  }
+}
+
 .md-nav__title { font-weight: 700; }
 
 .md-nav__link--active,
