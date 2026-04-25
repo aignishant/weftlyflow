@@ -43,6 +43,8 @@ jobs:
           pip install -e ".[docs,ai]"
 
       - name: Build site (strict)
+        env:
+          DISABLE_MKDOCS_2_WARNING: "true"
         run: mkdocs build --strict
 
       - name: Upload artifact
